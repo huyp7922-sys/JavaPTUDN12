@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+
+<StackPane xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="com.ptudn12.main.controller.LoginController"
+           stylesheets="@styles.css"
+           styleClass="root"
+           prefWidth="1040" prefHeight="585">
+
+
+    <!-- Login Card - Positioned at RIGHT -->
+    <VBox alignment="CENTER" spacing="25" 
+          styleClass="login-card"
+          maxWidth="420" minWidth="420"
+          maxHeight="550" minHeight="550">
+        
+        <padding>
+            <Insets top="50" right="45" bottom="50" left="45"/>
+        </padding>
+
+        <StackPane.alignment>CENTER_RIGHT</StackPane.alignment>
+        <StackPane.margin>
+            <Insets right="50"/>
+        </StackPane.margin>
+
+        <!-- Title -->
+        <VBox alignment="CENTER" spacing="10">
+            <Label text="Đăng Nhập Hệ Thống" styleClass="title"/>
+            <Label text="Vui lòng nhập thông tin đăng nhập" styleClass="subtitle"/>
+        </VBox>
+
+        <!-- Spacer -->
+        <Region prefHeight="10"/>
+
+        <!-- Username Field -->
+        <VBox spacing="10">
+            <Label text="Tên đăng nhập / Email" styleClass="field-label"/>
+            <TextField fx:id="usernameField" 
+                       promptText="Nhập tên đăng nhập hoặc email"
+                       styleClass="text-field"
+                       prefHeight="45"/>
+        </VBox>
+
+        <!-- Password Field -->
+        <VBox spacing="10">
+            <Label text="Mật khẩu" styleClass="field-label"/>
+            <PasswordField fx:id="passwordField" 
+                           promptText="Nhập mật khẩu"
+                           styleClass="password-field"
+                           prefHeight="45"/>
+        </VBox>
+
+        <!-- Login Button -->
+        <Button text="Đăng Nhập" 
+                onAction="#handleLogin"
+                maxWidth="Infinity"
+                prefHeight="50"
+                styleClass="login-button">
+            <VBox.margin>
+                <Insets top="10"/>
+            </VBox.margin>
+        </Button>
+
+        <!-- Spacer -->
+        <Region prefHeight="5"/>
+    </VBox>
+
+</StackPane>
