@@ -1,0 +1,71 @@
+
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+    -fx-background-color: #2c3e50;
+}
+
+.sidebar-header {
+    -fx-alignment: center;
+}
+
+.sidebar-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+.sidebar-subtitle {
+    -fx-font-size: 13px;
+    -fx-text-fill: #bdc3c7;
+}
+
+/* ===== MENU BUTTONS ===== */
+.menu-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #ecf0f1;
+    -fx-font-size: 15px;
+    -fx-padding: 12 20 12 20;
+    -fx-background-radius: 8;
+    -fx-alignment: CENTER_LEFT;
+    -fx-cursor: hand;
+}
+
+.menu-button:hover {
+    -fx-background-color: #34495e;
+}
+
+.menu-button:focused {
+    -fx-background-color: #3498db;
+    -fx-text-fill: white;
+}
+
+.logout-button:hover {
+    -fx-background-color: #e74c3c !important;
+}
+
+/* ===== CONTENT AREA ===== */
+.content-area {
+    -fx-background-color: #ecf0f1;
+}
+
+.content-header {
+    -fx-background-color: white;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 5, 0, 0, 2);
+}
+
+.page-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.datetime-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: #7f8c8d;
+}
+
+.content-pane {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+}
