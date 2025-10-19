@@ -1,21 +1,52 @@
-package entity;
+package com.ptudn12.main.entity;
 
+//Phạm Thanh Huy
 public class Ga {
-    private String maGa;
-    private String tenGa;
-    private double mocKm = 0; 
+    private int maGa;
+    private String viTriGa;
+    private int mocKm; // Lấy mốc Hà Nội là chuẩn là 0km
 
-    public Ga(String maGa, String tenGa, double mocKm) {
-        this.maGa = maGa;
-        this.tenGa = tenGa;
+    // Constructor không tham số
+    public Ga() {
+    }
+
+    // Constructor có tham số
+    public Ga(String viTriGa, int mocKm) {
+        this.viTriGa = viTriGa;
         this.mocKm = mocKm;
     }
 
     // Getters and Setters
-    public String getMaGa() { return maGa; }
-    public void setMaGa(String maGa) { this.maGa = maGa; }
-    public String getTenGa() { return tenGa; }
-    public void setTenGa(String tenGa) { this.tenGa = tenGa; }
-    public double getKhoangCachTuHaNoi() { return mocKm; }
-    public void setKhoangCachTuHaNoi(double khoangCachTuHaNoi) { this.mocKm = khoangCachTuHaNoi; }
+    public void setViTriGa(String viTriGa) {
+        this.viTriGa = viTriGa;
+    }
+
+    public void setMaGa(int maGa) {
+        this.maGa = maGa;
+    }
+
+    public void setMocKm(int mocKm) {
+        this.mocKm = mocKm;
+    }
+
+    public String getViTriGa() {
+        return viTriGa;
+    }
+
+    public int getMocKm() {
+        return mocKm;
+    }
+
+    public int getMaGa() {
+        return maGa;
+    }
+
+    @Override
+    public String toString() {
+        return "Ga{" +
+                "maGa=" + maGa +
+                ", viTriGa='" + viTriGa + '\'' +
+                ", mocKm=" + mocKm +
+                " km}";
+    }
 }

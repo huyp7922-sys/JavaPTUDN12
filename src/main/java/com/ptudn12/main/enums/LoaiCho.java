@@ -1,4 +1,4 @@
-package enums;
+package com.ptudn12.main.enums;
 
 public enum LoaiCho {
     GIUONG_NAM_TANG_1("Giường nằm tầng 1"),

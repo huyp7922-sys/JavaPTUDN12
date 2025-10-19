@@ -1,5 +1,6 @@
 package com.ptudn12.main.controller;
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -11,58 +12,47 @@ import java.io.IOException;
 
 public class LoginController {
 
-    @FXML
-    private TextField usernameField;
+    @FXML private TextField usernameField;
+    @FXML private PasswordField passwordField;
 
     @FXML
-    private PasswordField passwordField;
-
-    @FXML
-    private CheckBox rememberCheckbox;
-
-    @FXML
-    private void handleLogin() {
+    private void handleLogin(ActionEvent event) {
         String username = usernameField.getText();
         String password = passwordField.getText();
 
+        // Validation
         if (username.isEmpty() || password.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Vui lòng nhập đầy đủ thông tin!");
+            showAlert(Alert.AlertType.WARNING, "Cảnh báo", 
+                     "Vui lòng nhập đầy đủ thông tin!");
             return;
         }
 
-        if (username.equals("admin") && password.equals("123456")) {
+        if (authenticate(username, password)) {
             try {
-                // Load Dashboard
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/dashboard.fxml"));
                 Parent root = loader.load();
                 
-                // Pass username to Dashboard
-                DashboardController dashboardController = loader.getController();
-                dashboardController.setUsername(username);
+                DashboardController controller = loader.getController();
+                controller.setUsername(username);
                 
-                // Get current stage and set new scene
                 Stage stage = (Stage) usernameField.getScene().getWindow();
                 stage.setScene(new Scene(root));
-                stage.setTitle("Dashboard - Hệ Thống Quản Lý");
+                stage.setTitle("Hệ Thống Quản Lý Bán Vé Tàu");
                 stage.setMaximized(true);
                 
             } catch (IOException e) {
                 e.printStackTrace();
-                showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể tải giao diện Dashboard!");
+                showAlert(Alert.AlertType.ERROR, "Lỗi", 
+                         "Không thể tải giao diện chính!");
             }
         } else {
-            showAlert(Alert.AlertType.ERROR, "Lỗi", "Tên đăng nhập hoặc mật khẩu không đúng!");
+            showAlert(Alert.AlertType.ERROR, "Lỗi", 
+                     "Tên đăng nhập hoặc mật khẩu không đúng!");
         }
     }
 
-    @FXML
-    private void handleForgotPassword() {
-        showAlert(Alert.AlertType.INFORMATION, "Quên mật khẩu", "Chức năng đang phát triển!");
-    }
-
-    @FXML
-    private void handleRegister() {
-        showAlert(Alert.AlertType.INFORMATION, "Đăng ký", "Chức năng đang phát triển!");
+    private boolean authenticate(String username, String password) {
+        return username.equals("admin") && password.equals("admin123");
     }
 
     private void showAlert(Alert.AlertType type, String title, String message) {

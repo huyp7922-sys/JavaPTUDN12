@@ -1,8 +1,8 @@
-package entity;
+package com.ptudn12.main.entity;
 
 import java.util.Objects;
 
-import enums.LoaiVe;
+import com.ptudn12.main.enums.LoaiVe;
 
 public class VeTau {
 	private String maVe;

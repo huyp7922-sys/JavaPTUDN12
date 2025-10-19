@@ -1,4 +1,4 @@
-package entity;
+package com.ptudn12.main.entity;
 
 import java.time.LocalDateTime;
 import java.util.Objects;

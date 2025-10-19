@@ -3,78 +3,62 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.ptudn12.main.controller.DashboardController"
-            stylesheets="@dashboard-style.css"
-            prefWidth="1200" prefHeight="700">
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.ptudn12.main.controller.AddScheduleDialogController"
+      spacing="20" prefWidth="500" styleClass="dialog-content">
 
-    <left>
-        <VBox styleClass="sidebar" spacing="5" prefWidth="250">
-            <padding>
-                <Insets top="20" right="15" bottom="20" left="15"/>
-            </padding>
+    <padding>
+        <Insets top="25" right="25" bottom="25" left="25"/>
+    </padding>
 
-            <VBox alignment="CENTER" spacing="10" styleClass="sidebar-header">
-                <padding>
-                    <Insets bottom="30"/>
-                </padding>
-                <Label text="🏢" style="-fx-font-size: 40px;"/>
-                <Label text="HỆ THỐNG QUẢN LÝ" styleClass="sidebar-title"/>
-                <Label fx:id="usernameLabel" text="Xin chào, Admin" styleClass="sidebar-subtitle"/>
-            </VBox>
+    <!-- Title -->
+    <Label text="Thêm Lịch Trình Mới" styleClass="dialog-title"/>
 
-            <Separator/>
+    <!-- Form Grid -->
+    <GridPane hgap="15" vgap="15">
+        <!-- Row 0: Tuyến đường -->
+        <Label text="Tuyến đường:" styleClass="field-label" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+        <ComboBox fx:id="routeCombo" promptText="Chọn tuyến đường" maxWidth="Infinity" prefHeight="35" 
+                  GridPane.columnIndex="1" GridPane.rowIndex="0"/>
 
-            <VBox spacing="8" VBox.vgrow="ALWAYS">
-                <padding>
-                    <Insets top="20"/>
-                </padding>
+        <!-- Row 1: Tàu -->
+        <Label text="Tàu:" styleClass="field-label" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+        <ComboBox fx:id="trainCombo" promptText="Chọn tàu" maxWidth="Infinity" prefHeight="35" 
+                  GridPane.columnIndex="1" GridPane.rowIndex="1"/>
 
-                <Button fx:id="btnHome" text="🏠  Trang chủ" onAction="#showHome" 
-                        styleClass="menu-button" maxWidth="Infinity"/>
-                
-                <Button fx:id="btnProfile" text="👤  Hồ sơ" onAction="#showProfile" 
-                        styleClass="menu-button" maxWidth="Infinity"/>
-                
-                <Button fx:id="btnSettings" text="⚙️  Cài đặt" onAction="#showSettings" 
-                        styleClass="menu-button" maxWidth="Infinity"/>
-                
-                <Button fx:id="btnReports" text="📊  Báo cáo" onAction="#showReports" 
-                        styleClass="menu-button" maxWidth="Infinity"/>
-                
-                <Button fx:id="btnUsers" text="👥  Người dùng" onAction="#showUsers" 
-                        styleClass="menu-button" maxWidth="Infinity"/>
+        <!-- Row 2: Ngày khởi hành -->
+        <Label text="Ngày khởi hành:" styleClass="field-label" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+        <DatePicker fx:id="departureDatePicker" promptText="dd/MM/yyyy" maxWidth="Infinity" prefHeight="35" 
+                    GridPane.columnIndex="1" GridPane.rowIndex="2"/>
 
-                <Region VBox.vgrow="ALWAYS"/>
+        <!-- Row 3: Giờ khởi hành -->
+        <Label text="Giờ khởi hành:" styleClass="field-label" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+        <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="3">
+            <ComboBox fx:id="hourCombo" promptText="Giờ" prefWidth="100" prefHeight="35"/>
+            <Label text=":" style="-fx-font-size: 20px; -fx-padding: 5 0 0 0;"/>
+            <ComboBox fx:id="minuteCombo" promptText="Phút" prefWidth="100" prefHeight="35"/>
+        </HBox>
 
-                <Separator/>
+        <!-- Row 4: Giá vé -->
+        <Label text="Giá vé cơ bản:" styleClass="field-label" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+        <TextField fx:id="priceField" promptText="Nhập giá vé (VNĐ)" prefHeight="35" 
+                   GridPane.columnIndex="1" GridPane.rowIndex="4"/>
 
-                <Button fx:id="btnLogout" text="🚪  Đăng xuất" onAction="#handleLogout" 
-                        styleClass="menu-button logout-button" maxWidth="Infinity"/>
-            </VBox>
-        </VBox>
-    </left>
+        <!-- Column Constraints -->
+        <columnConstraints>
+            <ColumnConstraints minWidth="120" prefWidth="120"/>
+            <ColumnConstraints hgrow="ALWAYS" minWidth="250"/>
+        </columnConstraints>
+    </GridPane>
 
-    <center>
-        <VBox styleClass="content-area">
-            <HBox styleClass="content-header" alignment="CENTER_LEFT" spacing="20">
-                <padding>
-                    <Insets top="20" right="30" bottom="20" left="30"/>
-                </padding>
-                <Label fx:id="pageTitle" text="Trang chủ" styleClass="page-title"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <Label fx:id="dateTimeLabel" text="2025-10-17 11:20" styleClass="datetime-label"/>
-            </HBox>
-
-            <StackPane fx:id="contentPane" VBox.vgrow="ALWAYS" styleClass="content-pane">
-                <padding>
-                    <Insets top="20" right="30" bottom="30" left="30"/>
-                </padding>
-            </StackPane>
-        </VBox>
-    </center>
-
-</BorderPane>
+    <!-- Buttons -->
+    <HBox spacing="15" alignment="CENTER_RIGHT">
+        <VBox.margin>
+            <Insets top="10"/>
+        </VBox.margin>
+        <Button text="Hủy" styleClass="secondary-button" onAction="#handleCancel" prefWidth="100" prefHeight="35"/>
+        <Button text="Lưu" styleClass="primary-button" onAction="#handleSave" prefWidth="100" prefHeight="35"/>
+    </HBox>
+</VBox>

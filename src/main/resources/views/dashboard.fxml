@@ -3,72 +3,79 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.ptudn12.main.controller.DashboardController"
-            stylesheets="@dashboard-style.css"
+            stylesheets="@../dashboard-style.css"
             prefWidth="1200" prefHeight="700">
 
+    <!-- Left Sidebar -->
     <left>
-        <VBox styleClass="sidebar" spacing="5" prefWidth="250">
+        <VBox styleClass="sidebar" spacing="0" prefWidth="200">
             <padding>
-                <Insets top="20" right="15" bottom="20" left="15"/>
+                <Insets top="20" right="0" bottom="20" left="0"/>
             </padding>
 
-            <VBox alignment="CENTER" spacing="10" styleClass="sidebar-header">
+            <!-- Header -->
+            <VBox alignment="CENTER" styleClass="sidebar-header">
                 <padding>
-                    <Insets bottom="30"/>
+                    <Insets top="10" right="10" bottom="20" left="10"/>
                 </padding>
-                <Label text="🏢" style="-fx-font-size: 40px;"/>
-                <Label text="HỆ THỐNG QUẢN LÝ" styleClass="sidebar-title"/>
-                <Label fx:id="usernameLabel" text="Xin chào, Admin" styleClass="sidebar-subtitle"/>
+                <Label text="HỆ THỐNG QUẢN LÝ BÁN" styleClass="sidebar-title" wrapText="true" alignment="CENTER"/>
+                <Label text="VÉ TÀU" styleClass="sidebar-title" wrapText="true" alignment="CENTER"/>
             </VBox>
 
-            <Separator/>
-
-            <VBox spacing="8" VBox.vgrow="ALWAYS">
-                <padding>
-                    <Insets top="20"/>
-                </padding>
-
-                <Button fx:id="btnHome" text="🏠  Trang chủ" onAction="#showHome" 
-                        styleClass="menu-button" maxWidth="Infinity"/>
+            <!-- Menu Items -->
+            <VBox spacing="0" VBox.vgrow="ALWAYS">
+                <!-- Thêm nút Trang Chủ -->
+                <Button fx:id="btnHome" text="🏠 Trang Chủ" onAction="#showHome" 
+                        styleClass="menu-item,menu-item-active" maxWidth="Infinity"/>
                 
-                <Button fx:id="btnProfile" text="👤  Hồ sơ" onAction="#showProfile" 
-                        styleClass="menu-button" maxWidth="Infinity"/>
+                <Button fx:id="btnInvoice" text="Quản Lý Hóa Đơn" onAction="#showInvoice" 
+                        styleClass="menu-item" maxWidth="Infinity"/>
                 
-                <Button fx:id="btnSettings" text="⚙️  Cài đặt" onAction="#showSettings" 
-                        styleClass="menu-button" maxWidth="Infinity"/>
+                <Button fx:id="btnSchedule" text="Quản Lý Lịch Trình" onAction="#showSchedule" 
+                        styleClass="menu-item" maxWidth="Infinity"/>
                 
-                <Button fx:id="btnReports" text="📊  Báo cáo" onAction="#showReports" 
-                        styleClass="menu-button" maxWidth="Infinity"/>
+                <Button fx:id="btnRoute" text="Quản Lý Tuyến Đường" onAction="#showRoute" 
+                        styleClass="menu-item" maxWidth="Infinity"/>
                 
-                <Button fx:id="btnUsers" text="👥  Người dùng" onAction="#showUsers" 
-                        styleClass="menu-button" maxWidth="Infinity"/>
+                <Button fx:id="btnTrain" text="Quản Lý Tàu" onAction="#showTrain" 
+                        styleClass="menu-item" maxWidth="Infinity"/>
+                
+                <Button fx:id="btnEmployee" text="Quản Lý Nhân Viên" onAction="#showEmployee" 
+                        styleClass="menu-item" maxWidth="Infinity"/>
+                
+                <Button fx:id="btnStatistics" text="Quản Lý Thống Kê (admin)" onAction="#showStatistics" 
+                        styleClass="menu-item" maxWidth="Infinity"/>
 
                 <Region VBox.vgrow="ALWAYS"/>
-
-                <Separator/>
-
-                <Button fx:id="btnLogout" text="🚪  Đăng xuất" onAction="#handleLogout" 
-                        styleClass="menu-button logout-button" maxWidth="Infinity"/>
             </VBox>
+
+            <!-- Logout Button -->
+            <Button fx:id="btnLogout" text="Đăng Xuất" onAction="#handleLogout" 
+                    styleClass="logout-button" maxWidth="Infinity">
+                <VBox.margin>
+                    <Insets top="20" right="10" bottom="0" left="10"/>
+                </VBox.margin>
+            </Button>
         </VBox>
     </left>
 
+    <!-- Main Content Area -->
     <center>
         <VBox styleClass="content-area">
+            <!-- Header with Title and DateTime -->
             <HBox styleClass="content-header" alignment="CENTER_LEFT" spacing="20">
                 <padding>
                     <Insets top="20" right="30" bottom="20" left="30"/>
                 </padding>
-                <Label fx:id="pageTitle" text="Trang chủ" styleClass="page-title"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Label fx:id="dateTimeLabel" text="2025-10-17 11:20" styleClass="datetime-label"/>
+                <Label fx:id="dateTimeLabel" styleClass="datetime-label"/>
             </HBox>
 
+            <!-- Content Pane -->
             <StackPane fx:id="contentPane" VBox.vgrow="ALWAYS" styleClass="content-pane">
                 <padding>
                     <Insets top="20" right="30" bottom="30" left="30"/>

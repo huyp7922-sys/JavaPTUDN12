@@ -1,71 +1,103 @@
+/* ... CSS cũ giữ nguyên ... */
 
-
-/* ===== SIDEBAR ===== */
-.sidebar {
-    -fx-background-color: #2c3e50;
-}
-
-.sidebar-header {
-    -fx-alignment: center;
-}
-
-.sidebar-title {
-    -fx-font-size: 16px;
-    -fx-font-weight: bold;
-    -fx-text-fill: white;
-}
-
-.sidebar-subtitle {
-    -fx-font-size: 13px;
-    -fx-text-fill: #bdc3c7;
-}
-
-/* ===== MENU BUTTONS ===== */
-.menu-button {
-    -fx-background-color: transparent;
-    -fx-text-fill: #ecf0f1;
-    -fx-font-size: 15px;
-    -fx-padding: 12 20 12 20;
-    -fx-background-radius: 8;
-    -fx-alignment: CENTER_LEFT;
-    -fx-cursor: hand;
-}
-
-.menu-button:hover {
-    -fx-background-color: #34495e;
-}
-
-.menu-button:focused {
-    -fx-background-color: #3498db;
-    -fx-text-fill: white;
-}
-
-.logout-button:hover {
-    -fx-background-color: #e74c3c !important;
-}
-
-/* ===== CONTENT AREA ===== */
-.content-area {
-    -fx-background-color: #ecf0f1;
-}
-
-.content-header {
-    -fx-background-color: white;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 5, 0, 0, 2);
-}
-
-.page-title {
-    -fx-font-size: 24px;
+/* Welcome Section */
+.welcome-title {
+    -fx-font-size: 28px;
     -fx-font-weight: bold;
     -fx-text-fill: #2c3e50;
 }
 
-.datetime-label {
-    -fx-font-size: 13px;
+.welcome-subtitle {
+    -fx-font-size: 14px;
     -fx-text-fill: #7f8c8d;
 }
 
-.content-pane {
+/* Statistics Cards */
+.stat-card {
     -fx-background-color: white;
-    -fx-background-radius: 10;
+    -fx-background-radius: 15px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);
+}
+
+.card-blue {
+    -fx-border-color: #3498db;
+    -fx-border-width: 0 0 4 0;
+    -fx-border-radius: 0 0 15 15;
+}
+
+.card-green {
+    -fx-border-color: #2ecc71;
+    -fx-border-width: 0 0 4 0;
+    -fx-border-radius: 0 0 15 15;
+}
+
+.card-orange {
+    -fx-border-color: #e67e22;
+    -fx-border-width: 0 0 4 0;
+    -fx-border-radius: 0 0 15 15;
+}
+
+.card-purple {
+    -fx-border-color: #9b59b6;
+    -fx-border-width: 0 0 4 0;
+    -fx-border-radius: 0 0 15 15;
+}
+
+.stat-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: #7f8c8d;
+    -fx-font-weight: 600;
+}
+
+.stat-value {
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.stat-change {
+    -fx-font-size: 11px;
+    -fx-text-fill: #27ae60;
+}
+
+/* Chart Container */
+.chart-container {
+    -fx-background-color: white;
+    -fx-background-radius: 15px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);
+}
+
+.chart-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+/* Activities Container */
+.activities-container {
+    -fx-background-color: white;
+    -fx-background-radius: 15px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);
+}
+
+.section-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}
+
+.activities-list {
+    -fx-border-color: transparent;
+}
+
+.activities-list .list-cell {
+    -fx-padding: 12px;
+    -fx-font-size: 13px;
+    -fx-text-fill: #34495e;
+    -fx-border-color: #ecf0f1;
+    -fx-border-width: 0 0 1 0;
+}
+
+.activities-list .list-cell:hover {
+    -fx-background-color: #f8f9fa;
 }

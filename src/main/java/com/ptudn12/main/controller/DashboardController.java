@@ -19,13 +19,16 @@ import java.time.format.DateTimeFormatter;
 public class DashboardController {
 
     @FXML private StackPane contentPane;
-    @FXML private Label pageTitle;
-    @FXML private Label usernameLabel;
     @FXML private Label dateTimeLabel;
     
     @FXML private Button btnHome;
-    @FXML private Button btnProfile;
-    @FXML private Button btnSettings;
+    @FXML private Button btnInvoice;
+    @FXML private Button btnSchedule;
+    @FXML private Button btnRoute;
+    @FXML private Button btnTrain;
+    @FXML private Button btnEmployee;
+    @FXML private Button btnStatistics;
+    @FXML private Button btnLogout;
 
     private String currentUser;
 
@@ -39,56 +42,61 @@ public class DashboardController {
         clock.setCycleCount(Timeline.INDEFINITE);
         clock.play();
 
-        // Load home view by default
+        // Load dashboard statistics by default
         showHome();
     }
 
     public void setUsername(String username) {
         this.currentUser = username;
-        usernameLabel.setText("Xin chào, " + username);
     }
 
     @FXML
     private void showHome() {
-        pageTitle.setText("Trang chủ");
         resetMenuButtons();
-        btnHome.setStyle("-fx-background-color: #3498db;");
-        
-        loadView("home.fxml");
+        btnHome.getStyleClass().add("menu-item-active");
+        loadView("dashboard_statistics.fxml");
     }
 
     @FXML
-    private void showProfile() {
-        pageTitle.setText("Hồ sơ cá nhân");
+    private void showInvoice() {
         resetMenuButtons();
-        btnProfile.setStyle("-fx-background-color: #3498db;");
-        
-        loadView("ProfileView.fxml");
+        btnInvoice.getStyleClass().add("menu-item-active");
+        loadView("invoice-management.fxml");
     }
 
     @FXML
-    private void showSettings() {
-        pageTitle.setText("Cài đặt");
+    private void showSchedule() {
         resetMenuButtons();
-        btnSettings.setStyle("-fx-background-color: #3498db;");
-        
-        loadView("SettingsView.fxml");
+        btnSchedule.getStyleClass().add("menu-item-active");
+        loadView("schedule-management.fxml");
     }
 
     @FXML
-    private void showReports() {
-        pageTitle.setText("Báo cáo");
+    private void showRoute() {
         resetMenuButtons();
-        
-        loadView("ReportsView.fxml");
+        btnRoute.getStyleClass().add("menu-item-active");
+        loadView("route-management.fxml");
     }
 
     @FXML
-    private void showUsers() {
-        pageTitle.setText("Quản lý người dùng");
+    private void showTrain() {
         resetMenuButtons();
-        
-        loadView("UsersView.fxml");
+        btnTrain.getStyleClass().add("menu-item-active");
+        loadView("train-management.fxml");
+    }
+
+    @FXML
+    private void showEmployee() {
+        resetMenuButtons();
+        btnEmployee.getStyleClass().add("menu-item-active");
+        loadView("employee-management.fxml");
+    }
+
+    @FXML
+    private void showStatistics() {
+        resetMenuButtons();
+        btnStatistics.getStyleClass().add("menu-item-active");
+        loadView("statistics-management.fxml");
     }
 
     @FXML
@@ -100,33 +108,98 @@ public class DashboardController {
 
         if (alert.showAndWait().get() == ButtonType.OK) {
             try {
-                // Load login screen
                 Parent root = FXMLLoader.load(getClass().getResource("/views/login.fxml"));
                 Stage stage = (Stage) contentPane.getScene().getWindow();
                 stage.setScene(new Scene(root));
                 stage.setTitle("Đăng Nhập Hệ Thống");
             } catch (IOException e) {
                 e.printStackTrace();
+                showError("Lỗi khi đăng xuất: " + e.getMessage());
             }
         }
     }
 
     private void loadView(String fxmlFile) {
         try {
-            Node view = FXMLLoader.load(getClass().getResource("/views/" + fxmlFile));
+            // Check if file exists
+            if (getClass().getResource("/views/" + fxmlFile) == null) {
+                showPlaceholder("Chức năng chưa được tạo", 
+                              "Trang " + fxmlFile.replace("-management.fxml", "")
+                                      .replace("dashboard-", "")
+                                      .replace("-", " ") + 
+                              " đang được phát triển.\nVui lòng quay lại sau!");
+                return;
+            }
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/" + fxmlFile));
+            Node view = loader.load();
             contentPane.getChildren().clear();
             contentPane.getChildren().add(view);
+            
         } catch (IOException e) {
-            Label placeholder = new Label("📄 Nội dung đang được phát triển...");
-            placeholder.setStyle("-fx-font-size: 20px; -fx-text-fill: #95a5a6;");
-            contentPane.getChildren().clear();
-            contentPane.getChildren().add(placeholder);
+            e.printStackTrace();
+            showPlaceholder("Lỗi khi tải giao diện", 
+                          "Không thể tải file: " + fxmlFile + "\n\n" + 
+                          "Chi tiết lỗi: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            showPlaceholder("Lỗi không xác định", 
+                          "Đã xảy ra lỗi khi tải giao diện.\n\n" + 
+                          "Chi tiết lỗi: " + e.getMessage());
         }
     }
 
+    private void showPlaceholder(String title, String message) {
+        VBox placeholder = new VBox(25);
+        placeholder.setStyle("-fx-alignment: center; -fx-padding: 50;");
+        
+        // Icon
+        Label icon = new Label("⚠️");
+        icon.setStyle("-fx-font-size: 80px;");
+        
+        // Title
+        Label titleLabel = new Label(title);
+        titleLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #e67e22;");
+        
+        // Message
+        Label messageLabel = new Label(message);
+        messageLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #7f8c8d; -fx-text-alignment: center;");
+        messageLabel.setWrapText(true);
+        messageLabel.setMaxWidth(600);
+        
+        // Back button
+        Button backButton = new Button("← Về Trang Chủ");
+        backButton.setStyle(
+            "-fx-background-color: #3498db; " +
+            "-fx-text-fill: white; " +
+            "-fx-font-size: 14px; " +
+            "-fx-padding: 10 30; " +
+            "-fx-background-radius: 5; " +
+            "-fx-cursor: hand;"
+        );
+        backButton.setOnAction(e -> showHome());
+        
+        placeholder.getChildren().addAll(icon, titleLabel, messageLabel, backButton);
+        
+        contentPane.getChildren().clear();
+        contentPane.getChildren().add(placeholder);
+    }
+
     private void resetMenuButtons() {
-        btnHome.setStyle("");
-        btnProfile.setStyle("");
-        btnSettings.setStyle("");
+        btnHome.getStyleClass().remove("menu-item-active");
+        btnInvoice.getStyleClass().remove("menu-item-active");
+        btnSchedule.getStyleClass().remove("menu-item-active");
+        btnRoute.getStyleClass().remove("menu-item-active");
+        btnTrain.getStyleClass().remove("menu-item-active");
+        btnEmployee.getStyleClass().remove("menu-item-active");
+        btnStatistics.getStyleClass().remove("menu-item-active");
+    }
+
+    private void showError(String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Lỗi");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

@@ -3,78 +3,43 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.ptudn12.main.controller.DashboardController"
-            stylesheets="@dashboard-style.css"
-            prefWidth="1200" prefHeight="700">
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.ptudn12.main.controller.AddRouteDialogController"
+      spacing="20" prefWidth="400" styleClass="dialog-content">
 
-    <left>
-        <VBox styleClass="sidebar" spacing="5" prefWidth="250">
-            <padding>
-                <Insets top="20" right="15" bottom="20" left="15"/>
-            </padding>
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
 
-            <VBox alignment="CENTER" spacing="10" styleClass="sidebar-header">
-                <padding>
-                    <Insets bottom="30"/>
-                </padding>
-                <Label text="🏢" style="-fx-font-size: 40px;"/>
-                <Label text="HỆ THỐNG QUẢN LÝ" styleClass="sidebar-title"/>
-                <Label fx:id="usernameLabel" text="Xin chào, Admin" styleClass="sidebar-subtitle"/>
-            </VBox>
+    <!-- Title -->
+    <Label text="Thêm Tuyến Mới" styleClass="dialog-title"/>
 
-            <Separator/>
+    <!-- Start Station -->
+    <VBox spacing="8">
+        <Label text="Điểm đi:" styleClass="field-label"/>
+        <ComboBox fx:id="startStationCombo" promptText="Hà Nội" maxWidth="Infinity" prefHeight="35"/>
+    </VBox>
 
-            <VBox spacing="8" VBox.vgrow="ALWAYS">
-                <padding>
-                    <Insets top="20"/>
-                </padding>
+    <!-- End Station -->
+    <VBox spacing="8">
+        <Label text="Điểm đến:" styleClass="field-label"/>
+        <ComboBox fx:id="endStationCombo" promptText="Quảng Ngãi" maxWidth="Infinity" prefHeight="35"/>
+    </VBox>
 
-                <Button fx:id="btnHome" text="🏠  Trang chủ" onAction="#showHome" 
-                        styleClass="menu-button" maxWidth="Infinity"/>
-                
-                <Button fx:id="btnProfile" text="👤  Hồ sơ" onAction="#showProfile" 
-                        styleClass="menu-button" maxWidth="Infinity"/>
-                
-                <Button fx:id="btnSettings" text="⚙️  Cài đặt" onAction="#showSettings" 
-                        styleClass="menu-button" maxWidth="Infinity"/>
-                
-                <Button fx:id="btnReports" text="📊  Báo cáo" onAction="#showReports" 
-                        styleClass="menu-button" maxWidth="Infinity"/>
-                
-                <Button fx:id="btnUsers" text="👥  Người dùng" onAction="#showUsers" 
-                        styleClass="menu-button" maxWidth="Infinity"/>
+    <!-- Duration -->
+    <VBox spacing="8">
+        <Label text="Thời gian dự kiến (Giờ:Phút)" styleClass="field-label"/>
+        <TextField fx:id="durationField" promptText="12:33 --" prefHeight="35"/>
+    </VBox>
 
-                <Region VBox.vgrow="ALWAYS"/>
-
-                <Separator/>
-
-                <Button fx:id="btnLogout" text="🚪  Đăng xuất" onAction="#handleLogout" 
-                        styleClass="menu-button logout-button" maxWidth="Infinity"/>
-            </VBox>
-        </VBox>
-    </left>
-
-    <center>
-        <VBox styleClass="content-area">
-            <HBox styleClass="content-header" alignment="CENTER_LEFT" spacing="20">
-                <padding>
-                    <Insets top="20" right="30" bottom="20" left="30"/>
-                </padding>
-                <Label fx:id="pageTitle" text="Trang chủ" styleClass="page-title"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <Label fx:id="dateTimeLabel" text="2025-10-17 11:20" styleClass="datetime-label"/>
-            </HBox>
-
-            <StackPane fx:id="contentPane" VBox.vgrow="ALWAYS" styleClass="content-pane">
-                <padding>
-                    <Insets top="20" right="30" bottom="30" left="30"/>
-                </padding>
-            </StackPane>
-        </VBox>
-    </center>
-
-</BorderPane>
+    <!-- Buttons -->
+    <HBox spacing="15" alignment="CENTER_RIGHT">
+        <VBox.margin>
+            <Insets top="10"/>
+        </VBox.margin>
+        <Button text="Hủy" styleClass="secondary-button" onAction="#handleCancel" prefWidth="80"/>
+        <Button text="Lưu" styleClass="primary-button" onAction="#handleSave" prefWidth="80"/>
+    </HBox>
+</VBox>
