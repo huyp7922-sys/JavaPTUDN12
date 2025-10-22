@@ -1,5 +1,20 @@
 package com.ptudn12.main.controller;
 
+import com.ptudn12.main.dao.TuyenDuongDAO;
+import com.ptudn12.main.entity.Ga;
+import com.ptudn12.main.entity.TuyenDuong;
+import com.ptudn12.main.enums.TrangThai;
+import java.util.List;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import com.ptudn12.main.dao.TuyenDuongDAO;
 import com.ptudn12.main.entity.Ga;
 import com.ptudn12.main.entity.TuyenDuong;
 import com.ptudn12.main.enums.TrangThai;
@@ -12,7 +27,6 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-
 public class RouteManagementController {
 
     @FXML private TableView<TuyenDuong> routeTable;
@@ -29,9 +43,11 @@ public class RouteManagementController {
     @FXML private ComboBox<String> statusCombo;
 
     private ObservableList<TuyenDuong> routeData = FXCollections.observableArrayList();
+    private TuyenDuongDAO tuyenDuongDAO = new TuyenDuongDAO();
 
     @FXML
     public void initialize() {
+        // Setup table columns
         idColumn.setCellValueFactory(new PropertyValueFactory<>("maTuyen"));
         startStationColumn.setCellValueFactory(new PropertyValueFactory<>("tenDiemDi"));
         endStationColumn.setCellValueFactory(new PropertyValueFactory<>("tenDiemDen"));
@@ -40,6 +56,7 @@ public class RouteManagementController {
         priceColumn.setCellValueFactory(new PropertyValueFactory<>("giaCoBanFormatted"));
         statusColumn.setCellValueFactory(new PropertyValueFactory<>("trangThaiDisplay"));
 
+        // Custom cell factory for status column
         statusColumn.setCellFactory(column -> new TableCell<TuyenDuong, String>() {
             @Override
             protected void updateItem(String status, boolean empty) {
@@ -66,128 +83,29 @@ public class RouteManagementController {
             }
         });
 
-        loadMockData();
+        // Load data from database
+        loadDataFromDatabase();
 
+        // Setup filters
         setupFilters();
+        
+        // Setup filter listeners
+        setupFilterListeners();
     }
 
-    private void loadMockData() {
-        routeData.clear();
-        
-        Ga gaHaNoi = new Ga("Ga Hà Nội", 0);
-        gaHaNoi.setMaGa(1);
-        
-        Ga gaSaiGon = new Ga("Ga Sài Gòn", 1726);
-        gaSaiGon.setMaGa(25);
-        
-        Ga gaDaNang = new Ga("Ga Đà Nẵng", 791);
-        gaDaNang.setMaGa(16);
-        
-        Ga gaNhaTrang = new Ga("Ga Nha Trang", 1315);
-        gaNhaTrang.setMaGa(21);
-        
-        Ga gaHaiPhong = new Ga("Ga Hải Phòng", 102);
-        gaHaiPhong.setMaGa(5);
-        
-        Ga gaVinh = new Ga("Ga Vinh", 319);
-        gaVinh.setMaGa(11);
-        
-        Ga gaHue = new Ga("Ga Huế", 688);
-        gaHue.setMaGa(15);
-        
-        Ga gaQuangNgai = new Ga("Ga Quảng Ngãi", 915);
-        gaQuangNgai.setMaGa(18);
-        
-        Ga gaBacNinh = new Ga("Ga Bắc Ninh", 28);
-        gaBacNinh.setMaGa(2);
-        
-        Ga gaTamKy = new Ga("Ga Tam Kỳ", 849);
-        gaTamKy.setMaGa(17);
-
-        TuyenDuong td1 = new TuyenDuong(gaHaNoi, gaSaiGon, 29);
-        td1.setMaTuyen("TD001");
-        td1.setTrangThai(TrangThai.SanSang);
-        
-        TuyenDuong td2 = new TuyenDuong(gaDaNang, gaNhaTrang, 9);
-        td2.setMaTuyen("TD002");
-        td2.setTrangThai(TrangThai.Nhap);
-        
-        TuyenDuong td3 = new TuyenDuong(gaHaiPhong, gaVinh, 4);
-        td3.setMaTuyen("TD003");
-        td3.setTrangThai(TrangThai.TamNgung);
-        
-        TuyenDuong td4 = new TuyenDuong(gaHue, gaQuangNgai, 4);
-        td4.setMaTuyen("TD004");
-        td4.setTrangThai(TrangThai.SanSang);
-        
-        TuyenDuong td5 = new TuyenDuong(gaSaiGon, gaDaNang, 16);
-        td5.setMaTuyen("TD005");
-        td5.setTrangThai(TrangThai.SanSang);
-        
-        TuyenDuong td6 = new TuyenDuong(gaNhaTrang, gaHaNoi, 22);
-        td6.setMaTuyen("TD006");
-        td6.setTrangThai(TrangThai.Nhap);
-        
-        TuyenDuong td7 = new TuyenDuong(gaHaNoi, gaDaNang, 13);
-        td7.setMaTuyen("TD007");
-        td7.setTrangThai(TrangThai.SanSang);
-        
-        TuyenDuong td8 = new TuyenDuong(gaVinh, gaHue, 6);
-        td8.setMaTuyen("TD008");
-        td8.setTrangThai(TrangThai.SanSang);
-        
-        TuyenDuong td9 = new TuyenDuong(gaDaNang, gaSaiGon, 16);
-        td9.setMaTuyen("TD009");
-        td9.setTrangThai(TrangThai.SanSang);
-        
-        TuyenDuong td10 = new TuyenDuong(gaQuangNgai, gaNhaTrang, 7);
-        td10.setMaTuyen("TD010");
-        td10.setTrangThai(TrangThai.Nhap);
-        
-        TuyenDuong td11 = new TuyenDuong(gaHaNoi, gaVinh, 5);
-        td11.setMaTuyen("TD011");
-        td11.setTrangThai(TrangThai.SanSang);
-        
-        TuyenDuong td12 = new TuyenDuong(gaHue, gaDaNang, 2);
-        td12.setMaTuyen("TD012");
-        td12.setTrangThai(TrangThai.SanSang);
-        
-        TuyenDuong td13 = new TuyenDuong(gaNhaTrang, gaSaiGon, 7);
-        td13.setMaTuyen("TD013");
-        td13.setTrangThai(TrangThai.SanSang);
-        
-        TuyenDuong td14 = new TuyenDuong(gaHaiPhong, gaHaNoi, 2);
-        td14.setMaTuyen("TD014");
-        td14.setTrangThai(TrangThai.TamNgung);
-        
-        TuyenDuong td15 = new TuyenDuong(gaSaiGon, gaNhaTrang, 7);
-        td15.setMaTuyen("TD015");
-        td15.setTrangThai(TrangThai.SanSang);
-        
-        TuyenDuong td16 = new TuyenDuong(gaVinh, gaHaNoi, 5);
-        td16.setMaTuyen("TD016");
-        td16.setTrangThai(TrangThai.SanSang);
-        
-        TuyenDuong td17 = new TuyenDuong(gaDaNang, gaHue, 2);
-        td17.setMaTuyen("TD017");
-        td17.setTrangThai(TrangThai.Nhap);
-        
-        TuyenDuong td18 = new TuyenDuong(gaQuangNgai, gaHue, 4);
-        td18.setMaTuyen("TD018");
-        td18.setTrangThai(TrangThai.SanSang);
-        
-        TuyenDuong td19 = new TuyenDuong(gaSaiGon, gaHaNoi, 29);
-        td19.setMaTuyen("TD019");
-        td19.setTrangThai(TrangThai.SanSang);
-        
-        TuyenDuong td20 = new TuyenDuong(gaNhaTrang, gaDaNang, 9);
-        td20.setMaTuyen("TD020");
-        td20.setTrangThai(TrangThai.SanSang);
-
-        routeData.addAll(td1, td2, td3, td4, td5, td6, td7, td8, td9, td10,
-                        td11, td12, td13, td14, td15, td16, td17, td18, td19, td20);
-
-        routeTable.setItems(routeData);
+    /**
+     * Load dữ liệu từ database
+     */
+    private void loadDataFromDatabase() {
+        try {
+            List<TuyenDuong> danhSach = tuyenDuongDAO.layTatCaTuyenDuong();
+            routeData.clear();
+            routeData.addAll(danhSach);
+            routeTable.setItems(routeData);
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể tải dữ liệu từ database:\n" + e.getMessage());
+        }
     }
 
     private void setupFilters() {
@@ -196,12 +114,38 @@ public class RouteManagementController {
             "Ga Nha Trang", "Ga Huế", "Ga Vinh", "Ga Hải Phòng", "Ga Quảng Ngãi"
         );
         startStationCombo.setItems(stations);
+        startStationCombo.setValue("Tất cả điểm đi");
+        
         endStationCombo.setItems(stations);
+        endStationCombo.setValue("Tất cả điểm đi");
 
         ObservableList<String> statuses = FXCollections.observableArrayList(
             "Tất cả trạng thái", "SanSang", "Nhap", "TamNgung"
         );
         statusCombo.setItems(statuses);
+        statusCombo.setValue("Tất cả trạng thái");
+    }
+
+    /**
+     * Setup filter listeners
+     */
+    private void setupFilterListeners() {
+        startStationCombo.setOnAction(e -> applyFilters());
+        endStationCombo.setOnAction(e -> applyFilters());
+        statusCombo.setOnAction(e -> applyFilters());
+    }
+
+    /**
+     * Áp dụng bộ lọc
+     */
+    private void applyFilters() {
+        String startStation = startStationCombo.getValue();
+        String endStation = endStationCombo.getValue();
+        String status = statusCombo.getValue();
+        
+        // TODO: Implement filter logic with DAO
+        // For now, just reload all data
+        loadDataFromDatabase();
     }
 
     @FXML
@@ -210,16 +154,18 @@ public class RouteManagementController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/add-route-dialog.fxml"));
             Scene scene = new Scene(loader.load());
             
+            AddRouteDialogController controller = loader.getController();
+            controller.setParentController(this);
+            
             Stage dialogStage = new Stage();
             dialogStage.setTitle("Thêm Tuyến Mới");
             dialogStage.initModality(Modality.APPLICATION_MODAL);
             dialogStage.setScene(scene);
             dialogStage.showAndWait();
             
-            handleRefresh();
         } catch (Exception e) {
             e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể mở form thêm tuyến đường!");
+            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể mở form thêm tuyến đường:\n" + e.getMessage());
         }
     }
 
@@ -230,8 +176,25 @@ public class RouteManagementController {
             showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Vui lòng chọn tuyến đường cần sửa!");
             return;
         }
-        showAlert(Alert.AlertType.INFORMATION, "Thông báo", 
-                 "Chức năng sửa tuyến đường: " + selected.getTenDiemDi() + " → " + selected.getTenDiemDen());
+        
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/add-route-dialog.fxml"));
+            Scene scene = new Scene(loader.load());
+            
+            AddRouteDialogController controller = loader.getController();
+            controller.setParentController(this);
+            controller.setEditMode(selected);
+            
+            Stage dialogStage = new Stage();
+            dialogStage.setTitle("Sửa Tuyến Đường");
+            dialogStage.initModality(Modality.APPLICATION_MODAL);
+            dialogStage.setScene(scene);
+            dialogStage.showAndWait();
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể mở form sửa tuyến đường:\n" + e.getMessage());
+        }
     }
 
     @FXML
@@ -249,14 +212,25 @@ public class RouteManagementController {
                               selected.getTenDiemDi() + " → " + selected.getTenDiemDen());
         
         if (confirm.showAndWait().get() == ButtonType.OK) {
-            routeData.remove(selected);
-            showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã xóa tuyến đường!");
+            try {
+                boolean success = tuyenDuongDAO.xoaTuyenDuong(Integer.parseInt(selected.getMaTuyen()));
+                
+                if (success) {
+                    showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã xóa/tạm ngưng tuyến đường!");
+                    handleRefresh();
+                } else {
+                    showAlert(Alert.AlertType.ERROR, "Thất bại", "Không thể xóa tuyến đường!");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                showAlert(Alert.AlertType.ERROR, "Lỗi", "Lỗi khi xóa tuyến đường:\n" + e.getMessage());
+            }
         }
     }
 
     @FXML
-    private void handleRefresh() {
-        loadMockData();
+     void handleRefresh() {
+        loadDataFromDatabase();
         showAlert(Alert.AlertType.INFORMATION, "Thông báo", "Đã làm mới dữ liệu!");
     }
 

@@ -1,5 +1,6 @@
 package com.ptudn12.main.controller;
 
+import com.ptudn12.main.dao.LichTrinhDAO;
 import com.ptudn12.main.entity.Ga;
 import com.ptudn12.main.entity.LichTrinh;
 import com.ptudn12.main.entity.Tau;
@@ -12,6 +13,11 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 public class ScheduleManagementController {
 
@@ -31,9 +37,11 @@ public class ScheduleManagementController {
     @FXML private ComboBox<String> statusCombo;
 
     private ObservableList<LichTrinh> scheduleData = FXCollections.observableArrayList();
+    private LichTrinhDAO lichTrinhDAO = new LichTrinhDAO();
 
     @FXML
     public void initialize() {
+        // Setup table columns
         idColumn.setCellValueFactory(new PropertyValueFactory<>("maLichTrinh"));
         trainColumn.setCellValueFactory(new PropertyValueFactory<>("maTauDisplay"));
         routeColumn.setCellValueFactory(new PropertyValueFactory<>("tuyenDuongDisplay"));
@@ -43,6 +51,7 @@ public class ScheduleManagementController {
         seatsColumn.setCellValueFactory(new PropertyValueFactory<>("soGheDisplay"));
         statusColumn.setCellValueFactory(new PropertyValueFactory<>("trangThaiDisplay"));
 
+        // Custom cell factory for status column
         statusColumn.setCellFactory(column -> new TableCell<LichTrinh, String>() {
             @Override
             protected void updateItem(String status, boolean empty) {
@@ -64,6 +73,7 @@ public class ScheduleManagementController {
                             label.getStyleClass().add("status-ready");
                             break;
                         case "TamNgung":
+                        case "TamHoan":
                             label.getStyleClass().add("status-paused");
                             break;
                     }
@@ -72,59 +82,26 @@ public class ScheduleManagementController {
             }
         });
 
-        loadMockData();
+        // Load data from database
+        loadDataFromDatabase();
 
+        // Setup filters
         setupFilters();
     }
 
-    private void loadMockData() {
-        scheduleData.clear();
-
-        Ga gaHaNoi = new Ga("Ga Hà Nội", 0);
-        Ga gaSaiGon = new Ga("Ga Sài Gòn", 1726);
-        Ga gaDaNang = new Ga("Ga Đà Nẵng", 791);
-        Ga gaNhaTrang = new Ga("Ga Nha Trang", 1315);
-        Ga gaHaiPhong = new Ga("Ga Hải Phòng", 102);
-        Ga gaVinh = new Ga("Ga Vinh", 319);
-
-        TuyenDuong tuyenSGHN = new TuyenDuong(gaSaiGon, gaHaNoi, 29);
-        tuyenSGHN.setMaTuyen("SG-HN");
-        tuyenSGHN.setTrangThai(TrangThai.SanSang);
-
-        TuyenDuong tuyenDNNT = new TuyenDuong(gaDaNang, gaNhaTrang, 9);
-        tuyenDNNT.setMaTuyen("DN-NT");
-        tuyenDNNT.setTrangThai(TrangThai.SanSang);
-
-        TuyenDuong tuyenHPV = new TuyenDuong(gaHaiPhong, gaVinh, 4);
-        tuyenHPV.setMaTuyen("HP-V");
-        tuyenHPV.setTrangThai(TrangThai.SanSang);
-
-        Tau tauSE1 = new Tau("SE1", 100);
-        Tau tauSE3 = new Tau("SE3", 100);
-        Tau tauSE5 = new Tau("SE5", 100);
-
-        LichTrinh lt1 = new LichTrinh(tuyenSGHN, tauSE1, LocalDateTime.of(2025, 9, 28, 12, 30));
-        lt1.setMaLichTrinh("SaiGon_HaNoi_27092025_1");
-        lt1.setSoGheTrong(0);
-        lt1.setTrangThai(TrangThai.SanSang);
-
-        LichTrinh lt2 = new LichTrinh(tuyenDNNT, tauSE3, LocalDateTime.of(2025, 9, 28, 19, 30));
-        lt2.setMaLichTrinh("DaNang_NhaTrang_27092025_1");
-        lt2.setSoGheTrong(100);
-        lt2.setTrangThai(TrangThai.Nhap);
-
-        LichTrinh lt3 = new LichTrinh(tuyenHPV, tauSE5, LocalDateTime.of(2025, 10, 19, 6, 45));
-        lt3.setMaLichTrinh("HaiPhong_Vinh_27092025_1");
-        lt3.setSoGheTrong(20);
-        lt3.setTrangThai(TrangThai.DangChay);
-
-        LichTrinh lt4 = new LichTrinh(tuyenDNNT, tauSE1, LocalDateTime.of(2025, 9, 28, 19, 30));
-        lt4.setMaLichTrinh("DaNang_NhaTrang_27092025_2");
-        lt4.setSoGheTrong(100);
-        lt4.setTrangThai(TrangThai.TamNgung);
-
-        scheduleData.addAll(lt1, lt2, lt3, lt4);
-        scheduleTable.setItems(scheduleData);
+    /**
+     * Load dữ liệu từ database
+     */
+    private void loadDataFromDatabase() {
+        try {
+            List<LichTrinh> danhSach = lichTrinhDAO.layTatCaLichTrinh();
+            scheduleData.clear();
+            scheduleData.addAll(danhSach);
+            scheduleTable.setItems(scheduleData);
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể tải dữ liệu từ database:\n" + e.getMessage());
+        }
     }
 
     private void setupFilters() {
@@ -133,22 +110,43 @@ public class ScheduleManagementController {
             "Ga Nha Trang", "Ga Hải Phòng", "Ga Vinh"
         );
         startStationCombo.setItems(stations);
+        startStationCombo.setValue("Tất cả điểm đi");
+        
         endStationCombo.setItems(stations);
+        endStationCombo.setValue("Tất cả điểm đi");
 
         ObservableList<String> trains = FXCollections.observableArrayList(
-            "Tất cả mã tàu", "SE1", "SE3", "SE5"
+            "Tất cả mã tàu", "T01", "T02", "T03", "T04", "T05"
         );
         trainCombo.setItems(trains);
+        trainCombo.setValue("Tất cả mã tàu");
 
         ObservableList<String> statuses = FXCollections.observableArrayList(
-            "Tất cả trạng thái", "SanSang", "Nhap", "DangChay", "TamNgung"
+            "Tất cả trạng thái", "Nhap", "ChuaKhoiHanh", "DangChay", "TamHoan", "DaKetThuc", "TamNgung"
         );
         statusCombo.setItems(statuses);
+        statusCombo.setValue("Tất cả trạng thái");
     }
 
     @FXML
     private void handleAddSchedule() {
-        showAlert(Alert.AlertType.INFORMATION, "Thông báo", "Chức năng thêm lịch trình đang được phát triển!");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/add-schedule-dialog.fxml"));
+            Scene scene = new Scene(loader.load());
+            
+            AddScheduleDialogController controller = loader.getController();
+            controller.setParentController(this);
+            
+            Stage dialogStage = new Stage();
+            dialogStage.setTitle("Thêm Lịch Trình Mới");
+            dialogStage.initModality(Modality.APPLICATION_MODAL);
+            dialogStage.setScene(scene);
+            dialogStage.showAndWait();
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể mở form thêm lịch trình:\n" + e.getMessage());
+        }
     }
 
     @FXML
@@ -158,8 +156,25 @@ public class ScheduleManagementController {
             showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Vui lòng chọn lịch trình cần sửa!");
             return;
         }
-        showAlert(Alert.AlertType.INFORMATION, "Thông báo", 
-                 "Chức năng sửa lịch trình: " + selected.getMaLichTrinh());
+        
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/add-schedule-dialog.fxml"));
+            Scene scene = new Scene(loader.load());
+            
+            AddScheduleDialogController controller = loader.getController();
+            controller.setParentController(this);
+            controller.setEditMode(selected);
+            
+            Stage dialogStage = new Stage();
+            dialogStage.setTitle("Sửa Lịch Trình");
+            dialogStage.initModality(Modality.APPLICATION_MODAL);
+            dialogStage.setScene(scene);
+            dialogStage.showAndWait();
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể mở form sửa lịch trình:\n" + e.getMessage());
+        }
     }
 
     @FXML
@@ -176,13 +191,26 @@ public class ScheduleManagementController {
         confirm.setContentText(selected.getMaLichTrinh());
         
         if (confirm.showAndWait().get() == ButtonType.OK) {
-            scheduleData.remove(selected);
+            try {
+                boolean success = lichTrinhDAO.xoaLichTrinh(selected.getMaLichTrinh());
+                
+                if (success) {
+                    showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã xóa/tạm ngưng lịch trình!");
+                    handleRefresh();
+                } else {
+                    showAlert(Alert.AlertType.ERROR, "Thất bại", "Không thể xóa lịch trình!");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                showAlert(Alert.AlertType.ERROR, "Lỗi", "Lỗi khi xóa lịch trình:\n" + e.getMessage());
+            }
         }
     }
 
     @FXML
-    private void handleRefresh() {
-        loadMockData();
+    public void handleRefresh() {
+        loadDataFromDatabase();
+        showAlert(Alert.AlertType.INFORMATION, "Thông báo", "Đã làm mới dữ liệu!");
     }
 
     private void showAlert(Alert.AlertType type, String title, String message) {

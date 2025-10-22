@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.ptudn12.main.database;
 
 import java.sql.Connection;
@@ -9,22 +5,36 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 /**
- *
  * @author Huy
  */
 public class DatabaseConnection {
     private static final String SERVER = "localhost";
-    private static final String PORT = "root";
+    private static final String PORT = "1433"; // Sửa lại từ "root" thành "1433"
     private static final String DATABASE = "HeThongVeTau";
-    private static final String USER = "sa"; // hoặc username của bạn
+    private static final String USER = "sa";
     private static final String PASSWORD = "123456";
     
-    private static final String URL = String.format(
-        "jdbc:sqlserver://%s:%s;databaseName=%s;encrypt=true;trustServerCertificate=true",
+   private static final String URL = String.format(
+        "jdbc:sqlserver://%s:%s;databaseName=%s;encrypt=true;trustServerCertificate=true;characterEncoding=UTF-8;sendStringParametersAsUnicode=true",
         SERVER, PORT, DATABASE
     );
     
     public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(URL, USER, PASSWORD);
+        try {
+            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+            return DriverManager.getConnection(URL, USER, PASSWORD);
+        } catch (ClassNotFoundException e) {
+            throw new SQLException("SQL Server JDBC Driver not found", e);
+        }
+    }
+    
+    // Test connection
+    public static void main(String[] args) {
+        try (Connection conn = getConnection()) {
+            System.out.println("Kết nối thành công đến database: " + DATABASE);
+        } catch (SQLException e) {
+            System.err.println("Lỗi kết nối: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }
