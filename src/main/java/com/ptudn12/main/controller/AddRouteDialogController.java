@@ -45,7 +45,7 @@ public class AddRouteDialogController {
         loadStations();
         
         // Setup status combo
-        var statuses = FXCollections.observableArrayList("Nhap", "SanSang", "TamNgung");
+        var statuses = FXCollections.observableArrayList("SanSang", "TamNgung");
         statusCombo.setItems(statuses);
         statusCombo.setValue("Nhap");
     }
@@ -57,7 +57,7 @@ public class AddRouteDialogController {
     try {
         List<Ga> danhSachGa = gaDAO.layTatCaGa();
         
-        // ✅ Chỉ định rõ kiểu String
+        // Chỉ định rõ kiểu String
         ObservableList<String> stationNames = FXCollections.observableArrayList();
         
         for (Ga ga : danhSachGa) {

@@ -25,7 +25,7 @@ public class GaDAO {
      */
     public List<Ga> layTatCaGa() {
         List<Ga> danhSach = new ArrayList<>();
-        String sql = "SELECT * FROM Ga ORDER BY mocKm";
+        String sql = "SELECT * FROM dbo.Ga ORDER BY mocKm";
         
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
@@ -49,7 +49,7 @@ public class GaDAO {
      * Lấy ga theo mã
      */
     public Ga layGaTheoMa(int maGa) {
-        String sql = "SELECT * FROM Ga WHERE maGa = ?";
+        String sql = "SELECT * FROM dbo.Ga WHERE maGa = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
