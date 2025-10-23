@@ -6,16 +6,17 @@ public class ChiTietHoaDon {
 	private HoaDon hoaDon;
 	private VeTau veTau;
 	static final int BAO_HIEM = 2000;
+        private boolean isTraVe;
 	
 	public ChiTietHoaDon() {
 		super();
 	}
 
-	public ChiTietHoaDon(HoaDon hoaDon, VeTau veTau) {
-		super();
-		this.hoaDon = hoaDon;
-		this.veTau = veTau;
-	}
+        public ChiTietHoaDon(HoaDon hoaDon, VeTau veTau, boolean isTraVe) {
+            this.hoaDon = hoaDon;
+            this.veTau = veTau;
+            this.isTraVe = isTraVe;
+        }
 
 	public HoaDon getHoaDon() {
 		return hoaDon;
@@ -32,7 +33,14 @@ public class ChiTietHoaDon {
 	public void setVeTau(VeTau veTau) {
 		this.veTau = veTau;
 	}
-	
+
+        public boolean isIsTraVe() {
+            return isTraVe;
+        }
+
+        public void setIsTraVe(boolean isTraVe) {
+            this.isTraVe = isTraVe;
+        }
 
 	@Override
 	public int hashCode() {
@@ -51,9 +59,8 @@ public class ChiTietHoaDon {
 		return Objects.equals(hoaDon, other.hoaDon) && Objects.equals(veTau, other.veTau);
 	}
 
-	@Override
-	public String toString() {
-		return "ChiTietHoaDon [hoaDon=" + hoaDon + ", veTau=" + veTau + "]";
-	}
-	
+        @Override
+        public String toString() {
+            return "ChiTietHoaDon{" + "hoaDon=" + hoaDon + ", veTau=" + veTau + ", isTraVe=" + isTraVe + '}';
+        }
 }

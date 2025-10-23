@@ -7,7 +7,7 @@
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.ptudn12.main.controller.ScheduleManagementController"
-            stylesheets="@../styles.css"
+            stylesheets="@styles.css"
             prefWidth="1200" prefHeight="700">
 
     <!-- Main Content -->
