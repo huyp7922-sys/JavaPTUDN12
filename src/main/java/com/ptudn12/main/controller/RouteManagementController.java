@@ -103,25 +103,36 @@ public class RouteManagementController {
     }
 
     private void setupFilters() {
+        // ✅ Kiểm tra null để tránh NullPointerException
+        if (startStationCombo == null || endStationCombo == null || statusCombo == null) {
+            return;
+        }
+        
         // ✅ Lấy danh sách ga từ data thực tế
         ObservableList<String> stations = FXCollections.observableArrayList("Tất cả điểm đi");
         
         // Lấy unique ga từ dữ liệu
-        allRouteData.stream()
-            .map(TuyenDuong::getTenDiemDi)
-            .distinct()
-            .sorted()
-            .forEach(stations::add);
+        if (allRouteData != null) {
+            allRouteData.stream()
+                .filter(route -> route != null && route.getTenDiemDi() != null)
+                .map(TuyenDuong::getTenDiemDi)
+                .distinct()
+                .sorted()
+                .forEach(stations::add);
+        }
         
         startStationCombo.setItems(stations);
         startStationCombo.setValue("Tất cả điểm đi");
         
         ObservableList<String> endStations = FXCollections.observableArrayList("Tất cả điểm đến");
-        allRouteData.stream()
-            .map(TuyenDuong::getTenDiemDen)
-            .distinct()
-            .sorted()
-            .forEach(endStations::add);
+        if (allRouteData != null) {
+            allRouteData.stream()
+                .filter(route -> route != null && route.getTenDiemDen() != null)
+                .map(TuyenDuong::getTenDiemDen)
+                .distinct()
+                .sorted()
+                .forEach(endStations::add);
+        }
         
         endStationCombo.setItems(endStations);
         endStationCombo.setValue("Tất cả điểm đến");
@@ -152,17 +163,18 @@ public class RouteManagementController {
         
         List<TuyenDuong> filtered = allRouteData.stream()
             .filter(tuyen -> {
-                // Filter điểm đi
-                boolean matchStart = startStation.equals("Tất cả điểm đi") || 
-                                    tuyen.getTenDiemDi().equals(startStation);
+                // Filter điểm đi - FIX: Dùng constant.equals(variable) để tránh NullPointerException
+                boolean matchStart = startStation == null || "Tất cả điểm đi".equals(startStation) || 
+                                    (tuyen.getTenDiemDi() != null && tuyen.getTenDiemDi().equals(startStation));
                 
-                // Filter điểm đến
-                boolean matchEnd = endStation.equals("Tất cả điểm đến") || 
-                                  tuyen.getTenDiemDen().equals(endStation);
+                // Filter điểm đến - FIX: Dùng constant.equals(variable)
+                boolean matchEnd = endStation == null || "Tất cả điểm đến".equals(endStation) || 
+                                  (tuyen.getTenDiemDen() != null && tuyen.getTenDiemDen().equals(endStation));
                 
-                // Filter trạng thái
-                boolean matchStatus = status.equals("Tất cả trạng thái") || 
-                                     tuyen.getTrangThai().getTenTrangThai().equals(status);
+                // Filter trạng thái - FIX: Dùng constant.equals(variable)
+                boolean matchStatus = status == null || "Tất cả trạng thái".equals(status) || 
+                                     (tuyen.getTrangThai() != null && tuyen.getTrangThai().getTenTrangThai() != null && 
+                                      tuyen.getTrangThai().getTenTrangThai().equals(status));
                 
                 return matchStart && matchEnd && matchStatus;
             })

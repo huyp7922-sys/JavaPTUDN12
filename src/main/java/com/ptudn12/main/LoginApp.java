@@ -1,22 +1,31 @@
 package com.ptudn12.main;
 
+import com.ptudn12.main.controller.LoadingController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 public class LoginApp extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        // Đường dẫn đúng: /views/login.fxml (trong resources)
-        Parent root = FXMLLoader.load(getClass().getResource("/views/login.fxml"));
-        Scene scene = new Scene(root, 1040, 585);
+        // Load màn hình loading trước
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/loading.fxml"));
+        Parent root = loader.load();
         
-        stage.setTitle("Đăng Nhập Hệ Thống");
+        // Lấy controller và set stage
+        LoadingController controller = loader.getController();
+        controller.setStage(stage);
+        
+        Scene scene = new Scene(root, 600, 400);
+        
+        stage.setTitle("Đang tải...");
         stage.setScene(scene);
         stage.setResizable(false);
+        stage.initStyle(StageStyle.UNDECORATED); // Không có thanh title bar cho loading screen
         stage.show();
     }
 
