@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" 
+            fx:controller="com.ptudn12.main.controller.Step1Controller"
+            styleClass="banve-content-wrapper">
+   <top>
+      <VBox alignment="CENTER" spacing="15.0">
+         <children>
+            <Label text="BÁN VÉ TÀU" styleClass="banve-title" />
+            <HBox styleClass="step-indicator-box">
+               <children>
+                  <Button text="Bước 1: Chọn chuyến tàu" styleClass="step-button-active" />
+                  <Button text="Bước 2: Chọn chỗ ngồi" styleClass="step-button" />
+                  <Button text="Bước 3: Thông tin hành khách" styleClass="step-button" />
+                  <Button text="Bước 4: Thanh toán" styleClass="step-button" />
+               </children>
+            </HBox>
+         </children>
+         <padding>
+            <Insets bottom="10.0" />
+         </padding>
+      </VBox>
+   </top>
+   
+   <center>
+      <VBox spacing="20.0">
+         <VBox styleClass="info-box">
+            <children>
+               <Label text="Thông tin hành trình" styleClass="info-box-title" />
+               <GridPane hgap="20.0" vgap="10.0">
+                 <columnConstraints>
+                   <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="200.0" />
+                   <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="200.0" />
+                   <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="150.0" />
+                   <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="150.0" />
+                 </columnConstraints>
+                 <rowConstraints>
+                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                   <RowConstraints minHeight="10.0" prefHeight="40.0" vgrow="SOMETIMES" />
+                 </rowConstraints>
+                  <children>
+                     <Label text="Ga đi:" />
+                     <Label text="Ga đến:" GridPane.columnIndex="1" />
+                     <Label text="Một chiều:" GridPane.columnIndex="2" />
+                     <Label text="Khứ hồi:" GridPane.columnIndex="3" />
+                     
+                     <ComboBox fx:id="comboGaDi" promptText="Chọn ga đi" maxWidth="1.7976931348623157E308" GridPane.rowIndex="1" />
+                     <ComboBox fx:id="comboGaDen" promptText="Chọn ga đến" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                     
+                     <RadioButton fx:id="radioMotChieu" selected="true" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="1">
+                        <toggleGroup>
+                           <ToggleGroup fx:id="chieuToggleGroup" />
+                        </toggleGroup>
+                     </RadioButton>
+                     <RadioButton fx:id="radioKhuHoi" toggleGroup="$chieuToggleGroup" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="1" />
+                     
+                     <Label text="Ngày đi:" GridPane.rowIndex="2" />
+                     <Label text="Ngày về:" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                     
+                     <DatePicker fx:id="dateNgayDi" maxWidth="1.7976931348623157E308" GridPane.rowIndex="3" />
+                     <DatePicker fx:id="dateNgayVe" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                     
+                     <Button fx:id="btnTimKiem" text="Tìm kiếm" onAction="#handleTimKiem" styleClass="button-primary" prefHeight="40.0" maxWidth="1.7976931348623157E308" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="3" />
+                  </children>
+               </GridPane>
+            </children>
+         </VBox>
+         
+         <VBox fx:id="boxDanhSachChuyenTau" styleClass="info-box" visible="false" managed="false">
+            <children>
+               <Label text="Danh sách chuyến tàu" styleClass="info-box-title" />
+               <ScrollPane fitToWidth="true" vbarPolicy="ALWAYS">
+                  <content>
+                     <VBox fx:id="chuyenTauListContainer" />
+                  </content>
+               </ScrollPane>
+            </children>
+         </VBox>
+      </VBox>
+   </center>
+   
+   <bottom>
+      <HBox styleClass="navigation-bar">
+         <children>
+            <Button text="Quay lại" styleClass="button-secondary" onAction="#handleQuayLai" />
+            <Button fx:id="btnTiepTheo" text="Tiếp theo" styleClass="button-primary" onAction="#handleTiepTheo" disable="true" />
+         </children>
+      </HBox>
+   </bottom>
+</BorderPane>

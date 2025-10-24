@@ -8,7 +8,7 @@
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.ptudn12.main.controller.DashboardStatisticsController"
-      stylesheets="@dashboard-statistics.css"
+      stylesheets="@dashboard-statistic.css"
       spacing="25" styleClass="main-content">
 
     <padding>

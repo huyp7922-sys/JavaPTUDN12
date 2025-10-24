@@ -1,5 +1,6 @@
 package com.ptudn12.main.entity;
 
+import com.ptudn12.main.enums.LoaiHoaDon;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -8,6 +9,7 @@ public class HoaDon {
 	private NhanVien nhanVien;
 	private KhachHang khachHang;
 	private LocalDateTime ngayLap;
+        private LoaiHoaDon loaiHoaDon;
 	
 	public HoaDon() {
 		super();
@@ -18,13 +20,14 @@ public class HoaDon {
 		this.maHoaDon = maHoaDon;
 	}
 
-	public HoaDon(String maHoaDon, NhanVien nhanVien, KhachHang khachHang, LocalDateTime ngayLap) {
-		super();
-		this.maHoaDon = maHoaDon;
-		this.nhanVien = nhanVien;
-		this.khachHang = khachHang;
-		this.ngayLap = ngayLap;
-	}
+        public HoaDon(String maHoaDon, NhanVien nhanVien, KhachHang khachHang, LocalDateTime ngayLap, LoaiHoaDon loaiHoaDon) {
+            this.maHoaDon = maHoaDon;
+            this.nhanVien = nhanVien;
+            this.khachHang = khachHang;
+            this.ngayLap = ngayLap;
+            this.loaiHoaDon = loaiHoaDon;
+        }
+
 
 	public String getMaHoaDon() {
 		return maHoaDon;
@@ -57,7 +60,14 @@ public class HoaDon {
 	public void setNgayLap(LocalDateTime ngayLap) {
 		this.ngayLap = ngayLap;
 	}
-	
+
+        public LoaiHoaDon getLoaiHoaDon() {
+            return loaiHoaDon;
+        }
+
+        public void setLoaiHoaDon(LoaiHoaDon loaiHoaDon) {
+            this.loaiHoaDon = loaiHoaDon;
+        }
 
 	@Override
 	public int hashCode() {
@@ -76,10 +86,8 @@ public class HoaDon {
 		return Objects.equals(maHoaDon, other.maHoaDon);
 	}
 
-	@Override
-	public String toString() {
-		return "HoaDon [maHoaDon=" + maHoaDon + ", khachHang=" + khachHang + ", ngayLap=" + ngayLap + "]";
-	}
-	
-	
+        @Override
+        public String toString() {
+            return "HoaDon{" + "maHoaDon=" + maHoaDon + ", nhanVien=" + nhanVien + ", khachHang=" + khachHang + ", ngayLap=" + ngayLap + ", loaiHoaDon=" + loaiHoaDon + '}';
+        }
 }

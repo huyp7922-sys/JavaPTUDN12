@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" 
+            fx:controller="com.ptudn12.main.controller.Step2Controller"
+            styleClass="banve-content-wrapper">
+   <top>
+      <VBox alignment="CENTER" spacing="15.0">
+         <children>
+            <Label text="BÁN VÉ TÀU" styleClass="banve-title" />
+            <HBox styleClass="step-indicator-box">
+               <children>
+                  <Button text="Bước 1: Chọn chuyến tàu" styleClass="step-button-complete" />
+                  <Button text="Bước 2: Chọn chỗ ngồi" styleClass="step-button-active" />
+                  <Button text="Bước 3: Thông tin hành khách" styleClass="step-button" />
+                  <Button text="Bước 4: Thanh toán" styleClass="step-button" />
+               </children>
+            </HBox>
+         </children>
+         <padding>
+            <Insets bottom="10.0" />
+         </padding>
+      </VBox>
+   </top>
+   
+   <center>
+      <VBox styleClass="info-box" spacing="15.0">
+         <children>
+            <HBox style="-fx-background-color: #e6f0fA; -fx-padding: 10px; -fx-background-radius: 5px;" spacing="50.0">
+               <children>
+                  <VBox>
+                     <children>
+                        <Label fx:id="labelTenTau" text="SE1 - Thống nhất" style="-fx-font-weight: bold; -fx-font-size: 14px;" />
+                        <Label fx:id="labelThoiGianDi" text="Thời gian đi: 24/12/2025 6:00" />
+                     </children>
+                  </VBox>
+                  <VBox>
+                     <children>
+                        <Label text="" />
+                        <Label fx:id="labelThoiGianDen" text="Thời gian đến: 24/12/2025 14:00" />
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+            
+            <HBox fx:id="chieuVeToggleBox" alignment="CENTER_LEFT" spacing="10.0" visible="false" managed="false">
+               <children>
+                  <ToggleButton fx:id="toggleChieuDi" text="Chọn chiều đi" selected="true" />
+                  <ToggleButton fx:id="toggleChieuVe" text="Chọn chiều về" />
+               </children>
+            </HBox>
+            
+            <HBox alignment="CENTER_LEFT" spacing="10.0">
+               <children>
+                  <Label text="Chọn Toa:" />
+                  <ComboBox fx:id="comboChonToa" promptText="Chọn toa" />
+               </children>
+            </HBox>
+            
+            <FlowPane fx:id="seatMapPane" hgap="5.0" vgap="5.0" prefWrapLength="600.0" />
+            
+            <HBox alignment="CENTER_LEFT" spacing="20.0">
+               <children>
+                  <Label text="Lưu ý: " />
+                  <Button text="Trống" styleClass="seat-empty" disable="true" />
+                  <Button text="Đã bán" styleClass="seat-sold" disable="true" />
+                  <Button text="Đang giao dịch" styleClass="seat-pending" disable="true" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </center>
+   
+   <right>
+      <VBox styleClass="info-box" prefWidth="300.0" spacing="10.0">
+         <children>
+            <Label text="Giỏ vé" styleClass="info-box-title" />
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
+               <content>
+                  <VBox fx:id="gioVeContainer" spacing="5.0" />
+               </content>
+            </ScrollPane>
+            <Button fx:id="btnMuaVe" text="Mua vé" onAction="#handleTiepTheo" styleClass="button-primary" maxWidth="1.7976931348623157E308" />
+         </children>
+         <BorderPane.margin>
+            <Insets left="20.0" />
+         </BorderPane.margin>
+      </VBox>
+   </right>
+   
+   <bottom>
+      <HBox styleClass="navigation-bar">
+         <children>
+            <Button text="Quay lại" styleClass="button-secondary" onAction="#handleQuayLai" />
+         </children>
+      </HBox>
+   </bottom>
+</BorderPane>
