@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.ptudn12.main.controller.Step4Controller"
+            prefWidth="900" prefHeight="600">
+    <Label text="Step 4 - Thanh toán" layoutX="380" layoutY="280"
+           style="-fx-font-size: 22px; -fx-font-weight: bold;"/>
+</AnchorPane>
