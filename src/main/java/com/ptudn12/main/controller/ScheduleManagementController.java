@@ -14,6 +14,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
@@ -37,6 +38,7 @@ public class ScheduleManagementController {
     @FXML private ComboBox<String> statusCombo;
 
     private ObservableList<LichTrinh> scheduleData = FXCollections.observableArrayList();
+    private ObservableList<LichTrinh> allScheduleData = FXCollections.observableArrayList();
     private LichTrinhDAO lichTrinhDAO = new LichTrinhDAO();
 
     @FXML
@@ -76,6 +78,9 @@ public class ScheduleManagementController {
                         case "TamHoan":
                             label.getStyleClass().add("status-paused");
                             break;
+                        case "ChuaKhoiHanh":   // trạng thái mới
+                            label.getStyleClass().add("status-waiting");
+                            break;
                     }
                     setGraphic(label);
                 }
@@ -87,6 +92,9 @@ public class ScheduleManagementController {
 
         // Setup filters
         setupFilters();
+        
+        // Setup filter listeners
+        setupFilterListeners();
     }
 
     /**
@@ -95,9 +103,13 @@ public class ScheduleManagementController {
     private void loadDataFromDatabase() {
         try {
             List<LichTrinh> danhSach = lichTrinhDAO.layTatCaLichTrinh();
+            allScheduleData.clear();
+            allScheduleData.addAll(danhSach);
+            
             scheduleData.clear();
             scheduleData.addAll(danhSach);
             scheduleTable.setItems(scheduleData);
+            
         } catch (Exception e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể tải dữ liệu từ database:\n" + e.getMessage());
@@ -105,27 +117,103 @@ public class ScheduleManagementController {
     }
 
     private void setupFilters() {
-        ObservableList<String> stations = FXCollections.observableArrayList(
-            "Tất cả điểm đi", "Ga Hà Nội", "Ga Sài Gòn", "Ga Đà Nẵng", 
-            "Ga Nha Trang", "Ga Hải Phòng", "Ga Vinh"
-        );
-        startStationCombo.setItems(stations);
+        if (startStationCombo == null || endStationCombo == null || trainCombo == null || statusCombo == null) {
+            return;
+        }
+        
+        ObservableList<String> startStations = FXCollections.observableArrayList("Tất cả điểm đi");
+        if (allScheduleData != null) {
+            allScheduleData.stream()
+                .filter(lt -> lt != null && lt.getTuyenDuong() != null && lt.getTuyenDuong().getTenDiemDi() != null)
+                .map(lt -> lt.getTuyenDuong().getTenDiemDi())
+                .distinct()
+                .sorted()
+                .forEach(startStations::add);
+        }
+        startStationCombo.setItems(startStations);
         startStationCombo.setValue("Tất cả điểm đi");
         
-        endStationCombo.setItems(stations);
-        endStationCombo.setValue("Tất cả điểm đi");
+        ObservableList<String> endStations = FXCollections.observableArrayList("Tất cả điểm đến");
+        if (allScheduleData != null) {
+            allScheduleData.stream()
+                .filter(lt -> lt != null && lt.getTuyenDuong() != null && lt.getTuyenDuong().getTenDiemDen() != null)
+                .map(lt -> lt.getTuyenDuong().getTenDiemDen())
+                .distinct()
+                .sorted()
+                .forEach(endStations::add);
+        }
+        endStationCombo.setItems(endStations);
+        endStationCombo.setValue("Tất cả điểm đến");
 
-        ObservableList<String> trains = FXCollections.observableArrayList(
-            "Tất cả mã tàu", "T01", "T02", "T03", "T04", "T05"
-        );
+        ObservableList<String> trains = FXCollections.observableArrayList("Tất cả mã tàu");
+        if (allScheduleData != null) {
+            allScheduleData.stream()
+                .filter(lt -> lt != null && lt.getTau() != null && lt.getTau().getMacTau() != null)
+                .map(lt -> lt.getTau().getMacTau())
+                .distinct()
+                .sorted()
+                .forEach(trains::add);
+        }
         trainCombo.setItems(trains);
         trainCombo.setValue("Tất cả mã tàu");
 
-        ObservableList<String> statuses = FXCollections.observableArrayList(
-            "Tất cả trạng thái", "Nhap", "ChuaKhoiHanh", "DangChay", "TamHoan", "DaKetThuc", "TamNgung"
-        );
+        ObservableList<String> statuses = FXCollections.observableArrayList("Tất cả trạng thái");
+        if (allScheduleData != null) {
+            allScheduleData.stream()
+                .filter(lt -> lt != null && lt.getTrangThai() != null && lt.getTrangThai().getTenTrangThai() != null)
+                .map(lt -> lt.getTrangThai().getTenTrangThai())
+                .distinct()
+                .sorted()
+                .forEach(statuses::add);
+        }
         statusCombo.setItems(statuses);
         statusCombo.setValue("Tất cả trạng thái");
+    }
+    
+    private void setupFilterListeners() {
+        startStationCombo.setOnAction(e -> applyFilters());
+        endStationCombo.setOnAction(e -> applyFilters());
+        trainCombo.setOnAction(e -> applyFilters());
+        statusCombo.setOnAction(e -> applyFilters());
+    }
+    
+    /**
+     * Áp dụng bộ lọc
+     */
+    private void applyFilters() {
+        String startStation = startStationCombo.getValue();
+        String endStation = endStationCombo.getValue();
+        String train = trainCombo.getValue();
+        String status = statusCombo.getValue();
+        
+        List<LichTrinh> filtered = allScheduleData.stream()
+            .filter(lichTrinh -> {
+                // Filter điểm đi
+                boolean matchStart = startStation == null || "Tất cả điểm đi".equals(startStation) || 
+                    (lichTrinh.getTuyenDuong() != null && lichTrinh.getTuyenDuong().getTenDiemDi() != null && 
+                     lichTrinh.getTuyenDuong().getTenDiemDi().equals(startStation));
+                
+                // Filter điểm đến
+                boolean matchEnd = endStation == null || "Tất cả điểm đến".equals(endStation) || 
+                    (lichTrinh.getTuyenDuong() != null && lichTrinh.getTuyenDuong().getTenDiemDen() != null && 
+                     lichTrinh.getTuyenDuong().getTenDiemDen().equals(endStation));
+                
+                // Filter mã tàu
+                boolean matchTrain = train == null || "Tất cả mã tàu".equals(train) || 
+                    (lichTrinh.getTau() != null && lichTrinh.getTau().getMacTau() != null && 
+                     lichTrinh.getTau().getMacTau().equals(train));
+                
+                // Filter trạng thái
+                boolean matchStatus = status == null || "Tất cả trạng thái".equals(status) || 
+                    (lichTrinh.getTrangThai() != null && lichTrinh.getTrangThai().getTenTrangThai() != null && 
+                     lichTrinh.getTrangThai().getTenTrangThai().equals(status));
+                
+                return matchStart && matchEnd && matchTrain && matchStatus;
+            })
+            .collect(Collectors.toList());
+        
+        scheduleData.clear();
+        scheduleData.addAll(filtered);
     }
 
     @FXML
@@ -210,7 +298,15 @@ public class ScheduleManagementController {
     @FXML
     public void handleRefresh() {
         loadDataFromDatabase();
-        showAlert(Alert.AlertType.INFORMATION, "Thông báo", "Đã làm mới dữ liệu!");
+        
+        // Reset filters về mặc định
+        startStationCombo.setValue("Tất cả điểm đi");
+        endStationCombo.setValue("Tất cả điểm đến");
+        trainCombo.setValue("Tất cả mã tàu");
+        statusCombo.setValue("Tất cả trạng thái");
+        
+        // Cập nhật lại danh sách filter
+        setupFilters();
     }
 
     private void showAlert(Alert.AlertType type, String title, String message) {
