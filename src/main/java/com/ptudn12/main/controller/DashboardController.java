@@ -98,6 +98,29 @@ public class DashboardController {
         btnStatistics.getStyleClass().add("menu-item-active");
         loadView("statistics-management.fxml");
     }
+        @FXML
+    private void showDashboard() {
+        resetMenuButtons();
+        btnStatistics.getStyleClass().add("menu-item-active");
+        loadView("DBoard.fxml");
+    }
+    @FXML
+    private void handleAbout() {
+        try {
+            java.awt.Desktop.getDesktop().browse(new java.net.URI("https://yourcompany.com/about"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void handleHelp() {
+        try {
+            java.awt.Desktop.getDesktop().browse(new java.net.URI("https://yourcompany.com/help"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     @FXML
     private void handleLogout() {
