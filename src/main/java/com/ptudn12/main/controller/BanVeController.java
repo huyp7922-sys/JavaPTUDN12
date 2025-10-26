@@ -70,7 +70,6 @@ public class BanVeController {
     }
     
     // --- Các hàm xử lý menu ---
-
     @FXML
     private void showBanVe() {
         resetMenuButtons();

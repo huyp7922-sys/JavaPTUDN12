@@ -3,6 +3,7 @@ package com.ptudn12.main.entity;
 import com.ptudn12.main.enums.TrangThai;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 //Phạm Thanh Huy
 public class LichTrinh {
     private String maLichTrinh;           // DiemDi_DiemDen_NgayDi_STT
@@ -198,6 +199,31 @@ public class LichTrinh {
                 return tenGa.substring(0, Math.min(2, tenGa.length())).toUpperCase();
         }
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 67 * hash + Objects.hashCode(this.maLichTrinh);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final LichTrinh other = (LichTrinh) obj;
+        return Objects.equals(this.maLichTrinh, other.maLichTrinh);
+    }
+    
+    
+    
     @Override
     public String toString() {
         return "LichTrinh{" +
