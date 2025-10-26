@@ -272,12 +272,10 @@ public class TuyenDuongDAO {
      */
     private TuyenDuong mapResultSetToTuyenDuong(ResultSet rs) throws SQLException {
         // Map Ga đi
-        Ga gaDi = new Ga(rs.getString("viTriGaDi"), rs.getInt("mocKmDi"));
-        gaDi.setMaGa(rs.getInt("maGaDi"));
+        Ga gaDi = new Ga(rs.getInt("maGaDi"), rs.getString("viTriGaDi"), rs.getInt("mocKmDi"));
         
         // Map Ga đến
-        Ga gaDen = new Ga(rs.getString("viTriGaDen"), rs.getInt("mocKmDen"));
-        gaDen.setMaGa(rs.getInt("maGaDen"));
+        Ga gaDen = new Ga(rs.getInt("maGaDen"), rs.getString("viTriGaDen"), rs.getInt("mocKmDen"));
         
         // Tạo TuyenDuong
         TuyenDuong tuyen = new TuyenDuong(gaDi, gaDen, rs.getInt("thoiGianDuKien"));

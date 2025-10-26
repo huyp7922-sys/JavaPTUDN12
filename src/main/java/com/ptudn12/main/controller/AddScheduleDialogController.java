@@ -82,7 +82,6 @@ public class AddScheduleDialogController {
         try {
             List<TuyenDuong> danhSach = tuyenDuongDAO.layTatCaTuyenDuong();
 
-            // ✅ FIX: Chỉ định rõ kiểu String
             ObservableList<String> routeNames = FXCollections.observableArrayList();
 
             for (TuyenDuong tuyen : danhSach) {
@@ -108,7 +107,6 @@ public class AddScheduleDialogController {
     try {
         List<Tau> danhSach = tauDAO.layTatCaTau();
         
-        // ✅ FIX: Chỉ định rõ kiểu String
         ObservableList<String> trainNames = FXCollections.observableArrayList();
         
         for (Tau tau : danhSach) {

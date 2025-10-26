@@ -32,8 +32,7 @@ public class GaDAO {
              ResultSet rs = stmt.executeQuery(sql)) {
             
             while (rs.next()) {
-                Ga ga = new Ga(rs.getString("viTriGa"), rs.getInt("mocKm"));
-                ga.setMaGa(rs.getInt("maGa"));
+                Ga ga = new Ga(rs.getInt("maGa"), rs.getString("viTriGa"), rs.getInt("mocKm"));
                 danhSach.add(ga);
             }
             
@@ -58,8 +57,7 @@ public class GaDAO {
             ResultSet rs = stmt.executeQuery();
             
             if (rs.next()) {
-                Ga ga = new Ga(rs.getString("viTriGa"), rs.getInt("mocKm"));
-                ga.setMaGa(rs.getInt("maGa"));
+                Ga ga = new Ga(rs.getInt("maGa") , rs.getString("viTriGa"), rs.getInt("mocKm"));
                 return ga;
             }
             

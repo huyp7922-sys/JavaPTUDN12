@@ -39,12 +39,12 @@ public class LichTrinhDAO {
             
             boolean result = stmt.executeUpdate() > 0;
             if (result) {
-                System.out.println("✅ Thêm lịch trình thành công!");
+                System.out.println("Thêm lịch trình thành công!");
             }
             return result;
             
         } catch (SQLException e) {
-            System.err.println("❌ Lỗi khi thêm lịch trình: " + e.getMessage());
+            System.err.println("Lỗi khi thêm lịch trình: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -69,12 +69,12 @@ public class LichTrinhDAO {
             
             boolean result = stmt.executeUpdate() > 0;
             if (result) {
-                System.out.println("✅ Cập nhật lịch trình thành công!");
+                System.out.println("Cập nhật lịch trình thành công!");
             }
             return result;
             
         } catch (SQLException e) {
-            System.err.println("❌ Lỗi khi cập nhật lịch trình: " + e.getMessage());
+            System.err.println("Lỗi khi cập nhật lịch trình: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -86,7 +86,7 @@ public class LichTrinhDAO {
     public boolean xoaLichTrinh(String maLichTrinh) {
         LichTrinh lichTrinh = layLichTrinhTheoMa(maLichTrinh);
         if (lichTrinh == null) {
-            System.err.println("❌ Không tìm thấy lịch trình!");
+            System.err.println(" Không tìm thấy lịch trình!");
             return false;
         }
         
@@ -98,12 +98,12 @@ public class LichTrinhDAO {
                 stmt.setString(1, maLichTrinh);
                 boolean result = stmt.executeUpdate() > 0;
                 if (result) {
-                    System.out.println("✅ Xóa lịch trình thành công!");
+                    System.out.println("Xóa lịch trình thành công!");
                 }
                 return result;
                 
             } catch (SQLException e) {
-                System.err.println("❌ Lỗi khi xóa lịch trình: " + e.getMessage());
+                System.err.println("Lỗi khi xóa lịch trình: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
@@ -115,12 +115,12 @@ public class LichTrinhDAO {
                 stmt.setString(1, maLichTrinh);
                 boolean result = stmt.executeUpdate() > 0;
                 if (result) {
-                    System.out.println("⚠️ Lịch trình không thể xóa, đã chuyển sang Tạm Ngưng!");
+                    System.out.println("Lịch trình không thể xóa, đã chuyển sang Tạm Ngưng!");
                 }
                 return result;
                 
             } catch (SQLException e) {
-                System.err.println("❌ Lỗi khi cập nhật trạng thái: " + e.getMessage());
+                System.err.println("Lỗi khi cập nhật trạng thái: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
@@ -154,7 +154,7 @@ public class LichTrinhDAO {
             }
             
         } catch (SQLException e) {
-            System.err.println("❌ Lỗi khi lấy lịch trình: " + e.getMessage());
+            System.err.println("Lỗi khi lấy lịch trình: " + e.getMessage());
             e.printStackTrace();
         }
         
@@ -190,10 +190,10 @@ public class LichTrinhDAO {
                 }
             }
             
-            System.out.println("✅ Lấy được " + danhSach.size() + " lịch trình");
+            System.out.println("Lấy được " + danhSach.size() + " lịch trình");
             
         } catch (SQLException e) {
-            System.err.println("❌ Lỗi khi lấy danh sách lịch trình: " + e.getMessage());
+            System.err.println("Lỗi khi lấy danh sách lịch trình: " + e.getMessage());
             e.printStackTrace();
         }
         
@@ -244,10 +244,10 @@ public class LichTrinhDAO {
                 if (lt != null) danhSach.add(lt);
             }
             
-            System.out.println("✅ Tìm được " + danhSach.size() + " lịch trình");
+            System.out.println("Tìm được " + danhSach.size() + " lịch trình");
             
         } catch (SQLException e) {
-            System.err.println("❌ Lỗi khi tìm kiếm lịch trình: " + e.getMessage());
+            System.err.println("Lỗi khi tìm kiếm lịch trình: " + e.getMessage());
             e.printStackTrace();
         }
         
@@ -259,12 +259,10 @@ public class LichTrinhDAO {
      */
     private LichTrinh mapResultSetToLichTrinh(ResultSet rs) throws SQLException {
         // Map Ga đi
-        Ga gaDi = new Ga(rs.getString("viTriGaDi"), rs.getInt("mocKmDi"));
-        gaDi.setMaGa(rs.getInt("maGaDi"));
+        Ga gaDi = new Ga(rs.getInt("maGaDi"), rs.getString("viTriGaDi"), rs.getInt("mocKmDi"));
         
         // Map Ga đến
-        Ga gaDen = new Ga(rs.getString("viTriGaDen"), rs.getInt("mocKmDen"));
-        gaDen.setMaGa(rs.getInt("maGaDen"));
+        Ga gaDen = new Ga(rs.getInt("maGaDen"), rs.getString("viTriGaDen"), rs.getInt("mocKmDen"));
         
         // Map TuyenDuong
         TuyenDuong tuyenDuong = new TuyenDuong(gaDi, gaDen, rs.getInt("thoiGianDuKien"));
@@ -294,5 +292,66 @@ public class LichTrinhDAO {
         lichTrinh.setNgayGioDen(ngayGioDen);
         
         return lichTrinh;
+    }
+    
+    /**
+     * Get seat information for schedule (total seats and available seats)
+     * Query from Tau_Toa, Cho and ChiTietLichTrinh tables
+     * @param maLichTrinh Schedule ID
+     * @return int[2] - [0]: total seats, [1]: available seats
+     */
+    public int[] laySoGheCuaLichTrinh(String maLichTrinh) {
+        String sql = 
+            "SELECT " +
+            "    COUNT(DISTINCT C.maCho) AS tongCho, " +
+            "    COUNT(DISTINCT C.maCho) - ISNULL(COUNT(DISTINCT CTLT.maChiTietLichTrinh), 0) AS conTrong " +
+            "FROM LichTrinh L " +
+            "INNER JOIN Tau_Toa TT ON L.maTau = TT.maTau " +
+            "INNER JOIN Cho C ON TT.maToa = C.maToa " +
+            "LEFT JOIN ChiTietLichTrinh CTLT ON C.maCho = CTLT.maChoNgoi AND L.maLichTrinh = CTLT.maLichTrinh " +
+            "WHERE L.maLichTrinh = ? " +
+            "GROUP BY L.maLichTrinh";
+        
+        int[] result = new int[2]; // [0] = total seats, [1] = available seats
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, maLichTrinh);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                result[0] = rs.getInt("tongCho");      // Total seats
+                result[1] = rs.getInt("conTrong");     // Available seats
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error getting seat count for schedule " + maLichTrinh + ": " + e.getMessage());
+            e.printStackTrace();
+            result[0] = 0;
+            result[1] = 0;
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Get available seats for schedule (helper method)
+     * @param maLichTrinh Schedule ID
+     * @return Available seats count
+     */
+    public int laySoGheTrong(String maLichTrinh) {
+        int[] soGhe = laySoGheCuaLichTrinh(maLichTrinh);
+        return soGhe[1]; // Return available seats
+    }
+    
+    /**
+     * Get total seats for schedule (helper method)
+     * @param maLichTrinh Schedule ID
+     * @return Total seats count
+     */
+    public int layTongSoGhe(String maLichTrinh) {
+        int[] soGhe = laySoGheCuaLichTrinh(maLichTrinh);
+        return soGhe[0]; // Return total seats
     }
 }

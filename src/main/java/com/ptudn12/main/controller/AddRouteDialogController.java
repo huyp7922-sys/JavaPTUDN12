@@ -69,10 +69,8 @@ public class AddRouteDialogController {
         startStationCombo.setItems(stationNames);
         endStationCombo.setItems(stationNames);
         
-        if (!stationNames.isEmpty()) {
-            startStationCombo.setValue(stationNames.get(0));
-            endStationCombo.setValue(stationNames.size() > 1 ? stationNames.get(1) : stationNames.get(0));
-        }
+        // Không set giá trị mặc định - để user tự chọn
+        // Tránh trường hợp start == end
         
     } catch (Exception e) {
         e.printStackTrace();

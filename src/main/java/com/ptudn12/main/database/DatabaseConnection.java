@@ -10,14 +10,14 @@ import java.sql.SQLException;
 public class DatabaseConnection {
     private static final String SERVER = "localhost";
    // private static final String PORT = "1433"; // Sửa lại từ "root" thành "1433"
-    private static final String PORT = "3306";
+  private static final String PORT = "3306";
     private static final String DATABASE = "HeThongVeTau";
     private static final String USER = "sa";
     private static final String PASSWORD = "123456";
     
    private static final String URL = String.format(
-       // "jdbc:sqlserver://%s:%s;databaseName=%s;encrypt=true;trustServerCertificate=true;characterEncoding=UTF-8;sendStringParametersAsUnicode=true"
-        "jdbc:mysql://%s:%s;databaseName=%s;encrypt=true;trustServerCertificate=true;characterEncoding=UTF-8;sendStringParametersAsUnicode=true",
+        // "jdbc:sqlserver://%s:%s;databaseName=%s;encrypt=true;trustServerCertificate=true;characterEncoding=UTF-8;sendStringParametersAsUnicode=true"
+         "jdbc:mysql://%s:%s;databaseName=%s;encrypt=true;trustServerCertificate=true;characterEncoding=UTF-8;sendStringParametersAsUnicode=true",
         SERVER, PORT, DATABASE
     );
     
