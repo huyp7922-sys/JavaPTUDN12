@@ -43,9 +43,6 @@
                 
                 <Button fx:id="btnTrain" text="Quản Lý Tàu" onAction="#showTrain" 
                         styleClass="menu-item" maxWidth="Infinity"/>
-                        
-                <Button fx:id="btnTrain" text="Quản Lý Khách Hàng" onAction="#showCustomer" 
-                        styleClass="menu-item" maxWidth="Infinity"/>
                 
                 <Button fx:id="btnEmployee" text="Quản Lý Nhân Viên" onAction="#showEmployee" 
                         styleClass="menu-item" maxWidth="Infinity"/>

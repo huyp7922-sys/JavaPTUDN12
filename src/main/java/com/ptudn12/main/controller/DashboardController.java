@@ -38,8 +38,6 @@ public class DashboardController {
 	@FXML
 	private Button btnTrain;
 	@FXML
-	private Button btnCustomer;
-	@FXML
 	private Button btnEmployee;
 	@FXML
 	private Button btnStatistics;
@@ -99,13 +97,6 @@ public class DashboardController {
 		resetMenuButtons();
 		btnTrain.getStyleClass().add("menu-item-active");
 		loadView("train-management.fxml");
-	}
-
-	@FXML
-	private void showCustomer() {
-		resetMenuButtons();
-		btnTrain.getStyleClass().add("menu-item-active");
-		loadView("customer-management.fxml");
 	}
 
 	@FXML
