@@ -12,9 +12,8 @@ public class LichTrinh {
     private LocalDateTime ngayGioKhoiHanh;  // Ngày giờ khởi hành
     private LocalDateTime ngayGioDen;       // Ngày giờ đến dự kiến
     private float giaCoBan;                 // Giá cơ bản
-    private int soGheTrong;                 // Số ghế trống
-    private int tongSoGhe;                  // Tổng số ghế
     private TrangThai trangThai;            // Enum TrangThai
+    // ✅ Xóa soGheTrong và tongSoGhe - sẽ query động khi cần
 
     // Constructor không tham số
     public LichTrinh() {
@@ -26,9 +25,6 @@ public class LichTrinh {
         this.tau = tau;
         this.ngayGioKhoiHanh = ngayGioKhoiHanh;
         this.giaCoBan = tuyen != null ? tuyen.getGiaCoBan() : 0;
-        this.tongSoGhe = tau != null ? tau.getSoLuongChoNgoi() : 0;
-        this.soGheTrong = this.tongSoGhe; // Mặc định tất cả ghế đều trống
-        this.trangThai = TrangThai.Nhap; // Mặc định
         this.ngayGioDen = tinhNgayGioDen();
         this.maLichTrinh = generateMaLichTrinh();
     }
@@ -51,7 +47,7 @@ public class LichTrinh {
 
     public void setTau(Tau tau) {
         this.tau = tau;
-        this.tongSoGhe = tau != null ? tau.getSoLuongChoNgoi() : 0;
+        // ✅ Không tự động set tongSoGhe nữa - sẽ được set từ DAO qua query Tau_Toa
     }
 
     public void setTuyenDuong(TuyenDuong tuyenDuong) {
@@ -65,14 +61,6 @@ public class LichTrinh {
 
     public void setGiaCoBan(float giaCoBan) {
         this.giaCoBan = giaCoBan;
-    }
-
-    public void setSoGheTrong(int soGheTrong) {
-        this.soGheTrong = soGheTrong;
-    }
-
-    public void setTongSoGhe(int tongSoGhe) {
-        this.tongSoGhe = tongSoGhe;
     }
 
     public String getMaLichTrinh() {
@@ -97,14 +85,6 @@ public class LichTrinh {
 
     public float getGiaCoBan() {
         return giaCoBan;
-    }
-
-    public int getSoGheTrong() {
-        return soGheTrong;
-    }
-
-    public int getTongSoGhe() {
-        return tongSoGhe;
     }
 
     public TrangThai getTrangThai() {
@@ -159,7 +139,18 @@ public class LichTrinh {
     }
 
     public String getSoGheDisplay() {
-        return soGheTrong + "/" + tongSoGhe;
+        // Query động từ database để lấy số ghế trống/tổng số ghế
+        if (maLichTrinh == null || maLichTrinh.isEmpty()) {
+            return "N/A";
+        }
+        
+        try {
+            com.ptudn12.main.dao.LichTrinhDAO dao = new com.ptudn12.main.dao.LichTrinhDAO();
+            int[] soGhe = dao.laySoGheCuaLichTrinh(maLichTrinh);
+            return soGhe[1] + "/" + soGhe[0]; // số ghế trống / tổng số ghế
+        } catch (Exception e) {
+            return "Lỗi query";
+        }
     }
 
     public String getTrangThaiDisplay() {
@@ -168,12 +159,7 @@ public class LichTrinh {
     public String getTuyenDuongDisplay() {
         if (tuyenDuong == null) return "";
 
-        // Nếu đã có mã tuyến được set sẵn, dùng luôn
-        if (tuyenDuong.getMaTuyen() != null && !tuyenDuong.getMaTuyen().isEmpty()) {
-            return tuyenDuong.getMaTuyen();
-        }
-
-        // Nếu chưa có, tự động tạo từ tên ga
+        // Luôn tạo format DiemDi-DiemDen (ví dụ: HN-SG) thay vì hiển thị mã số
         String diemDi = tuyenDuong.getDiemDi().getViTriGa().replace("Ga ", "").trim();
         String diemDen = tuyenDuong.getDiemDen().getViTriGa().replace("Ga ", "").trim();
 
@@ -233,7 +219,6 @@ public class LichTrinh {
                 ", ngayGioKhoiHanh=" + ngayGioKhoiHanh +
                 ", ngayGioDen=" + ngayGioDen +
                 ", giaCoBan=" + giaCoBan +
-                ", soGheTrong=" + soGheTrong + "/" + tongSoGhe +
                 ", trangThai=" + (trangThai != null ? trangThai.getTenTrangThai() : "null") +
                 '}';
     }

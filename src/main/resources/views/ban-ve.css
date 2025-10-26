@@ -117,8 +117,99 @@
     -fx-text-fill: white;
     -fx-border-color: #0066CC;
     -fx-font-weight: bold;
+    -fx-border-radius: 5px;
 }
 
 .lblText {
     -fx-font-size: 16px;
+}
+
+/* --- Css cho danh sách chuyến tàu --- */
+.no-border-scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+}
+.no-border-scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+.train-card {
+    -fx-background-color: #fff;  /* Nền trắng */
+    -fx-border-color: #000;      /* Viền đen */
+    -fx-border-width: 0.5px;   /* Viền 0.5px */
+    -fx-border-radius: 5px;
+    -fx-background-radius: 8px;
+    -fx-cursor: hand;
+}
+
+/* --- CSS MỚI: LÀM CHO TẤT CẢ LABEL TRONG CARD ĐỀU IN ĐẬM --- */
+.train-card .label {
+    -fx-font-weight: bold;
+}
+
+/* CSS khi di chuột vào card (Giữ nguyên, vẫn đẹp) */
+.train-card:hover {
+    -fx-border-color: #0078D7; 
+}
+
+/* CSS cho card đã được chọn (Giữ nguyên) */
+.train-card-selected {
+    -fx-background-color: #E6F3FF; 
+    -fx-border-color: #005A9E; 
+    -fx-border-width: 1.5px;
+}
+
+/* CSS cho tên chuyến tàu (Giữ nguyên) */
+.train-card-title {
+    -fx-font-size: 18px;
+    -fx-text-fill: #333333;
+}
+
+/* CSS cho số ghế đã đặt (Giữ nguyên) */
+.train-card-booked {
+    -fx-font-size: 16px;
+    -fx-text-fill: #D90000; /* Màu đỏ */
+}
+
+/* CSS cho số ghế còn trống (Giữ nguyên) */
+.train-card-available {
+    -fx-font-size: 16px;
+    -fx-text-fill: #008000; /* Màu xanh lá */
+}
+
+.nav-button {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-pref-height: 40px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-cursor: hand;
+}
+
+/* Nút chính (Tiếp theo) - Nền xanh, chữ trắng */
+.nav-button-primary {
+    -fx-background-color: #0078D7; /* Màu xanh dương */
+    -fx-text-fill: #FFFFFF; /* Chữ trắng */
+}
+.nav-button-primary:hover {
+    -fx-background-color: #005A9E; /* Xanh đậm hơn khi hover */
+}
+
+/* Nút phụ (Quay lại) - Nền trắng, viền xám */
+.nav-button-secondary {
+    -fx-background-color: #FFFFFF;
+    -fx-text-fill: #333333; /* Chữ đen */
+    -fx-border-color: #B0B0B0; /* Viền xám */
+    -fx-border-width: 1px;
+}
+.nav-button-secondary:hover {
+    -fx-background-color: #F4F4F4; /* Hơi xám khi hover */
+    -fx-border-color: #555555;
+}
+
+.trip-direction-label {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #005A9E; /* Màu xanh đậm */
+    -fx-padding: 5px 0 0 0; /* Thêm chút padding ở trên */
 }

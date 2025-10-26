@@ -11,7 +11,8 @@ public class Ga {
     }
 
     // Constructor có tham số
-    public Ga(String viTriGa, int mocKm) {
+    public Ga(int maGa , String viTriGa, int mocKm) {
+        this.maGa = maGa;
         this.viTriGa = viTriGa;
         this.mocKm = mocKm;
     }
