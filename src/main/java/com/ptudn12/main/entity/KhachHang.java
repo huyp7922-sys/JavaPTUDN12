@@ -1,26 +1,35 @@
+// File: src/main/java/com/ptudn12/main/entity/KhachHang.java
 package com.ptudn12.main.entity;
 
 import java.util.Objects;
 
 public class KhachHang {
 	private String maKH;
-	private String tenKH;
-	private String soCMND;
+	private String tenKhachHang;
+	private String soCCCD;
 	private String hoChieu;
-	
-	public KhachHang() {
-		super();
-	}
+	private String soDienThoai;
+	private int diemTich;
 
-	public KhachHang(String maKH, String tenKH, String soCMND, String hoChieu) {
-		super();
+	public KhachHang(String maKH, String tenKhachHang, String soCCCD_HoChieu, boolean laNguoiNuocNgoai,
+			String soDienThoai, int diemTich) {
 		this.maKH = maKH;
-		this.tenKH = tenKH;
-		this.soCMND = soCMND;
-		this.hoChieu = hoChieu;
+		this.tenKhachHang = tenKhachHang;
+		this.soDienThoai = soDienThoai;
+		this.diemTich = diemTich;
+		if (laNguoiNuocNgoai) {
+			this.hoChieu = soCCCD_HoChieu;
+			this.soCCCD = null; // Hoặc "" để đảm bảo không có dữ liệu rác
+		} else {
+			this.soCCCD = soCCCD_HoChieu;
+			this.hoChieu = null; // Hoặc ""
+		}
 	}
 
-	public String getMaKH() {
+	// --- GETTERS VÀ SETTERS ---
+	// PropertyValueFactory trong JavaFX cần các getter này để lấy dữ liệu
+
+	public String getMaKhachHang() {
 		return maKH;
 	}
 
@@ -28,20 +37,20 @@ public class KhachHang {
 		this.maKH = maKH;
 	}
 
-	public String getTenKH() {
-		return tenKH;
+	public String getTenKhachHang() {
+		return tenKhachHang;
 	}
 
-	public void setTenKH(String tenKH) {
-		this.tenKH = tenKH;
+	public void setTenKhachHang(String tenKhachHang) {
+		this.tenKhachHang = tenKhachHang;
 	}
 
-	public String getSoCMND() {
-		return soCMND;
+	public String getSoCCCD() {
+		return soCCCD;
 	}
 
-	public void setSoCMND(String soCMND) {
-		this.soCMND = soCMND;
+	public void setSoCCCD(String soCCCD) {
+		this.soCCCD = soCCCD;
 	}
 
 	public String getHoChieu() {
@@ -51,7 +60,23 @@ public class KhachHang {
 	public void setHoChieu(String hoChieu) {
 		this.hoChieu = hoChieu;
 	}
-	
+
+	public String getSoDienThoai() {
+		return soDienThoai;
+	}
+
+	public void setSoDienThoai(String soDienThoai) {
+		this.soDienThoai = soDienThoai;
+	}
+
+	public int getDiemTich() {
+		return diemTich;
+	}
+
+	public void setDiemTich(int diemTich) {
+		this.diemTich = diemTich;
+	}
+
 	@Override
 	public int hashCode() {
 		return Objects.hash(maKH);
@@ -61,9 +86,7 @@ public class KhachHang {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
+		if (obj == null || getClass() != obj.getClass())
 			return false;
 		KhachHang other = (KhachHang) obj;
 		return Objects.equals(maKH, other.maKH);
@@ -71,7 +94,6 @@ public class KhachHang {
 
 	@Override
 	public String toString() {
-		return "KhachHang [maKH=" + maKH + ", tenKH=" + tenKH + ", soCMND=" + soCMND + ", hoChieu=" + hoChieu + "]";
+		return "KhachHang [maKH=" + maKH + ", tenKhachHang=" + tenKhachHang + "]";
 	}
-	
 }
