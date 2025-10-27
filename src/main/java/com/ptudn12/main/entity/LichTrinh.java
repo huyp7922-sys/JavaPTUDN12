@@ -3,16 +3,15 @@ package com.ptudn12.main.entity;
 import com.ptudn12.main.enums.TrangThai;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-//Phạm Thanh Huy
+
 public class LichTrinh {
-    private String maLichTrinh;           // DiemDi_DiemDen_NgayDi_STT
+    private String maLichTrinh;
     private Tau tau;
     private TuyenDuong tuyenDuong;
-    private LocalDateTime ngayGioKhoiHanh;  // Ngày giờ khởi hành
-    private LocalDateTime ngayGioDen;       // Ngày giờ đến dự kiến
-    private float giaCoBan;                 // Giá cơ bản
-    private TrangThai trangThai;            // Enum TrangThai
-    // ✅ Xóa soGheTrong và tongSoGhe - sẽ query động khi cần
+    private LocalDateTime ngayGioKhoiHanh;
+    private LocalDateTime ngayGioDen;
+    private float giaCoBan;
+    private TrangThai trangThai;
 
     // Constructor không tham số
     public LichTrinh() {
@@ -46,7 +45,6 @@ public class LichTrinh {
 
     public void setTau(Tau tau) {
         this.tau = tau;
-        // ✅ Không tự động set tongSoGhe nữa - sẽ được set từ DAO qua query Tau_Toa
     }
 
     public void setTuyenDuong(TuyenDuong tuyenDuong) {
@@ -90,9 +88,6 @@ public class LichTrinh {
         return trangThai;
     }
 
-    /**
-     * Tính ngày giờ đến dự kiến = ngày giờ khởi hành + thời gian dự kiến
-     */
     private LocalDateTime tinhNgayGioDen() {
         if (ngayGioKhoiHanh == null || tuyenDuong == null) {
             return null;
@@ -100,10 +95,6 @@ public class LichTrinh {
         return ngayGioKhoiHanh.plusHours(tuyenDuong.getThoiGianDuKien());
     }
 
-    /**
-     * Tạo mã lịch trình theo format: DiemDi_DiemDen_NgayDi_STT
-     * Ví dụ: SaiGon_HaNoi_27092025_1
-     */
     private String generateMaLichTrinh() {
         if (tuyenDuong == null || ngayGioKhoiHanh == null) {
             return "LT_TEMP";
@@ -112,7 +103,7 @@ public class LichTrinh {
         String diemDi = tuyenDuong.getDiemDi().getViTriGa().replaceAll("\\s+|Ga\\s+", "");
         String diemDen = tuyenDuong.getDiemDen().getViTriGa().replaceAll("\\s+|Ga\\s+", "");
         String ngay = ngayGioKhoiHanh.format(DateTimeFormatter.ofPattern("ddMMyyyy"));
-        int stt = (int) (Math.random() * 10) + 1; // Random STT 1-10 for demo
+        int stt = (int) (Math.random() * 10) + 1;
 
         return String.format("%s_%s_%s_%d", diemDi, diemDen, ngay, stt);
     }
@@ -121,7 +112,6 @@ public class LichTrinh {
     public String getMaTauDisplay() {
         return tau != null ? tau.getMacTau() : "";
     }
-
 
     public String getNgayGioKhoiHanhFormatted() {
         return ngayGioKhoiHanh != null ? 
@@ -137,28 +127,14 @@ public class LichTrinh {
         return String.format("%,.0fd", giaCoBan);
     }
 
-    public String getSoGheDisplay() {
-        // Query động từ database để lấy số ghế trống/tổng số ghế
-        if (maLichTrinh == null || maLichTrinh.isEmpty()) {
-            return "N/A";
-        }
-        
-        try {
-            com.ptudn12.main.dao.LichTrinhDAO dao = new com.ptudn12.main.dao.LichTrinhDAO();
-            int[] soGhe = dao.laySoGheCuaLichTrinh(maLichTrinh);
-            return soGhe[1] + "/" + soGhe[0]; // số ghế trống / tổng số ghế
-        } catch (Exception e) {
-            return "Lỗi query";
-        }
-    }
 
     public String getTrangThaiDisplay() {
         return trangThai != null ? trangThai.getTenTrangThai() : "";
     }
+    
     public String getTuyenDuongDisplay() {
         if (tuyenDuong == null) return "";
 
-        // Luôn tạo format DiemDi-DiemDen (ví dụ: HN-SG) thay vì hiển thị mã số
         String diemDi = tuyenDuong.getDiemDi().getViTriGa().replace("Ga ", "").trim();
         String diemDen = tuyenDuong.getDiemDen().getViTriGa().replace("Ga ", "").trim();
 
@@ -184,6 +160,7 @@ public class LichTrinh {
                 return tenGa.substring(0, Math.min(2, tenGa.length())).toUpperCase();
         }
     }
+    
     @Override
     public String toString() {
         return "LichTrinh{" +

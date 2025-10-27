@@ -72,13 +72,8 @@ public class RouteManagementController {
             }
         });
 
-        // Load data from database
         loadDataFromDatabase();
-
-        // Setup filters
         setupFilters();
-        
-        // Setup filter listeners
         setupFilterListeners();
     }
 
