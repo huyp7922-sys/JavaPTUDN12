@@ -27,6 +27,7 @@ import javafx.scene.layout.VBox;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -347,6 +348,10 @@ public class Step1Controller {
             mainController.setUserData("lichTrinhChieuDi", lichTrinhChieuDi);
             mainController.setUserData("lichTrinhChieuVe", null); // Xóa vé về (nếu có)
         }
+        
+        // XÓA GIỎ HÀNG CŨ TRƯỚC KHI CHUYỂN BƯỚC
+        mainController.setUserData("gioHang_Di", new ArrayList<>());
+        mainController.setUserData("gioHang_Ve", new ArrayList<>());
         
         mainController.loadContent("step-2.fxml");
     }

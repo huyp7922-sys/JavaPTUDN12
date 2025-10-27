@@ -106,11 +106,7 @@ public class Step2Controller {
         LichTrinh lichTrinhDi = (LichTrinh) mainController.getUserData("lichTrinhChieuDi");
         LichTrinh lichTrinhVe = (LichTrinh) mainController.getUserData("lichTrinhChieuVe");
         
-        toaSection.getChildren().clear(); 
-        
-        // Xóa giỏ hàng cũ (logic)
-        gioHang_Di.clear();
-        gioHang_Ve.clear();
+        toaSection.getChildren().clear();
         
         // Cập nhật UI giỏ hàng (vẽ lại trạng thái rỗng)
         updateCartUI(); 
@@ -306,7 +302,6 @@ public class Step2Controller {
         try {
             double giaTuyenCoBan = lichTrinh.getTuyenDuong().tinhGiaCoBan();
             LoaiCho loaiCho = chiTietToa.getCho().getLoaiCho();
-            System.out.println(chiTietToa.getCho());
             
             // GIẢ ĐỊNH: Enum LoaiCho của bạn có hàm getHeSoChoNgoi()
             double heSoCho = loaiCho.getHeSoChoNgoi(); 
@@ -443,10 +438,6 @@ public class Step2Controller {
         // --- Lưu dữ liệu giỏ hàng vào MainController ---
         mainController.setUserData("gioHang_Di", new ArrayList<>(gioHang_Di.values()));
         mainController.setUserData("gioHang_Ve", new ArrayList<>(gioHang_Ve.values()));
-        
-        System.out.println("Chuyển Step 3 với: ");
-        System.out.println("  - Vé đi: " + gioHang_Di.size() + " vé");
-        System.out.println("  - Vé về: " + gioHang_Ve.size() + " vé");
 
         // Chuyển sang Step 3
         mainController.loadContent("step-3.fxml");

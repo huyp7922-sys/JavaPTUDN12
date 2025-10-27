@@ -135,11 +135,10 @@ public class BanVeController {
             // 2. (THÊM DÒNG NÀY) Báo cho Step 2 tải dữ liệu
             ((Step2Controller) loader.getController()).initData();
         }
-        // (Thêm else if cho các controller step 3, 4 sau)
-        // else if (loader.getController() instanceof Step3Controller) {
-        //     ((Step3Controller) loader.getController()).setMainController(this);
-        //     ((Step3Controller) loader.getController()).initData(); // Step 3 cũng sẽ cần
-        // }
+        else if (loader.getController() instanceof Step3Controller) {
+            ((Step3Controller) loader.getController()).setMainController(this);
+            ((Step3Controller) loader.getController()).initData(); // Step 3 cũng sẽ cần
+        }
 
         contentPane.getChildren().clear();
         contentPane.getChildren().add(view);
