@@ -1,20 +1,32 @@
 package com.ptudn12.main.enums;
 
-
 public enum LoaiToa {
-    TOA_NAM_CUNG("Toa nằm cứng"),
-    TOA_NAM_MEM("Toa nằm mềm"),
-    TOA_NGOI_CUNG("Toa ngồi cứng"),
-    TOA_NGOI_MEM("Toa ngồi mềm"),
-    TOA_VIP("Toa VIP");
+	// Các hằng số
+	NgoiCung("Toa ngồi cứng", 72), NgoiMem("Toa ngồi mềm", 64), Giuong6("Toa giường khoang 6", 42),
+	Giuong4("Toa giường khoang 4", 28), GiuongVIP("Toa giường VIP", 14);
 
-    private final String description;
+	// Thuộc tính
+	private final String tenLoaiToa;
+	private final int soChoMacDinh;
 
-    LoaiToa(String description) {
-        this.description = description;
-    }
+	// Constructor
+	private LoaiToa(String tenLoaiToa, int soChoMacDinh) {
+		this.tenLoaiToa = tenLoaiToa;
+		this.soChoMacDinh = soChoMacDinh;
+	}
 
-    public String getDescription() {
-        return description;
-    }
+	// Getter
+	public String getTenLoaiToa() {
+		return tenLoaiToa;
+	}
+
+	public int getSoChoMacDinh() {
+		return soChoMacDinh;
+	}
+
+	// Phương thức toString()
+	@Override
+	public String toString() {
+		return tenLoaiToa;
+	}
 }
