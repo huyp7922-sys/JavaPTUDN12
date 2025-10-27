@@ -213,3 +213,45 @@
     -fx-text-fill: #005A9E; /* Màu xanh đậm */
     -fx-padding: 5px 0 0 0; /* Thêm chút padding ở trên */
 }
+
+/* Step 2 */
+.box-section {
+    -fx-border-color: #ccc;
+    -fx-border-width: 1;
+    -fx-background-color: #f9f9f9;
+    -fx-padding: 15;
+    -fx-background-radius: 5;
+    -fx-border-radius: 5;
+}
+
+.box-title-bold {
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-padding: 0 0 10 0;
+}
+
+.note-label {
+    -fx-background-color: #ffefc5;
+    -fx-padding: 8 12 8 12;
+    -fx-font-size: 13px;
+}
+
+.train-info-label {
+    -fx-background-color: #cce0ff;
+    -fx-padding: 8 12;
+    -fx-font-weight: bold;
+    -fx-background-radius: 4;
+}
+
+.nav-button-primary {
+    -fx-background-color: #0066cc;
+    -fx-text-fill: white;
+}
+
+.nav-button-secondary {
+    -fx-background-color: white;
+    -fx-text-fill: black;
+    -fx-border-color: black;
+    -fx-border-width: 1;
+}
+

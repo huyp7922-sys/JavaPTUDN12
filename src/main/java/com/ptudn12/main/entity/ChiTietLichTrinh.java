@@ -1,12 +1,14 @@
 package com.ptudn12.main.entity;
 
-import java.util.Objects;
+import com.ptudn12.main.enums.LoaiCho;
 
 public class ChiTietLichTrinh {
     private String maChiTietLichTrinh;
     private LichTrinh lichTrinh;
     private Cho cho;
     private double giaChoNgoi;
+    
+    private LoaiCho loaiCho;
 
     public ChiTietLichTrinh(String maChiTietLichTrinh, LichTrinh lichTrinh, Cho cho) {
         this.maChiTietLichTrinh = maChiTietLichTrinh;
@@ -16,10 +18,9 @@ public class ChiTietLichTrinh {
     }
 
     private double tinhGiaChoNgoi() {
-//        double giaTuyenCoBan = lichTrinh.getTuyenDuong().tinhGiaCoBan();
-//        double heSoCho = cho.getHeSoCho();
-//        return giaTuyenCoBan * heSoCho;
-    	return 1.0 ; 
+        double giaTuyenCoBan = lichTrinh.getTuyenDuong().tinhGiaCoBan();
+        double heSoCho = loaiCho.getHeSoChoNgoi();
+        return giaTuyenCoBan * heSoCho;
     }
 
     // Getters and Setters
