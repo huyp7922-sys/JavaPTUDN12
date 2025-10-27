@@ -1,6 +1,7 @@
 package com.ptudn12.main.entity;
 
 import com.ptudn12.main.enums.TrangThai;
+import java.util.Objects;
 
 //Phạm Thanh Huy
 public class TuyenDuong {
@@ -132,6 +133,28 @@ public class TuyenDuong {
         return String.format("%,.0f đ", giaCoBan);
     }
 
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 13 * hash + Objects.hashCode(this.maTuyen);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final TuyenDuong other = (TuyenDuong) obj;
+        return Objects.equals(this.maTuyen, other.maTuyen);
+    }
+    
     @Override
     public String toString() {
         return "TuyenDuong{" +

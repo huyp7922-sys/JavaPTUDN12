@@ -1,19 +1,49 @@
 package com.ptudn12.main.enums;
 
 public enum LoaiCho {
-    GIUONG_NAM_TANG_1("Giường nằm tầng 1"),
-    GIUONG_NAM_TANG_2("Giường nằm tầng 2"),
-    GHE_CUNG("Ghế cứng"),
-    GHE_MEM("Ghế mềm"),
-    GHE_VIP("Ghế VIP");
+    GheCung("Ghế ngồi cứng", 1.0),
+    GheNgoiMem("Ghế ngồi mềm", 1.2),
+    Giuong4("Giường nằm khoang 4", 1.4),
+    Giuong6("Giường nằm khoang 6", 1.6),
+    GiuongVIP("Giường nằm VIP", 2.0);
 
-    private final String description;
+    // Thuộc tính
+    private final String tenLoaiCho;
+    private final double heSoChoNgoi;
 
-    LoaiCho(String description) {
-        this.description = description;
+    // Constructor
+    private LoaiCho(String tenLoaiCho, double heSoChoNgoi) {
+        this.tenLoaiCho = tenLoaiCho;
+        this.heSoChoNgoi = heSoChoNgoi;
     }
 
-    public String getDescription() {
-        return description;
+    // Getter
+    public String getTenLoaiCho() {
+        return tenLoaiCho;
+    }
+
+    public double getHeSoChoNgoi() {
+        return heSoChoNgoi;
+    }
+
+    // toString
+    @Override
+    public String toString() {
+        return tenLoaiCho;
+    }
+    
+    /**
+     * Chuyển đổi một String (từ database) thành Enum LoaiCho tương ứng.
+     * @param tenLoaiCho Tên loại chỗ (ví dụ: "Ghế ngồi cứng")
+     * @return Enum LoaiCho (ví dụ: LoaiCho.GheCung)
+     * @throws IllegalArgumentException nếu không tìm thấy String
+     */
+    public static LoaiCho fromDescription(String tenLoaiCho) {
+        for (LoaiCho loai : values()) {
+            if (loai.tenLoaiCho.equals(tenLoaiCho)) {
+                return loai;
+            }
+        }
+        throw new IllegalArgumentException("Không tìm thấy LoaiCho với tên: " + tenLoaiCho);
     }
 }

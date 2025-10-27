@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Accordion?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1280.0" stylesheets="@payment.css" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.trainapp.Step4Controller">
+   <left>
+       <VBox styleClass="left-menu" BorderPane.alignment="CENTER">
+         <children>
+            <Label styleClass="menu-title" text="HỆ THỐNG BÁN VÉ TÀU LỬA TẠI GA" />
+            <Accordion>
+              <panes>
+                <TitledPane animated="false" expanded="true" text="Quản lý vé tàu">
+                  <content>
+                     <VBox spacing="5.0">
+                        <children>
+                           <Label styleClass="menu-item-selected" text="Bán vé" />
+                           <Label styleClass="menu-item" text="Đổi vé" />
+                           <Label styleClass="menu-item" text="Trả vé" />
+                        </children>
+                     </VBox>
+                  </content>
+                </TitledPane>
+              </panes>
+            </Accordion>
+            <Label styleClass="menu-item" text="Quản lý khách hàng" />
+            <Label styleClass="menu-item" text="Quản lý hoá đơn" />
+            <Label styleClass="menu-item" text="Quản lý thống kê" />
+            <Pane VBox.vgrow="ALWAYS" />
+            <Button mnemonicParsing="false" styleClass="logout-button" text="Đăng xuất" />
+         </children>
+      </VBox>
+   </left>
+   <center>
+      <BorderPane styleClass="main-content" BorderPane.alignment="CENTER">
+         <top>
+             <VBox alignment="CENTER" spacing="20.0" BorderPane.alignment="CENTER">
+               <children>
+                  <Label styleClass="main-title" text="BÁN VÉ TÀU" />
+                  <HBox alignment="CENTER" styleClass="step-bar">
+                     <children>
+                        <Label styleClass="step-completed" text="Bước 1: Chọn chuyến tàu" />
+                        <Label styleClass="step-completed" text="Bước 2: Chọn chỗ ngồi" />
+                        <Label styleClass="step-completed" text="Bước 3: Thông tin hành khách" />
+                        <Label styleClass="step-active" text="Bước 4: Thanh toán" />
+                     </children>
+                  </HBox>
+               </children>
+               <BorderPane.margin>
+                  <Insets bottom="20.0" />
+               </BorderPane.margin>
+            </VBox>
+         </top>
+         <center>
+            <HBox spacing="30.0" BorderPane.alignment="CENTER">
+               <children>
+                  <VBox spacing="20.0" HBox.hgrow="ALWAYS">
+                     <children>
+                         <VBox styleClass="info-section">
+                           <children>
+                              <Label styleClass="section-title" text="Xác nhận thông tin vé" />
+                              <GridPane hgap="10.0" vgap="8.0">
+                                <columnConstraints>
+                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="180.0" />
+                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="120.0" />
+                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="180.0" />
+                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="120.0" />
+                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="120.0" />
+                                </columnConstraints>
+                                <rowConstraints>
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                </rowConstraints>
+                                 <children>
+                                    <Label styleClass="grid-header" text="Chuyến tàu" />
+                                    <Label styleClass="grid-header" text="Toa - Chỗ ngồi" GridPane.columnIndex="1" />
+                                    <Label styleClass="grid-header" text="Hành khách" GridPane.columnIndex="2" />
+                                    <Label styleClass="grid-header" text="Loại vé" GridPane.columnIndex="3" />
+                                    <Label styleClass="grid-header" text="Đơn giá" GridPane.columnIndex="4" />
+                                    <Label text="SE1 - Thống nhất&#10;24/12/2025 6:00" GridPane.rowIndex="1" />
+                                    <Label text="Toa 1 - Chỗ 36" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                    <Label text="Nguyễn Văn A&#10;CMND: 0123456789" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                                    <Label text="Vé bình thường" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                                    <Label text="1.100.000 đồng" GridPane.columnIndex="4" GridPane.rowIndex="1" />
+                                 </children>
+                              </GridPane>
+                           </children>
+                        </VBox>
+                        <VBox styleClass="info-section">
+                           <children>
+                              <Label styleClass="section-title" text="Chi tiết thanh toán" />
+                              <GridPane hgap="10.0" vgap="8.0">
+                                <columnConstraints>
+                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="300.0" />
+                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="150.0" />
+                                </columnConstraints>
+                                <rowConstraints>
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                </rowConstraints>
+                                 <children>
+                                    <Label text="Tổng tiền vé:" />
+                                    <Label text="Giảm giá theo đối tượng:" GridPane.rowIndex="1" />
+                                    <Label text="Giảm giá từ điểm tích luỹ:" GridPane.rowIndex="2" />
+                                    <Label text="Bảo hiểm:" GridPane.rowIndex="3" />
+                                    
+                                    <Label fx:id="lblTongTienVe" alignment="CENTER_RIGHT" styleClass="text-align-right" text="1.100.000 đồng" GridPane.columnIndex="1" />
+                                    <Label fx:id="lblGiamGiaDT" alignment="CENTER_RIGHT" styleClass="text-align-right" text="0 đồng" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                    <Label fx:id="lblGiamGiaTL" alignment="CENTER_RIGHT" styleClass="discount-text text-align-right" text="-50.000 đồng" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                    <Label fx:id="lblBaoHiem" alignment="CENTER_RIGHT" styleClass="text-align-right" text="2.000 đồng" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                 </children>
+                              </GridPane>
+                              <Separator>
+                                 <VBox.margin>
+                                    <Insets bottom="10.0" top="10.0" />
+                                 </VBox.margin>
+                              </Separator>
+                              <HBox alignment="CENTER_RIGHT" spacing="10.0">
+                                 <children>
+                                    <Label styleClass="total-label" text="Tổng thanh toán:" />
+                                    <Label fx:id="lblTongThanhToan" styleClass="total-amount-final" text="1.102.000 đồng" />
+                                 </children>
+                              </HBox>
+                           </children>
+                        </VBox>
+                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                           <children>
+                              <Button mnemonicParsing="false" text="Xuất hoá đơn VAT" />
+                              <Button mnemonicParsing="false" text="Đổi điểm tích luỹ" />
+                              <Button mnemonicParsing="false" text="Tích điểm khách hàng" />
+                           </children>
+                        </HBox>
+                         <Label fx:id="lblStatus" styleClass="status-label-green" text="Đã áp dụng giảm giá từ điểm tích luỹ" />
+                     </children>
+                  </VBox>
+                  <VBox minWidth="350.0" spacing="15.0" styleClass="calculator-pane">
+                     <children>
+                        <Label styleClass="section-title" text="Tính tiền" />
+                        <VBox styleClass="total-display-box">
+                           <children>
+                              <Label text="Tổng thanh toán" />
+                              <Label fx:id="lblTongThanhToanBox" styleClass="total-display-amount" text="1.102.000 đồng" />
+                           </children>
+                        </VBox>
+                        <Label text="Tiền khách đưa" />
+                        <TextField fx:id="txtTienKhachDua" promptText="Nhập số tiền khách đưa" />
+                        <Label text="Gợi ý mệnh giá" />
+                        <GridPane hgap="10.0" vgap="10.0">
+                           <children>
+                              <Button onAction="#handleDenominationButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="1.110.000" />
+                              <Button onAction="#handleDenominationButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="1.200.000" GridPane.columnIndex="1" />
+                              <Button onAction="#handleDenominationButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="1.500.000" GridPane.columnIndex="2" />
+                              <Button onAction="#handleDenominationButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="1.120.000" GridPane.rowIndex="1" />
+                              <Button onAction="#handleDenominationButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="1.150.000" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                              <Button onAction="#handleDenominationButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="1.102.000" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                           </children>
+                        </GridPane>
+                        <VBox styleClass="change-display-box">
+                           <children>
+                              <Label text="Tiền thối lại" />
+                              <Label fx:id="lblTienThoiLai" styleClass="change-display-amount" text="0 đồng" />
+                           </children>
+                        </VBox>
+                     </children>
+                  </VBox>
+               </children>
+               <padding>
+                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+               </padding>
+            </HBox>
+         </center>
+         <bottom>
+            <HBox alignment="CENTER_RIGHT" spacing="10.0" BorderPane.alignment="CENTER">
+               <children>
+                  <Button fx:id="btnQuayLai" onAction="#handleQuayLai" mnemonicParsing="false" styleClass="secondary-button" text="Quay lại" />
+                  <Button fx:id="btnXacNhan" onAction="#handleXacNhan" mnemonicParsing="false" styleClass="primary-button" text="Xác nhận và in vé" />
+               </children>
+               <padding>
+                  <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+               </padding>
+            </HBox>
+         </bottom>
+      </BorderPane>
+   </center>
+</BorderPane>

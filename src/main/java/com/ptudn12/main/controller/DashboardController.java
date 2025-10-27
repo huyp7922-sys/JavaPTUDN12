@@ -21,8 +21,6 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 public class DashboardController {
-
-
 	@FXML private StackPane contentPane;
 	@FXML private Label dateTimeLabel;
 
@@ -92,7 +90,8 @@ public class DashboardController {
 	}
 
 
-        @FXML
+	@FXML
+
 	private void showEmployee() {
 		resetMenuButtons();
 		btnEmployee.getStyleClass().add("menu-item-active");
