@@ -23,7 +23,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -238,9 +237,21 @@ public class Step1Controller {
         tilePane.setVgap(15);
         
         for (LichTrinh lt : danhSach) {
-            int[] soGhe = lichTrinhDAO.laySoGheCuaLichTrinh(lt.getMaLichTrinh());
-            int gheDat = soGhe[0] - soGhe[1];
-            int gheTrong = soGhe[1];
+            // 1. Gọi hàm DAO mới 1 LẦN DUY NHẤT
+            // Hàm này trả về: [0]=tổng, [1]=đã bán, [2]=còn trống, [3]=status
+            int[] soGhe = lichTrinhDAO.layThongTinChoNgoiTau(lt.getMaLichTrinh());
+
+            int gheDat = 0;
+            int gheTrong = 0;
+
+            // 2. Kiểm tra xem DAO có trả về thành công không (status == 0)
+            if (soGhe[3] == 0) {
+                gheDat = soGhe[1];   // Index [1] là "SoChoDaBan" (Đã bán)
+                gheTrong = soGhe[2]; // Index [2] là "SoChoConTrong" (Còn trống)
+            } else {
+                // Xử lý nếu có lỗi từ Stored Procedure (ví dụ: in ra console)
+                System.err.println("Lỗi: Không thể lấy thông tin ghế cho Lịch trình " + lt.getMaLichTrinh());
+            }
             
             // SỬA: Truyền 'isChieuDi' vào hàm tạo card
             Node trainCard = createTrainCard(lt, gheDat, gheTrong, isChieuDi);

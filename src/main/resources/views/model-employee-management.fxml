@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.ptudn12.main.controller.ModelEmployeeController"
+            stylesheet="@model-employee-styles"
+            prefWidth="750" prefHeight="450">
+
+    <children>
+
+        <HBox spacing="20" layoutX="20" layoutY="20" prefWidth="710" prefHeight="350">
+
+            <!-- Thông tin cơ bản -->
+            <VBox spacing="10" prefWidth="350">
+                <Label text="Thông Tin Cơ Bản" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+
+                <TextField fx:id="txtMaNV" promptText="Ví dụ: NV007"/>
+                <TextField fx:id="txtHoTen" promptText="Nhập họ và tên"/>
+                <TextField fx:id="txtCCCD" promptText="Nhập số CCCD"/>
+
+                <DatePicker fx:id="dpNgaySinh" promptText="dd/MM/yyyy"/>
+
+                <ComboBox fx:id="cbGioiTinh" prefWidth="200"/>
+                <TextField fx:id="txtChucVu" promptText="Ví dụ: Nhân viên bán vé"/>
+                <TextField fx:id="txtSdt" promptText="Nhập số điện thoại"/>
+                <TextField fx:id="txtEmail" promptText="Nhập email"/>
+
+                <ComboBox fx:id="cbTrangThai" prefWidth="200"/>
+            </VBox>
+
+            <!-- Cấp tài khoản -->
+            <VBox spacing="10" prefWidth="350">
+                <Label text="Cấp Tài Khoản" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+
+                <Label text="Tài khoản dùng để đăng nhập hệ thống." 
+                       style="-fx-font-size: 12px; -fx-text-fill: #555555;"/>
+
+                <TextField fx:id="txtTenDangNhap" promptText="Tên đăng nhập"/>
+                <PasswordField fx:id="txtMatKhau" promptText="Mật khẩu"/>
+
+                <ComboBox fx:id="cbVaiTro" prefWidth="200"/>
+            </VBox>
+
+        </HBox>
+
+        <!-- Nút bấm -->
+        <HBox spacing="10" alignment="CENTER_RIGHT"
+              layoutX="20" layoutY="400" prefWidth="710">
+
+            <Button text="Hủy" fx:id="btnHuy" prefWidth="100" onAction="#cancel"/>
+            <Button text="Lưu & Cấp Tài Khoản" fx:id="btnLuu" prefWidth="160" onAction="#saveEmployee"/>
+        </HBox>
+
+    </children>
+
+</AnchorPane>

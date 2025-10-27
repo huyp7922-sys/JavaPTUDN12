@@ -16,11 +16,10 @@ public class DatabaseConnection {
 //    private static final String PASSWORD = "123456";
     private static final String PASSWORD = "sapassword";
     
-   private static final String URL = String.format(
+    private static final String URL = String.format(
         "jdbc:sqlserver://%s:%s;databaseName=%s;encrypt=true;trustServerCertificate=true;characterEncoding=UTF-8;sendStringParametersAsUnicode=true",   
         SERVER, PORT, DATABASE
     );
-    
     public static Connection getConnection() throws SQLException {
         try {
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
