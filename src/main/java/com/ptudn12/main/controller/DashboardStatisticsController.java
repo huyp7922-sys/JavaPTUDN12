@@ -14,6 +14,7 @@ import java.time.format.DateTimeFormatter;
 
 public class DashboardStatisticsController {
 
+    
     @FXML private Label welcomeSubtitle;
     @FXML private Label totalRoutesLabel;
     @FXML private Label todaySchedulesLabel;
