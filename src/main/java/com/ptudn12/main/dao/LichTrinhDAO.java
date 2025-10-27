@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * DAO cho Lịch Trình
@@ -39,12 +40,12 @@ public class LichTrinhDAO {
             
             boolean result = stmt.executeUpdate() > 0;
             if (result) {
-                System.out.println("✅ Thêm lịch trình thành công!");
+                System.out.println("Thêm lịch trình thành công!");
             }
             return result;
             
         } catch (SQLException e) {
-            System.err.println("❌ Lỗi khi thêm lịch trình: " + e.getMessage());
+            System.err.println("Lỗi khi thêm lịch trình: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -69,12 +70,12 @@ public class LichTrinhDAO {
             
             boolean result = stmt.executeUpdate() > 0;
             if (result) {
-                System.out.println("✅ Cập nhật lịch trình thành công!");
+                System.out.println("Cập nhật lịch trình thành công!");
             }
             return result;
             
         } catch (SQLException e) {
-            System.err.println("❌ Lỗi khi cập nhật lịch trình: " + e.getMessage());
+            System.err.println("Lỗi khi cập nhật lịch trình: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -86,7 +87,7 @@ public class LichTrinhDAO {
     public boolean xoaLichTrinh(String maLichTrinh) {
         LichTrinh lichTrinh = layLichTrinhTheoMa(maLichTrinh);
         if (lichTrinh == null) {
-            System.err.println("❌ Không tìm thấy lịch trình!");
+            System.err.println(" Không tìm thấy lịch trình!");
             return false;
         }
         
@@ -98,12 +99,12 @@ public class LichTrinhDAO {
                 stmt.setString(1, maLichTrinh);
                 boolean result = stmt.executeUpdate() > 0;
                 if (result) {
-                    System.out.println("✅ Xóa lịch trình thành công!");
+                    System.out.println("Xóa lịch trình thành công!");
                 }
                 return result;
                 
             } catch (SQLException e) {
-                System.err.println("❌ Lỗi khi xóa lịch trình: " + e.getMessage());
+                System.err.println("Lỗi khi xóa lịch trình: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
@@ -115,12 +116,12 @@ public class LichTrinhDAO {
                 stmt.setString(1, maLichTrinh);
                 boolean result = stmt.executeUpdate() > 0;
                 if (result) {
-                    System.out.println("⚠️ Lịch trình không thể xóa, đã chuyển sang Tạm Ngưng!");
+                    System.out.println("Lịch trình không thể xóa, đã chuyển sang Tạm Ngưng!");
                 }
                 return result;
                 
             } catch (SQLException e) {
-                System.err.println("❌ Lỗi khi cập nhật trạng thái: " + e.getMessage());
+                System.err.println("Lỗi khi cập nhật trạng thái: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
@@ -154,7 +155,7 @@ public class LichTrinhDAO {
             }
             
         } catch (SQLException e) {
-            System.err.println("❌ Lỗi khi lấy lịch trình: " + e.getMessage());
+            System.err.println("Lỗi khi lấy lịch trình: " + e.getMessage());
             e.printStackTrace();
         }
         
@@ -190,10 +191,10 @@ public class LichTrinhDAO {
                 }
             }
             
-            System.out.println("✅ Lấy được " + danhSach.size() + " lịch trình");
+            System.out.println("Lấy được " + danhSach.size() + " lịch trình");
             
         } catch (SQLException e) {
-            System.err.println("❌ Lỗi khi lấy danh sách lịch trình: " + e.getMessage());
+            System.err.println("Lỗi khi lấy danh sách lịch trình: " + e.getMessage());
             e.printStackTrace();
         }
         
@@ -244,10 +245,10 @@ public class LichTrinhDAO {
                 if (lt != null) danhSach.add(lt);
             }
             
-            System.out.println("✅ Tìm được " + danhSach.size() + " lịch trình");
+            System.out.println("Tìm được " + danhSach.size() + " lịch trình");
             
         } catch (SQLException e) {
-            System.err.println("❌ Lỗi khi tìm kiếm lịch trình: " + e.getMessage());
+            System.err.println("Lỗi khi tìm kiếm lịch trình: " + e.getMessage());
             e.printStackTrace();
         }
         
@@ -259,12 +260,10 @@ public class LichTrinhDAO {
      */
     private LichTrinh mapResultSetToLichTrinh(ResultSet rs) throws SQLException {
         // Map Ga đi
-        Ga gaDi = new Ga(rs.getString("viTriGaDi"), rs.getInt("mocKmDi"));
-        gaDi.setMaGa(rs.getInt("maGaDi"));
+        Ga gaDi = new Ga(rs.getInt("maGaDi"), rs.getString("viTriGaDi"), rs.getInt("mocKmDi"));
         
         // Map Ga đến
-        Ga gaDen = new Ga(rs.getString("viTriGaDen"), rs.getInt("mocKmDen"));
-        gaDen.setMaGa(rs.getInt("maGaDen"));
+        Ga gaDen = new Ga(rs.getInt("maGaDen"), rs.getString("viTriGaDen"), rs.getInt("mocKmDen"));
         
         // Map TuyenDuong
         TuyenDuong tuyenDuong = new TuyenDuong(gaDi, gaDen, rs.getInt("thoiGianDuKien"));
@@ -295,4 +294,204 @@ public class LichTrinhDAO {
         
         return lichTrinh;
     }
+    
+    /**
+
+     * Lấy thông tin tổng số chỗ và chỗ đã bán của tàu trong lịch trình
+     * Sử dụng stored procedure sp_DemTongSoChoVaChoDaBan
+     * @param maLichTrinh Mã lịch trình
+     * @return int[4] - [0]: tổng chỗ, [1]: đã bán, [2]: còn trống, [3]: -1 nếu lỗi
+     */
+    public int[] layThongTinChoNgoiTau(String maLichTrinh) {
+        int[] result = new int[4]; // [0]=tổng, [1]=đã bán, [2]=còn trống
+        result[3] = -1; // Mặc định là lỗi
+
+        // Đầu tiên lấy mã tàu từ lịch trình
+        String sqlGetTau = "SELECT maTau FROM LichTrinh WHERE maLichTrinh = ?";
+        String maTau = null;
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sqlGetTau)) {
+
+            stmt.setString(1, maLichTrinh);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                maTau = rs.getString("maTau");
+            } else {
+                System.err.println("Không tìm thấy lịch trình: " + maLichTrinh);
+                return result;
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Lỗi khi lấy mã tàu: " + e.getMessage());
+            e.printStackTrace();
+            return result;
+        }
+
+        // Gọi stored procedure để lấy thông tin chỗ
+        String sql = "{CALL sp_DemTongSoChoVaChoDaBan(?)}";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             CallableStatement stmt = conn.prepareCall(sql)) {
+
+            stmt.setString(1, maTau);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                result[0] = rs.getInt("TongSoCho");      // Tổng chỗ
+                result[1] = rs.getInt("SoChoDaBan");     // Đã bán
+                result[2] = rs.getInt("SoChoConTrong");  // Còn trống
+                result[3] = 0; // Thành công
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Lỗi khi gọi sp_DemTongSoChoVaChoDaBan: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return result;
+    }
+
+    /**
+     * Lấy thông tin chỗ ngồi theo format "Còn trống/Tổng"
+     * Ví dụ: "399/400"
+     * @param maLichTrinh Mã lịch trình
+     * @return Chuỗi format "Còn trống/Tổng"
+     */
+    public String layThongTinChoNgoiFormat(String maLichTrinh) {
+        int[] info = layThongTinChoNgoiTau(maLichTrinh);
+
+        if (info[3] == -1) {
+            return "N/A";
+        }
+
+        return info[2] + "/" + info[0]; // Còn trống / Tổng
+    }
+
+    /**
+     * Lấy tổng số chỗ của tàu
+     * @param maLichTrinh Mã lịch trình
+     * @return Tổng số chỗ
+     */
+    public int layTongSoCho(String maLichTrinh) {
+        int[] info = layThongTinChoNgoiTau(maLichTrinh);
+        return info[3] == 0 ? info[0] : 0;
+    }
+
+    /**
+     * Lấy số chỗ đã bán
+     * @param maLichTrinh Mã lịch trình
+     * @return Số chỗ đã bán
+     */
+    public int layChoNgoiDaBan(String maLichTrinh) {
+        int[] info = layThongTinChoNgoiTau(maLichTrinh);
+        return info[3] == 0 ? info[1] : 0;
+    }
+
+    /**
+     * Lấy số chỗ còn trống
+     * @param maLichTrinh Mã lịch trình
+     * @return Số chỗ còn trống
+     */
+    public int layChoNgoiConTrong(String maLichTrinh) {
+        int[] info = layThongTinChoNgoiTau(maLichTrinh);
+        return info[3] == 0 ? info[2] : 0;
+    }
+
+    /**
+     * Lấy tỷ lệ phần trăm chỗ đã bán
+     * @param maLichTrinh Mã lịch trình
+     * @return Tỷ lệ phần trăm (0-100)
+     */
+    public double layTyLeChoNgoiDaBan(String maLichTrinh) {
+        int[] info = layThongTinChoNgoiTau(maLichTrinh);
+
+        if (info[3] == -1 || info[0] == 0) {
+            return 0.0;
+        }
+
+        return (double) info[1] / info[0] * 100;
+    }
+
+    /**
+     * Kiểm tra còn chỗ trống không
+     * @param maLichTrinh Mã lịch trình
+     * @return true nếu còn chỗ trống
+     */
+    public boolean conChoTrong(String maLichTrinh) {
+        return layChoNgoiConTrong(maLichTrinh) > 0;
+    }
+
+    /**
+     * Lấy danh sách chi tiết các chỗ đã bán của lịch trình
+     * Sử dụng stored procedure sp_LietKeChoDaBan
+     * @param maLichTrinh Mã lịch trình
+     * @return Danh sách thông tin các chỗ đã bán
+     */
+    public List<Map<String, Object>> layDanhSachChoDaBan(String maLichTrinh) {
+        List<Map<String, Object>> danhSach = new ArrayList<>();
+
+        // Lấy mã tàu từ lịch trình
+        String sqlGetTau = "SELECT maTau FROM LichTrinh WHERE maLichTrinh = ?";
+        String maTau = null;
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sqlGetTau)) {
+
+            stmt.setString(1, maLichTrinh);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                maTau = rs.getString("maTau");
+            } else {
+                System.err.println("Không tìm thấy lịch trình: " + maLichTrinh);
+                return danhSach;
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Lỗi khi lấy mã tàu: " + e.getMessage());
+            e.printStackTrace();
+            return danhSach;
+        }
+
+        // Gọi stored procedure
+        String sql = "{CALL sp_LietKeChoDaBan(?)}";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             CallableStatement stmt = conn.prepareCall(sql)) {
+
+            stmt.setString(1, maTau);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                // Chỉ lấy các chỗ của lịch trình hiện tại
+                String lichTrinhTrongDB = rs.getString("maLichTrinh");
+                if (lichTrinhTrongDB != null && lichTrinhTrongDB.equals(maLichTrinh)) {
+                    Map<String, Object> row = new java.util.HashMap<>();
+                    row.put("maToa", rs.getString("maToa"));
+                    row.put("tenToa", rs.getString("tenToa"));
+                    row.put("viTriCho", rs.getInt("ViTriCho"));
+                    row.put("loaiCho", rs.getString("loaiCho"));
+                    row.put("maVe", rs.getString("maVe"));
+                    row.put("trangThaiVe", rs.getString("TrangThaiVe"));
+                    row.put("maLichTrinh", lichTrinhTrongDB);
+                    row.put("diemDi", rs.getString("DiemDi"));
+                    row.put("diemDen", rs.getString("DiemDen"));
+                    row.put("ngayKhoiHanh", rs.getDate("ngayKhoiHanh"));
+                    row.put("gioKhoiHanh", rs.getTime("gioKhoiHanh"));
+
+                    danhSach.add(row);
+                }
+            }
+
+
+        } catch (SQLException e) {
+            System.err.println("Lỗi khi gọi sp_LietKeChoDaBan: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return danhSach;
+
+}
 }

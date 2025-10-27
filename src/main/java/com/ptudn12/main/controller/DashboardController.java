@@ -114,6 +114,31 @@ public class DashboardController {
 	}
 
 	@FXML
+	private void showDashboard() {
+		resetMenuButtons();
+		btnStatistics.getStyleClass().add("menu-item-active");
+		loadView("DBoard.fxml");
+	}
+
+	@FXML
+	private void handleAbout() {
+		try {
+			java.awt.Desktop.getDesktop().browse(new java.net.URI("https://yourcompany.com/about"));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@FXML
+	private void handleHelp() {
+		try {
+			java.awt.Desktop.getDesktop().browse(new java.net.URI("https://yourcompany.com/help"));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@FXML
 	private void handleLogout() {
 		Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
 		alert.setTitle("Xác nhận đăng xuất");

@@ -1,63 +1,57 @@
 package com.ptudn12.main.entity;
 
-import java.util.Objects;
+import java.time.LocalDate;
 
 public class NhanVien {
-	private String maNhanVien;
-	private String tenNhanVien;
-	
-	public NhanVien() {
-		super();
-	}
+    private String maNV;
+    private String hoTen;
+    private String cccd;
+    private LocalDate ngaySinh;
+    private String gioiTinh;
+    private String chucVu;
+    private String sdt;
+    private String email;
+    private String trangThai;
 
-	public NhanVien(String maNhanVien) {
-		super();
-		this.maNhanVien = maNhanVien;
-	}
+    public NhanVien(String maNV, String hoTen, String cccd, LocalDate ngaySinh, String gioiTinh,
+                    String chucVu, String sdt, String email, String trangThai) {
+        this.maNV = maNV;
+        this.hoTen = hoTen;
+        this.cccd = cccd;
+        this.ngaySinh = ngaySinh;
+        this.gioiTinh = gioiTinh;
+        this.chucVu = chucVu;
+        this.sdt = sdt;
+        this.email = email;
+        this.trangThai = trangThai;
+    }
 
-	public NhanVien(String maNhanVien, String tenNhanVien) {
-		super();
-		this.maNhanVien = maNhanVien;
-		this.tenNhanVien = tenNhanVien;
-	}
+    public NhanVien() {}
 
-	public String getMaNhanVien() {
-		return maNhanVien;
-	}
+    public String getMaNV() { return maNV; }
+    public void setMaNV(String maNV) { this.maNV = maNV; }
 
-	public void setMaNhanVien(String maNhanVien) {
-		this.maNhanVien = maNhanVien;
-	}
+    public String getHoTen() { return hoTen; }
+    public void setHoTen(String hoTen) { this.hoTen = hoTen; }
 
-	public String getTenNhanVien() {
-		return tenNhanVien;
-	}
+    public String getCccd() { return cccd; }
+    public void setCccd(String cccd) { this.cccd = cccd; }
 
-	public void setTenNhanVien(String tenNhanVien) {
-		this.tenNhanVien = tenNhanVien;
-	}
-	
-	@Override
-	public int hashCode() {
-		return Objects.hash(maNhanVien);
-	}
+    public LocalDate getNgaySinh() { return ngaySinh; }
+    public void setNgaySinh(LocalDate ngaySinh) { this.ngaySinh = ngaySinh; }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		NhanVien other = (NhanVien) obj;
-		return Objects.equals(maNhanVien, other.maNhanVien);
-	}
+    public String getGioiTinh() { return gioiTinh; }
+    public void setGioiTinh(String gioiTinh) { this.gioiTinh = gioiTinh; }
 
-	@Override
-	public String toString() {
-		return "NhanVien [maNhanVien=" + maNhanVien + ", tenNhanVien=" + tenNhanVien + "]";
-	}
-	
-	
+    public String getChucVu() { return chucVu; }
+    public void setChucVu(String chucVu) { this.chucVu = chucVu; }
+
+    public String getSdt() { return sdt; }
+    public void setSdt(String sdt) { this.sdt = sdt; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getTrangThai() { return trangThai; }
+    public void setTrangThai(String trangThai) { this.trangThai = trangThai; }
 }
