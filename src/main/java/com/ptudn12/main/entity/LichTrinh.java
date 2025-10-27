@@ -119,6 +119,10 @@ public class LichTrinh {
 		return ngayGioKhoiHanh != null ? ngayGioKhoiHanh.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) : "";
 	}
 
+	public String getNgayGioDenFormatted() {
+		return ngayGioDen != null ? ngayGioDen.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) : "";
+	}
+
 	public String getGiaCoBanFormatted() {
 		return String.format("%,.0fd", giaCoBan);
 	}
