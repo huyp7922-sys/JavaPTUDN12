@@ -22,29 +22,19 @@ import javafx.util.Duration;
 
 public class DashboardController {
 
-	@FXML
-	private StackPane contentPane;
-	@FXML
-	private Label dateTimeLabel;
 
-	@FXML
-	private Button btnHome;
-	@FXML
-	private Button btnInvoice;
-	@FXML
-	private Button btnSchedule;
-	@FXML
-	private Button btnRoute;
-	@FXML
-	private Button btnTrain;
-	@FXML
-	private Button btnCustomer;
-	@FXML
-	private Button btnEmployee;
-	@FXML
-	private Button btnStatistics;
-	@FXML
-	private Button btnLogout;
+	@FXML private StackPane contentPane;
+	@FXML private Label dateTimeLabel;
+
+	@FXML private Button btnHome;
+	@FXML private Button btnInvoice;
+	@FXML private Button btnSchedule;
+	@FXML private Button btnRoute;
+	@FXML private Button btnTrain;
+	@FXML private Button btnEmployee;
+	@FXML private Button btnStatistics;
+	@FXML private Button btnLogout;
+
 
 	private String currentUser;
 
@@ -101,26 +91,43 @@ public class DashboardController {
 		loadView("train-management.fxml");
 	}
 
-	@FXML
-	private void showCustomer() {
-		resetMenuButtons();
-		btnTrain.getStyleClass().add("menu-item-active");
-		loadView("customer-management.fxml");
-	}
 
-	@FXML
+        @FXML
 	private void showEmployee() {
 		resetMenuButtons();
 		btnEmployee.getStyleClass().add("menu-item-active");
 		loadView("employee-management.fxml");
 	}
+        
+    @FXML
+    private void showStatistics() {
+        resetMenuButtons();
+        btnStatistics.getStyleClass().add("menu-item-active");
+        loadView("statistics-management.fxml");
+    }
+        @FXML
+    private void showDashboard() {
+        resetMenuButtons();
+        btnStatistics.getStyleClass().add("menu-item-active");
+        loadView("DBoard.fxml");
+    }
+    @FXML
+    private void handleAbout() {
+        try {
+            java.awt.Desktop.getDesktop().browse(new java.net.URI("https://yourcompany.com/about"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-	@FXML
-	private void showStatistics() {
-		resetMenuButtons();
-		btnStatistics.getStyleClass().add("menu-item-active");
-		loadView("statistics-management.fxml");
-	}
+    @FXML
+    private void handleHelp() {
+        try {
+            java.awt.Desktop.getDesktop().browse(new java.net.URI("https://yourcompany.com/help"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 	@FXML
 	private void handleLogout() {
@@ -156,6 +163,7 @@ public class DashboardController {
 			Node view = loader.load();
 			contentPane.getChildren().clear();
 			contentPane.getChildren().add(view);
+
 
 		} catch (IOException e) {
 			e.printStackTrace();

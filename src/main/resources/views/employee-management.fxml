@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.ptudn12.main.controller.EmployeeManagementController"
+            stylesheets="@employee-styles.css"
+            prefWidth="900" prefHeight="500">
+
+    <children>
+
+        <Label text="Quản Lý Nhân Viên" layoutX="20" layoutY="10"
+               style="-fx-font-size: 22px; -fx-font-weight: bold;"/>
+
+        <TextField fx:id="filterField" promptText="Lọc..."
+                   layoutX="720" layoutY="40" prefWidth="140"
+                   style="-fx-font-size: 14px;"/>
+
+        <Button text="Thêm" layoutX="460" layoutY="40" prefWidth="60"
+        onAction="#addEmployee" styleClass="button-add"/>
+
+        <Button text="Sửa" layoutX="530" layoutY="40" prefWidth="60"
+                onAction="#editEmployee" styleClass="button-edit"/>
+
+        <Button text="Xóa" layoutX="600" layoutY="40" prefWidth="60"
+                onAction="#deleteEmployee" styleClass="button-delete"/>
+
+
+        <TableView fx:id="employeeTable"
+                   layoutX="20" layoutY="90"
+                   prefWidth="860" prefHeight="380">
+
+            <columns>
+                <TableColumn fx:id="maNVCol" text="Mã NV" prefWidth="65"/>
+                <TableColumn fx:id="hoTenCol" text="Họ Tên" prefWidth="150"/>
+                <TableColumn fx:id="cccdCol" text="CCCD" prefWidth="130"/>
+                <TableColumn fx:id="ngaySinhCol" text="Ngày Sinh" prefWidth="90"/>
+                <TableColumn fx:id="gioiTinhCol" text="Giới Tính" prefWidth="65"/>
+                <TableColumn fx:id="chucVuCol" text="Chức Vụ" prefWidth="110"/>
+                <TableColumn fx:id="sdtCol" text="Số Điện Thoại" prefWidth="120"/>
+                <TableColumn fx:id="emailCol" text="Email" prefWidth="160"/>
+                <TableColumn fx:id="trangThaiCol" text="Trạng Thái" prefWidth="80"/>
+            </columns>
+        </TableView>
+
+    </children>
+</AnchorPane>

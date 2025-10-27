@@ -428,6 +428,7 @@ public class ScheduleManagementController {
         };
         
         new Thread(filterTask).start();
+    
     }
 
     @FXML
@@ -525,6 +526,7 @@ public class ScheduleManagementController {
         
         // Cập nhật lại danh sách filter
         setupFilters();
+
     }
     
     
@@ -570,6 +572,7 @@ public class ScheduleManagementController {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể lấy thông tin chi tiết:\n" + e.getMessage());
         }
+
     }
 
     private void showAlert(Alert.AlertType type, String title, String message) {

@@ -13,6 +13,7 @@ public class LichTrinh {
     private float giaCoBan;
     private TrangThai trangThai;
 
+
     // Constructor không tham số
     public LichTrinh() {
     }
@@ -45,6 +46,8 @@ public class LichTrinh {
 
     public void setTau(Tau tau) {
         this.tau = tau;
+
+       
     }
 
     public void setTuyenDuong(TuyenDuong tuyenDuong) {
@@ -127,6 +130,22 @@ public class LichTrinh {
         return String.format("%,.0fd", giaCoBan);
     }
 
+    public String getSoGheDisplay() {
+        // Query động từ database để lấy số ghế trống/tổng số ghế
+        if (maLichTrinh == null || maLichTrinh.isEmpty()) {
+            return "N/A";
+        }
+        
+        try {
+            com.ptudn12.main.dao.LichTrinhDAO dao = new com.ptudn12.main.dao.LichTrinhDAO();
+            // sử dụng phương thức mới trả về format "Còn/Tổng"
+            String info = dao.layThongTinChoNgoiFormat(maLichTrinh);
+            return info;
+        } catch (Exception e) {
+            return "Lỗi query";
+        }
+    }
+
 
     public String getTrangThaiDisplay() {
         return trangThai != null ? trangThai.getTenTrangThai() : "";
@@ -134,6 +153,7 @@ public class LichTrinh {
     
     public String getTuyenDuongDisplay() {
         if (tuyenDuong == null) return "";
+
 
         String diemDi = tuyenDuong.getDiemDi().getViTriGa().replace("Ga ", "").trim();
         String diemDen = tuyenDuong.getDiemDen().getViTriGa().replace("Ga ", "").trim();

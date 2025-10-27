@@ -296,6 +296,7 @@ public class LichTrinhDAO {
     }
     
     /**
+
      * Lấy thông tin tổng số chỗ và chỗ đã bán của tàu trong lịch trình
      * Sử dụng stored procedure sp_DemTongSoChoVaChoDaBan
      * @param maLichTrinh Mã lịch trình
@@ -491,5 +492,6 @@ public class LichTrinhDAO {
         }
 
         return danhSach;
-    }
+
+}
 }

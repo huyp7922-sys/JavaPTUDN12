@@ -43,9 +43,6 @@
                 
                 <Button fx:id="btnTrain" text="Quản Lý Tàu" onAction="#showTrain" 
                         styleClass="menu-item" maxWidth="Infinity"/>
-                        
-                <Button fx:id="btnTrain" text="Quản Lý Khách Hàng" onAction="#showCustomer" 
-                        styleClass="menu-item" maxWidth="Infinity"/>
                 
                 <Button fx:id="btnEmployee" text="Quản Lý Nhân Viên" onAction="#showEmployee" 
                         styleClass="menu-item" maxWidth="Infinity"/>
@@ -70,13 +67,33 @@
     <center>
         <VBox styleClass="content-area">
             <!-- Header with Title and DateTime -->
-            <HBox styleClass="content-header" alignment="CENTER_LEFT" spacing="20">
-                <padding>
-                    <Insets top="20" right="30" bottom="20" left="30"/>
-                </padding>
-                <Region HBox.hgrow="ALWAYS"/>
-                <Label fx:id="dateTimeLabel" styleClass="datetime-label"/>
-            </HBox>
+            <HBox styleClass="content-header" alignment="CENTER_LEFT" spacing="15">
+    <padding>
+        <Insets top="20" right="30" bottom="20" left="30"/>
+    </padding>
+
+    <Region HBox.hgrow="ALWAYS"/>
+
+    <!-- Nút About -->
+<Button text="💡" onAction="#handleAbout"
+        style="-fx-background-color: transparent; -fx-font-size: 18; -fx-cursor: hand;">
+    <tooltip>
+        <Tooltip text="About"/>
+    </tooltip>
+</Button>
+
+<!-- Nút Help -->
+<Button text="❓" onAction="#handleHelp"
+        style="-fx-background-color: transparent; -fx-font-size: 18; -fx-cursor: hand;">
+    <tooltip>
+        <Tooltip text="Help"/>
+    </tooltip>
+</Button>
+
+
+    <Label fx:id="dateTimeLabel" styleClass="datetime-label"/>
+</HBox>
+
 
             <!-- Content Pane -->
             <StackPane fx:id="contentPane" VBox.vgrow="ALWAYS" styleClass="content-pane">
