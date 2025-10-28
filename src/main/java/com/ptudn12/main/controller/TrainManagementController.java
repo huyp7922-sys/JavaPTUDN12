@@ -1,19 +1,12 @@
 package com.ptudn12.main.controller;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.net.URL;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
+import com.ptudn12.main.dao.TauDAO; // Import DAO mới
 import com.ptudn12.main.entity.Tau;
-import com.ptudn12.main.entity.Toa;
-import com.ptudn12.main.enums.LoaiToa;
 
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -31,7 +24,7 @@ import javafx.stage.Stage;
 
 public class TrainManagementController {
 
-	// Khai báo các thành phần FXML cho bảng Tàu
+	// --- FXML Components ---
 	@FXML
 	private TableView<Tau> trainTable;
 	@FXML
@@ -44,197 +37,136 @@ public class TrainManagementController {
 	private TableColumn<Tau, String> structureColumn;
 	@FXML
 	private TableColumn<Tau, String> statusColumn;
-
-	// Nút và nhãn mới
 	@FXML
 	private Button configureTrainButton;
 	@FXML
 	private Label totalTrainsLabel;
 
-	// Danh sách dữ liệu tàu
+	// --- Data Models ---
 	private ObservableList<Tau> trainData = FXCollections.observableArrayList();
+	// Map lưu trữ danh sách toa của từng tàu: Key là mã tàu (VD: "SE1"), Value là
+	// danh sách Toa
 
-	// Cấu trúc để lưu trữ danh sách toa cho mỗi tàu (dùng cho mock data)
-	private Map<String, List<Toa>> trainComposition = new HashMap<>();
+	// --- DAO ---
+	private TauDAO tauDAO;
 
 	@FXML
 	public void initialize() {
-		// Liên kết các cột đơn giản với thuộc tính của đối tượng Tau
+		this.tauDAO = new TauDAO();
+
+		// ✅ LIÊN KẾT TRỰC TIẾP CÁC CỘT VỚI CÁC TRƯỜNG MỚI CỦA ENTITY
 		trainCodeColumn.setCellValueFactory(new PropertyValueFactory<>("macTau"));
 		statusColumn.setCellValueFactory(new PropertyValueFactory<>("trangThai"));
+		carriageCountColumn.setCellValueFactory(new PropertyValueFactory<>("soToa"));
+		totalSeatsColumn.setCellValueFactory(new PropertyValueFactory<>("tongChoNgoi"));
+		structureColumn.setCellValueFactory(new PropertyValueFactory<>("cauTrucTau"));
 
-		// Thiết lập các cột có dữ liệu cần tính toán
-		setupCalculatedColumns();
+		// ❌ KHÔNG CẦN GỌI setupCalculatedColumns() NỮA
 
-		// Thiết lập cell factory để tô màu cho cột Trạng Thái
 		setupStatusColumnCellFactory();
-
-		// Thiết lập listener để điều khiển nút "Cấu hình tàu"
 		setupSelectionListener();
 
-		// Tải dữ liệu mẫu
-		loadMockData();
+		loadDataFromDatabase();
 
-		// Ban đầu vô hiệu hóa nút Cấu hình tàu
 		configureTrainButton.setDisable(true);
 	}
 
 	/**
-	 * Listener cho việc chọn hàng trong bảng
+	 * Tải dữ liệu thật từ cơ sở dữ liệu thông qua TauDAO.
 	 */
+	private void loadDataFromDatabase() {
+		try {
+			trainData.clear();
+			List<Tau> allTrains = tauDAO.layTatCaTau(); // Chỉ cần gọi 1 hàm duy nhất
+			if (allTrains != null) {
+				trainData.addAll(allTrains);
+			}
+			trainTable.setItems(trainData);
+			updateTrainCountLabel();
+		} catch (Exception e) {
+			e.printStackTrace();
+			showAlert(Alert.AlertType.ERROR, "Lỗi Tải Dữ Liệu",
+					"Không thể tải danh sách tàu từ cơ sở dữ liệu.\nChi tiết: " + e.getMessage());
+		}
+	}
+
+	/**
+	 * Xử lý sự kiện nút "Làm mới".
+	 */
+	@FXML
+	private void handleRefresh() {
+		loadDataFromDatabase();
+		trainTable.refresh();
+		// Không cần showAlert mỗi lần làm mới, chỉ cần tải lại là đủ.
+		// Nếu muốn có thể uncomment dòng dưới:
+		// showAlert(Alert.AlertType.INFORMATION, "Thông báo", "Đã cập nhật dữ liệu mới
+		// nhất.");
+	}
+
+	// ... (setupSelectionListener và setupStatusColumnCellFactory GIỮ NGUYÊN)
+
 	private void setupSelectionListener() {
 		trainTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
 			if (newSelection != null) {
-				// Chỉ cho phép cấu hình khi tàu có trạng thái "Dừng chạy"
-				boolean isStopped = "Dừng chạy".equals(newSelection.getTrangThai());
-				configureTrainButton.setDisable(!isStopped);
+				// Tàu phải ở trạng thái khác "DangChay" mới cho phép cấu hình (ví dụ: SanSang,
+				// TamNgung, ChuaKhoiHanh...)
+				// Ở đây giả sử chỉ "DangChay" là bị khóa.
+				boolean isRunning = "DangChay".equalsIgnoreCase(newSelection.getTrangThai());
+				configureTrainButton.setDisable(isRunning);
 			} else {
-				// Không có hàng nào được chọn, vô hiệu hóa nút
 				configureTrainButton.setDisable(true);
 			}
 		});
 	}
 
-	/**
-	 * Tùy chỉnh hiển thị màu sắc cho cột Trạng Thái
-	 */
 	private void setupStatusColumnCellFactory() {
 		statusColumn.setCellFactory(column -> new TableCell<Tau, String>() {
 			@Override
 			protected void updateItem(String status, boolean empty) {
 				super.updateItem(status, empty);
+				// Reset style cũ
+				getStyleClass().removeAll("status-label", "status-ready", "status-inactive", "status-paused",
+						"status-running");
+
 				if (empty || status == null) {
 					setText(null);
 					setGraphic(null);
-					getStyleClass().removeAll("status-ready", "status-inactive");
 				} else {
 					Label label = new Label(status);
 					label.getStyleClass().add("status-label");
 
-					if ("Đang chạy".equals(status)) {
+					// Ánh xạ trạng thái từ DB sang CSS class
+					// Bạn có thể điều chỉnh các case này tùy theo giá trị thực tế trong DB của bạn
+					switch (status) {
+					case "SanSang":
 						label.getStyleClass().add("status-ready");
-					} else if ("Dừng chạy".equals(status)) {
+						break;
+					case "DangChay":
+						label.getStyleClass().add("status-running");
+						break; // Cần thêm class này vào CSS nếu muốn màu riêng
+					case "TamNgung":
+						label.getStyleClass().add("status-paused");
+						break; // Cần thêm class này vào CSS nếu muốn màu riêng
+					case "ChuaKhoiHanh":
 						label.getStyleClass().add("status-inactive");
+						break;
+					default:
+						label.getStyleClass().add("status-inactive");
+						break;
 					}
 
 					setGraphic(label);
-					setText(null); // Chỉ hiển thị label, không hiển thị text
+					setText(null);
 				}
 			}
 		});
 	}
 
-	private void setupCalculatedColumns() {
-		// Cột Số Toa
-		carriageCountColumn.setCellValueFactory(cellData -> {
-			Tau train = cellData.getValue();
-			List<Toa> carriages = trainComposition.get(train.getMacTau());
-			int count = (carriages != null) ? carriages.size() : 0;
-			return new SimpleIntegerProperty(count).asObject();
-		});
-
-		// Cột Tổng Chỗ Ngồi
-		totalSeatsColumn.setCellValueFactory(cellData -> {
-			Tau train = cellData.getValue();
-			List<Toa> carriages = trainComposition.get(train.getMacTau());
-			int totalSeats = 0;
-			if (carriages != null) {
-				totalSeats = carriages.stream().mapToInt(toa -> toa.getLoaiToa().getSoChoMacDinh(toa.getLoaiToa()))
-						.sum();
-			}
-			return new SimpleIntegerProperty(totalSeats).asObject();
-		});
-
-		// Cột Cấu trúc tàu
-		structureColumn.setCellValueFactory(cellData -> {
-			Tau train = cellData.getValue();
-			List<Toa> carriages = trainComposition.get(train.getMacTau());
-			if (carriages == null || carriages.isEmpty()) {
-				return new SimpleStringProperty("Chưa có cấu hình");
-			}
-			Map<LoaiToa, Long> counts = carriages.stream()
-					.collect(Collectors.groupingBy(Toa::getLoaiToa, Collectors.counting()));
-			String structure = counts.entrySet().stream()
-					.map(entry -> entry.getValue() + "x " + getShortCarriageTypeName(entry.getKey()))
-					.collect(Collectors.joining(", "));
-			return new SimpleStringProperty(structure);
-		});
-	}
-
-	private String getShortCarriageTypeName(LoaiToa loaiToa) {
-		switch (loaiToa) {
-		case GIUONG_NAM_KHOANG_4:
-			return "Giường 4";
-		case GIUONG_NAM_KHOANG_6:
-			return "Giường 6";
-		case GIUONG_NAM_VIP:
-			return "Giường VIP";
-		case NGOI_MEM:
-			return "Ngồi mềm";
-		case NGOI_CUNG:
-			return "Ngồi cứng";
-		default:
-			return "";
-		}
-	}
-
-	private void loadMockData() {
-		trainData.clear();
-		trainComposition.clear();
-
-		// Tạo dữ liệu mẫu...
-		Tau se1 = new Tau("SE1");
-		se1.setTrangThai("Đang chạy");
-		List<Toa> se1Carriages = new ArrayList<>();
-		for (int i = 0; i < 5; i++)
-			se1Carriages.add(new Toa(LoaiToa.GIUONG_NAM_KHOANG_4));
-		for (int i = 0; i < 5; i++)
-			se1Carriages.add(new Toa(LoaiToa.GIUONG_NAM_KHOANG_6));
-		for (int i = 0; i < 2; i++)
-			se1Carriages.add(new Toa(LoaiToa.NGOI_MEM));
-		trainComposition.put("SE1", se1Carriages);
-
-		Tau se2 = new Tau("SE2");
-		se2.setTrangThai("Đang chạy");
-		trainComposition.put("SE2", new ArrayList<>(se1Carriages));
-
-		Tau se3 = new Tau("SE3");
-		se3.setTrangThai("Dừng chạy");
-		List<Toa> se3Carriages = new ArrayList<>();
-		for (int i = 0; i < 7; i++)
-			se3Carriages.add(new Toa(LoaiToa.GIUONG_NAM_KHOANG_6));
-		for (int i = 0; i < 2; i++)
-			se3Carriages.add(new Toa(LoaiToa.NGOI_MEM));
-		se3Carriages.add(new Toa(LoaiToa.NGOI_CUNG));
-		trainComposition.put("SE3", se3Carriages);
-
-		trainData.addAll(Arrays.asList(se1, se2, se3));
-		trainTable.setItems(trainData);
-
-		// Cập nhật nhãn đếm
-		updateTrainCountLabel();
-	}
-
-	/**
-	 * Cập nhật nhãn hiển thị tổng số tàu
-	 */
 	private void updateTrainCountLabel() {
-		int count = trainData.size();
-		totalTrainsLabel.setText("Có tất cả " + count + " tàu");
+		totalTrainsLabel.setText("Có tất cả " + trainData.size() + " tàu");
 	}
 
-	@FXML
-	private void handleRefresh() {
-		System.out.println("[TrainManagementController] Nút 'Làm mới' được nhấn. Đang tải lại dữ liệu...");
-		loadMockData();
-		trainTable.refresh();
-		showAlert(Alert.AlertType.INFORMATION, "Thông báo", "Đã làm mới danh sách tàu.");
-	}
-
-	@FXML
-	private void handleCreateTrain() {
-		showAlert(Alert.AlertType.INFORMATION, "Thông báo", "Chức năng 'Lập tàu mới' chưa được triển khai.");
-	}
+	// --- ACTION HANDLERS ---
 
 	@FXML
 	private void handleRegisterCarriage() {
@@ -242,18 +174,22 @@ public class TrainManagementController {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/add-carriage-dialog.fxml"));
 			Scene scene = new Scene(loader.load());
 
-			scene.getStylesheets().add(getClass().getResource("/views/train-management.css").toExternalForm());
+			URL cssUrl = getClass().getResource("/views/train-management.css");
+			if (cssUrl != null) {
+				scene.getStylesheets().add(cssUrl.toExternalForm());
+			}
 
 			Stage dialogStage = new Stage();
 			dialogStage.setTitle("Đăng Kí Toa Mới");
 			dialogStage.initModality(Modality.APPLICATION_MODAL);
-			dialogStage.setScene(scene); // Set scene đã có CSS
+			dialogStage.setScene(scene);
 			dialogStage.setResizable(false);
-
 			dialogStage.showAndWait();
 
-			loadMockData();
-			trainTable.refresh();
+			// Sau khi đóng dialog đăng kí toa, làm mới lại dữ liệu
+			// để nếu có tàu nào được cập nhật toa mới (tính năng tương lai) thì sẽ hiện ra
+			// ngay
+			handleRefresh();
 
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -262,16 +198,17 @@ public class TrainManagementController {
 	}
 
 	@FXML
+	private void handleCreateTrain() {
+		showAlert(Alert.AlertType.INFORMATION, "Thông báo", "Chức năng 'Lập tàu mới' đang được phát triển.");
+	}
+
+	@FXML
 	private void handleConfigureTrain() {
 		Tau selected = trainTable.getSelectionModel().getSelectedItem();
-		// Kiểm tra này gần như là dư thừa vì nút đã bị disable, nhưng để an toàn
-		if (selected == null || !"Dừng chạy".equals(selected.getTrangThai())) {
-			showAlert(Alert.AlertType.WARNING, "Cảnh báo",
-					"Vui lòng chọn một tàu ở trạng thái 'Dừng chạy' để cấu hình!");
-			return;
+		if (selected != null) {
+			showAlert(Alert.AlertType.INFORMATION, "Thông báo",
+					"Chức năng 'Cấu hình tàu' cho tàu " + selected.getMacTau() + " đang được phát triển.");
 		}
-		showAlert(Alert.AlertType.INFORMATION, "Thông báo",
-				"Chức năng 'Cấu hình tàu' cho tàu " + selected.getMacTau() + " chưa được triển khai.");
 	}
 
 	private void showAlert(Alert.AlertType type, String title, String message) {

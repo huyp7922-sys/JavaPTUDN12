@@ -3,6 +3,7 @@ package com.ptudn12.main.controller;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -33,7 +34,7 @@ public class InvoiceManagementController {
 	@FXML
 	private TableColumn<HoaDon, String> customerColumn;
 	@FXML
-	private TableColumn<HoaDon, LocalDateTime> dateColumn;
+	private TableColumn<HoaDon, String> dateColumn;
 	@FXML
 	private TableColumn<HoaDon, LoaiHoaDon> typeColumn;
 
@@ -56,15 +57,25 @@ public class InvoiceManagementController {
 	public void initialize() {
 		// Liên kết các cột với thuộc tính của đối tượng HoaDon
 		idColumn.setCellValueFactory(new PropertyValueFactory<>("maHoaDon"));
-		dateColumn.setCellValueFactory(new PropertyValueFactory<>("ngayLap"));
-		typeColumn.setCellValueFactory(new PropertyValueFactory<>("loaiHoaDon"));
+		dateColumn.setCellValueFactory(cellData -> {
+			// Lấy về đối tượng LocalDateTime từ Hóa đơn
+			LocalDateTime ngayLap = cellData.getValue().getNgayLap();
 
-		// Sử dụng lambda để truy cập thuộc tính lồng nhau (nested property)
-		// Lấy tên nhân viên từ đối tượng NhanVien bên trong HoaDon
+			// Kiểm tra nếu ngày lập không null
+			if (ngayLap != null) {
+				// Tạo một formatter theo mẫu bạn yêu cầu
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
+				// Trả về chuỗi đã được định dạng
+				return new SimpleStringProperty(ngayLap.format(formatter));
+			} else {
+				// Trả về chuỗi rỗng nếu không có ngày
+				return new SimpleStringProperty("");
+			}
+		});
+		typeColumn.setCellValueFactory(new PropertyValueFactory<>("loaiHoaDon"));
 		employeeColumn.setCellValueFactory(
 				cellData -> new SimpleStringProperty(cellData.getValue().getNhanVien().getTenNhanVien()));
 
-		// Lấy tên khách hàng từ đối tượng KhachHang bên trong HoaDon
 		customerColumn.setCellValueFactory(
 				cellData -> new SimpleStringProperty(cellData.getValue().getKhachHang().getTenKhachHang()));
 
@@ -224,10 +235,9 @@ public class InvoiceManagementController {
 		// TODO: Thêm logic xử lý in hóa đơn ở đây.
 		// Ví dụ: tạo một file PDF, gọi một service in ấn, v.v.
 
-		System.out.println("Yêu cầu in hóa đơn: " + selectedInvoice.getMaHoaDon());
-
-		showAlert(Alert.AlertType.INFORMATION, "Thông báo",
-				"Đã gửi yêu cầu in cho hóa đơn mã: " + selectedInvoice.getMaHoaDon());
+//		showAlert(Alert.AlertType.INFORMATION, "Thông báo",
+//				"Đã gửi yêu cầu in cho hóa đơn mã: " + selectedInvoice.getMaHoaDon());
+		showAlert(Alert.AlertType.INFORMATION, "Thông báo", "Chức năng đang phát triển");
 	}
 
 	private void showAlert(Alert.AlertType type, String title, String message) {
