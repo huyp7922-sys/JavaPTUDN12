@@ -15,11 +15,11 @@ import com.ptudn12.main.database.DatabaseConnection;
 
 public class ChiTietLichTrinhDAO {
     /**
-     * Lấy danh sách mã chỗ (maCho) đã được bán cho lịch trình cụ thể
+     * Lấy danh sách mã chỗ (maChoNgoi) đã được bán cho lịch trình cụ thể
      */
     public Set<Integer> getCacChoDaBan(String maLichTrinh) {
         Set<Integer> danhSachChoDaBan = new HashSet<>();
-        String sql = "SELECT maCho FROM chitietlichtrinh WHERE maLichTrinh = ?";
+        String sql = "SELECT maChoNgoi FROM ChiTietLichTrinh WHERE maLichTrinh = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -28,7 +28,7 @@ public class ChiTietLichTrinhDAO {
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                danhSachChoDaBan.add(rs.getInt("maCho"));
+                danhSachChoDaBan.add(rs.getInt("maChoNgoi"));
             }
 
         } catch (SQLException e) {

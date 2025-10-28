@@ -6,17 +6,17 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
+<?import javafx.scene.control.Button?>
 
 <HBox fx:id="rowContainer" alignment="CENTER_LEFT" spacing="10.0" styleClass="passenger-row" stylesheets="@step-3.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ptudn12.main.controller.HanhKhachRowController">
    <padding>
-      <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+      <Insets bottom="15.0" left="10.0" right="10.0" top="15.0" />
    </padding>
    <children>
-   
-      <VBox spacing="8.0" prefWidth="500.0">
+
+      <VBox spacing="8.0" fx:id="columnHanhKhach" prefWidth="500.0">
          <children>
-            <HBox alignment="CENTER_LEFT" spacing="10.0">
+             <HBox alignment="CENTER_LEFT" spacing="10.0">
                <children>
                   <Label text="Họ tên:" prefWidth="100.0" />
                   <TextField fx:id="txtHoTen" prefWidth="250.0" />
@@ -26,6 +26,11 @@
                <children>
                   <Label text="Đối tượng:" prefWidth="100.0" />
                   <ComboBox fx:id="comboDoiTuong" prefWidth="250.0"/>
+                  <Button fx:id="btnChonNgaySinh" text="Chọn ngày sinh" onAction="#handleChonNgaySinh" managed="false" visible="false">
+                     <HBox.margin>
+                        <Insets left="10.0" />
+                     </HBox.margin>
+                  </Button>
                </children>
             </HBox>
             <HBox alignment="CENTER_LEFT" spacing="10.0">
@@ -34,50 +39,61 @@
                   <TextField fx:id="txtSoGiayTo" prefWidth="250.0" />
                </children>
             </HBox>
-         </children>
-      </VBox>
-      
-      <VBox spacing="5.0" prefWidth="200.0">
-         <children>
-            <Label text="Thông tin chuyến tàu" styleClass="cell-title-label" />
-            <Label fx:id="lblTenTau" text="Tàu TN01" styleClass="cell-data-label" />
-            <Label fx:id="lblThoiGianDi" text="24/12/2025 06:00" styleClass="cell-data-label" />
-         </children>
-      </VBox>
-
-      <VBox spacing="5.0" prefWidth="200.0">
-         <children>
-            <Label text="Thông tin chỗ" styleClass="cell-title-label" />
-            <Label fx:id="lblThongTinCho" text="Toa 5 - Ghế 12 (Đi)" styleClass="cell-data-label" />
-            <Label fx:id="lblLoaiToa" text="Ngồi cứng" styleClass="cell-data-label" />
-         </children>
-      </VBox>
-      
-      <VBox spacing="5.0" prefWidth="200.0">
-         <children>
-            <Label text="Giá vé" styleClass="cell-title-label" />
-            <Label fx:id="lblGiaVe" text="450,000 VNĐ" styleClass="cell-data-label" />
-         </children>
-      </VBox>
-      
-      <VBox spacing="5.0" prefWidth="200.0">
-         <children>
-            <Label text="Giảm đối tượng" styleClass="cell-title-label" />
-            <Label fx:id="lblGiamGia" text="0 VNĐ" styleClass="cell-data-label" />
-         </children>
-      </VBox>
-      
-      <VBox spacing="5.0" prefWidth="200.0">
-         <children>
-            <Label text="Bảo hiểm" styleClass="cell-title-label" />
-            <Label fx:id="lblBaoHiem" text="2,000 VNĐ" styleClass="cell-data-label" />
+            <HBox fx:id="boxMaVeNguoiLon" alignment="CENTER_LEFT" spacing="10.0" managed="false" visible="false">
+                 <children>
+                     <Label text="Mã vé người lớn đi cùng:" prefWidth="120.0" wrapText="true"/>
+                     <TextField fx:id="txtMaVeNguoiLon" HBox.hgrow="ALWAYS" promptText="Nhập mã vé người lớn"/>
+                 </children>
+                 <VBox.margin>
+                     <Insets top="5.0" />
+                 </VBox.margin>
+             </HBox>
          </children>
       </VBox>
 
-      <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+      <VBox spacing="5.0" fx:id="columnChuyenTau" prefWidth="200.0" alignment="CENTER_LEFT">
          <children>
-            <Label text="Thành tiền" styleClass="cell-title-label" />
-            <Label fx:id="lblThanhTien" text="452,000 VNĐ" styleClass="cell-data-label-bold" />
+            <Label fx:id="lblTenTauDi" styleClass="cell-data-label-small-bold" />
+            <Label fx:id="lblThoiGianDi" styleClass="cell-data-label-small" />
+            <Label fx:id="lblTenTauVe" styleClass="cell-data-label-small-bold" managed="false" visible="false">
+               <VBox.margin><Insets top="5.0" /></VBox.margin>
+            </Label>
+            <Label fx:id="lblThoiGianVe" styleClass="cell-data-label-small" managed="false" visible="false"/>
+         </children>
+      </VBox>
+ 
+      <VBox spacing="5.0" fx:id="columnChoNgoi" prefWidth="200.0" alignment="CENTER_LEFT">
+         <children>
+            <Label fx:id="lblThongTinChoDi" styleClass="cell-data-label-small" />
+            <Label fx:id="lblLoaiToaDi" styleClass="cell-data-label-small" />
+             <Label fx:id="lblThongTinChoVe" styleClass="cell-data-label-small" managed="false" visible="false">
+               <VBox.margin><Insets top="5.0" /></VBox.margin>
+            </Label>
+            <Label fx:id="lblLoaiToaVe" styleClass="cell-data-label-small" managed="false" visible="false"/>
+         </children>
+      </VBox>
+
+      <VBox spacing="5.0" fx:id="columnGiaVe" alignment="CENTER_LEFT" prefWidth="150.0">
+         <children>
+            <Label fx:id="lblGiaVe" styleClass="cell-data-label" />
+         </children>
+      </VBox>
+
+      <VBox spacing="5.0" fx:id="columnGiamGia" alignment="CENTER_LEFT" prefWidth="150.0">
+         <children>
+            <Label fx:id="lblGiamGia" styleClass="cell-data-label" />
+         </children>
+      </VBox>
+
+      <VBox spacing="5.0" fx:id="columnBaoHiem" alignment="CENTER_LEFT" prefWidth="150.0">
+         <children>
+            <Label fx:id="lblBaoHiem" styleClass="cell-data-label" />
+         </children>
+      </VBox>
+
+      <VBox spacing="5.0" fx:id="columnThanhTien" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+         <children>
+            <Label fx:id="lblThanhTien" styleClass="cell-data-label-bold" />
          </children>
       </VBox>
    </children>

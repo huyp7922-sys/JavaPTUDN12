@@ -34,6 +34,10 @@ import javafx.util.Duration;
 public class BanVeController {
     @FXML private StackPane contentPane;
     @FXML private Label dateTimeLabel;
+    
+    private Step1Controller step1ControllerInstance;
+    private Step2Controller step2ControllerInstance;
+    private Step3Controller step3ControllerInstance;
 
     // Menu items
     @FXML private TitledPane menuVeTau;
@@ -125,19 +129,21 @@ public class BanVeController {
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/" + fxmlFile));
         Node view = loader.load();
+        Object controller = loader.getController();
 
-        // SỬA: Cập nhật tên Controller của các step
-        if (loader.getController() instanceof Step1Controller) {
-            ((Step1Controller) loader.getController()).setMainController(this);
-        } else if (loader.getController() instanceof Step2Controller) {
-            // 1. Gán main controller
-            ((Step2Controller) loader.getController()).setMainController(this);
-            // 2. (THÊM DÒNG NÀY) Báo cho Step 2 tải dữ liệu
-            ((Step2Controller) loader.getController()).initData();
-        }
-        else if (loader.getController() instanceof Step3Controller) {
-            ((Step3Controller) loader.getController()).setMainController(this);
-            ((Step3Controller) loader.getController()).initData(); // Step 3 cũng sẽ cần
+        // Lưu lại instance của controller
+        if (controller instanceof Step1Controller) {
+            step1ControllerInstance = (Step1Controller) controller;
+            step1ControllerInstance.setMainController(this);
+            step1ControllerInstance.initData();
+        } else if (controller instanceof Step2Controller) {
+            step2ControllerInstance = (Step2Controller) controller;
+            step2ControllerInstance.setMainController(this);
+            step2ControllerInstance.initData();
+        } else if (controller instanceof Step3Controller) {
+            step3ControllerInstance = (Step3Controller) controller;
+            step3ControllerInstance.setMainController(this);
+            step3ControllerInstance.initData();
         }
 
         contentPane.getChildren().clear();
@@ -169,6 +175,17 @@ public class BanVeController {
                 e.printStackTrace();
                 showError("Lỗi khi đăng xuất: " + e.getMessage());
             }
+        }
+    }
+    
+    /**
+    * Hàm chuyển tiếp yêu cầu hủy vé từ Step 3 đến Step 2
+    */
+    public void requestCancelTicketInCart(int maCho, boolean isChieuDi) {
+        if (step2ControllerInstance != null) {
+            step2ControllerInstance.cancelTicketBySeatId(maCho, isChieuDi);
+        } else {
+            System.err.println("BanVeController: Step2Controller chưa được khởi tạo, không thể hủy vé.");
         }
     }
     

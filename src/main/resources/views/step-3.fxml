@@ -47,16 +47,15 @@
         <VBox styleClass="box-section" VBox.vgrow="ALWAYS">
              <children>
                 <Label text="Thông tin hành khách" styleClass="box-title-bold" />
-
-                <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-padding: 10px; -fx-border-color: #ccc; -fx-border-width: 0 0 2px 0;">
+                <HBox fx:id="headerRow" alignment="CENTER_LEFT" spacing="10.0" style="-fx-padding: 10px; -fx-border-color: #ccc; -fx-border-width: 0 0 2px 0;">
                      <children>
-                        <Label text="Họ tên" prefWidth="500.0" />
-                        <Label text="Thông tin chuyến tàu" prefWidth="200.0" />
-                        <Label text="Thông tin chỗ ngồi" prefWidth="200.0" />
-                        <Label text="Giá vé" prefWidth="200.0" />
-                        <Label text="Giảm đối tượng" prefWidth="200.0" />
-                        <Label text="Bảo hiểm" prefWidth="200.0" />
-                        <Label text="Thành tiền" HBox.hgrow="ALWAYS" />
+                        <Label text="Họ tên" fx:id="headerHanhKhach" />
+                        <Label text="Thông tin chuyến tàu" fx:id="headerChuyenTau" />
+                        <Label text="Thông tin chỗ ngồi" fx:id="headerChoNgoi" />
+                        <Label text="Giá vé" fx:id="headerGiaVe" />
+                        <Label text="Giảm đối tượng" fx:id="headerGiamGia" />
+                        <Label text="Bảo hiểm" fx:id="headerBaoHiem" />
+                        <Label text="Thành tiền" fx:id="headerThanhTien" />
                      </children>
                 </HBox>
 

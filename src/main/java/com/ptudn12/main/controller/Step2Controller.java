@@ -38,7 +38,13 @@ public class Step2Controller {
     @FXML private Label labelTenTau;
     @FXML private Button btnQuayLai;
     @FXML private Button btnMuaVe;
-    
+    @FXML private Label labelTenTauDi;
+    @FXML private Label labelKhoiHanhDi;
+    @FXML private Label labelDenNoiDi;
+    @FXML private VBox boxThongTinVe;
+    @FXML private Label labelTenTauVe;
+    @FXML private Label labelKhoiHanhVe;
+    @FXML private Label labelDenNoiVe;
     @FXML private VBox cartBox; // VBox chứa giỏ vé
     private Label labelTongTien;
     private VeTamThoi veTamThoi;
@@ -61,6 +67,10 @@ public class Step2Controller {
     // Helpers
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     private final DecimalFormat moneyFormatter = new DecimalFormat("#,##0 'VND'");
+    
+    // Biến lưu trữ Label tiêu đề (tạo động)
+    private Label lblChieuDiHeader = null;
+    private Label lblChieuVeHeader = null;
     
     private BanVeController mainController;
     public void setMainController(BanVeController mainController) {
@@ -110,22 +120,47 @@ public class Step2Controller {
         
         // Cập nhật UI giỏ hàng (vẽ lại trạng thái rỗng)
         updateCartUI(); 
+        
+        // Hiển thị box Thông tin chuyến tàu
+        if (lichTrinhDi != null) {
+            // Hiển thị thông tin chiều đi
+            labelTenTauDi.setText("Chiều đi: Tàu " + lichTrinhDi.getTau().getMacTau());
+            labelKhoiHanhDi.setText(lichTrinhDi.getNgayGioKhoiHanh().format(formatter));
+            labelDenNoiDi.setText(lichTrinhDi.getNgayGioDen().format(formatter));
 
+            // Nếu là khứ hồi, hiển thị thông tin chiều về
+            if (lichTrinhVe != null) {
+                 labelTenTauVe.setText("Chiều về: Tàu " + lichTrinhVe.getTau().getMacTau());
+                 labelKhoiHanhVe.setText(lichTrinhVe.getNgayGioKhoiHanh().format(formatter));
+                 labelDenNoiVe.setText(lichTrinhVe.getNgayGioDen().format(formatter));
+                 // Hiện VBox thông tin về
+                 boxThongTinVe.setVisible(true);
+                 boxThongTinVe.setManaged(true);
+            } else {
+                 // Ẩn VBox thông tin về nếu là vé 1 chiều
+                 boxThongTinVe.setVisible(false);
+                 boxThongTinVe.setManaged(false);
+            }
+        } else {
+            // Xử lý lỗi không có lịch trình đi
+             labelTenTauDi.setText("Lỗi - Không có lịch trình đi");
+             labelKhoiHanhDi.setText("N/A");
+             labelDenNoiDi.setText("N/A");
+             // Ẩn box thông tin về
+             boxThongTinVe.setVisible(false);
+             boxThongTinVe.setManaged(false);
+        }
+        
+        // Hiển thị box Chọn toa và ghế
         if (lichTrinhVe != null) {
-            // --- TRƯỜNG HỢP KHỨ HỒI ---
-            labelTenTau.setText("Chọn chỗ khứ hồi"); 
-            VBox blockChieuDi = createSeatSelectionBlock(lichTrinhDi, true, "Chiều đi: Tàu " + lichTrinhDi.getTau().getMacTau());
-            VBox blockChieuVe = createSeatSelectionBlock(lichTrinhVe, false, "Chiều về: Tàu " + lichTrinhVe.getTau().getMacTau());
+            VBox blockChieuDi = createSeatSelectionBlock(lichTrinhDi, true, "Chọn chỗ Chiều đi: Tàu " + lichTrinhDi.getTau().getMacTau());
+            VBox blockChieuVe = createSeatSelectionBlock(lichTrinhVe, false, "Chọn chỗ Chiều về: Tàu " + lichTrinhVe.getTau().getMacTau());
             toaSection.getChildren().addAll(blockChieuDi, blockChieuVe);
         } else if (lichTrinhDi != null) {
-            // --- TRƯỜNG HỢP MỘT CHIỀU ---
-            labelTenTau.setText("Chọn chỗ: Tàu " + lichTrinhDi.getTau().getMacTau());
-            VBox blockChieuDi = createSeatSelectionBlock(lichTrinhDi, true, "Sơ đồ tàu");
+            VBox blockChieuDi = createSeatSelectionBlock(lichTrinhDi, true, "Chọn chỗ: Tàu " + lichTrinhDi.getTau().getMacTau());
             toaSection.getChildren().add(blockChieuDi);
         } else {
-            // Lỗi không có dữ liệu
-            labelTenTau.setText("Lỗi");
-            toaSection.getChildren().add(new Label("Không có thông tin lịch trình để tải."));
+            toaSection.getChildren().add(new Label("Không có thông tin lịch trình để tải sơ đồ ghế."));
         }
     }
     
@@ -321,11 +356,7 @@ public class Step2Controller {
         int maCho = ct.getCho().getMaCho();
 
         if (gioHang.containsKey(maCho)) {
-            // --- BỎ CHỌN ---
-            VeTamThoi ve = gioHang.remove(maCho);
-            selectedSet.remove(maCho);
-            btn.setStyle(STYLE_TRONG);
-            cartBox.getChildren().remove(ve.getCardNode()); // Xóa card
+            handleHuyVe(gioHang.get(maCho));
         } else {
             // --- CHỌN ---
             double giaVe = calculateTicketPrice(lichTrinh, ct);
@@ -336,12 +367,35 @@ public class Step2Controller {
             selectedSet.add(maCho);
             btn.setStyle(STYLE_DANGCHON);
             
-            // Thêm card vào vị trí an toàn (trước 2 phần tử cuối)
-            // cartBox có [Title, TongTien, ..., Button]
-            int insertIndex = cartBox.getChildren().size() - 1; // Vị trí của Button
+            int insertIndex; // Vị trí để chèn card vé
+            if (isChieuDi) {
+                // Nếu chưa có header "Chiều đi", tạo và thêm nó
+                if (lblChieuDiHeader == null) {
+                    lblChieuDiHeader = new Label("Chiều đi");
+                    lblChieuDiHeader.setStyle("-fx-font-weight: bold; -fx-padding: 8 0 2 0;");
+                    // Chèn ngay sau label "Giỏ vé" (index 1)
+                    cartBox.getChildren().add(1, lblChieuDiHeader);
+                }
+                // Chèn card vé ngay sau header "Chiều đi"
+                insertIndex = cartBox.getChildren().indexOf(lblChieuDiHeader) + 1;
+            } else { // Chiều về
+                // Nếu chưa có header "Chiều về", tạo và thêm nó
+                if (lblChieuVeHeader == null) {
+                    lblChieuVeHeader = new Label("Chiều về");
+                    lblChieuVeHeader.setStyle("-fx-font-weight: bold; -fx-padding: 8 0 2 0;");
+                    // Chèn ngay sau header "Chiều đi" (hoặc label "Giỏ vé" nếu chỉ có vé về)
+                    int baseIndex = (lblChieuDiHeader != null) ? cartBox.getChildren().indexOf(lblChieuDiHeader) : 0;
+                    // Đếm số vé chiều đi để chèn header "Chiều về" vào đúng chỗ
+                    int countDi = gioHang_Di.size();
+                    cartBox.getChildren().add(baseIndex + countDi + 1, lblChieuVeHeader);
+                }
+                 // Chèn card vé ngay sau header "Chiều về"
+                insertIndex = cartBox.getChildren().indexOf(lblChieuVeHeader) + 1;
+            }
+            // Chèn card vé vào vị trí đã xác định
             cartBox.getChildren().add(insertIndex, cardNode);
+            updateTongTien();
         }
-        updateTongTien();
     }
 
     // --- HÀM TẠO CARD VÉ TRONG GIỎ HÀNG ---
@@ -377,32 +431,64 @@ public class Step2Controller {
     private void handleHuyVe(VeTamThoi ve) {
         Map<Integer, VeTamThoi> gioHang = ve.isChieuDi() ? gioHang_Di : gioHang_Ve;
         Set<Integer> selectedSet = ve.isChieuDi() ? danhSachChoDaChon_Di : danhSachChoDaChon_Ve;
-        
+
         gioHang.remove(ve.getMaCho());
         selectedSet.remove(ve.getMaCho());
-        
+
         cartBox.getChildren().remove(ve.getCardNode());
-        ve.getSeatButton().setStyle(STYLE_TRONG); 
+        ve.getSeatButton().setStyle(STYLE_TRONG);
+        
+        if (ve.getCardNode() != null && cartBox != null) {
+         cartBox.getChildren().remove(ve.getCardNode());
+        }
+        if (ve.getSeatButton() != null) {
+             ve.getSeatButton().setStyle(STYLE_TRONG);
+              ve.getSeatButton().setDisable(false);
+        } else {
+             System.err.println("Lỗi: Không tìm thấy SeatButton để đổi màu khi hủy vé ghế " + ve.getMaCho());
+        }
+
+        // --- XÓA LABEL HEADER NẾU HẾT VÉ ---
+        if (ve.isChieuDi() && gioHang_Di.isEmpty() && lblChieuDiHeader != null) {
+            cartBox.getChildren().remove(lblChieuDiHeader);
+            lblChieuDiHeader = null; // Reset biến
+        } else if (!ve.isChieuDi() && gioHang_Ve.isEmpty() && lblChieuVeHeader != null) {
+            cartBox.getChildren().remove(lblChieuVeHeader);
+            lblChieuVeHeader = null; // Reset biến
+        }
+
         updateTongTien();
     }
 
     // --- HÀM CẬP NHẬT UI GIỎ HÀNG ---
     private void updateCartUI() {
-        // cartBox có 3 phần tử cố định: Label("Giỏ vé"), labelTongTien, Button("Mua vé")
-        while (cartBox.getChildren().size() > 3) {
-            // Xóa phần tử thứ 3 (ngay sau labelTongTien), là card vé đầu tiên
-            cartBox.getChildren().remove(2); 
+        // Chỉ xóa card vé, không xóa header
+        // Header được quản lý bởi handleChonCho và handleHuyVe
+        List<Node> nodesToRemove = new ArrayList<>();
+        for(Node node : cartBox.getChildren()){
+            // Kiểm tra xem node có phải là card vé không (dựa vào style class hoặc kiểu HBox)
+            // Cách đơn giản nhất là kiểm tra xem nó có phải là Label header không
+            if(node != lblChieuDiHeader && node != lblChieuVeHeader && node != labelTongTien && !(node instanceof Label && ((Label)node).getText().equals("Giỏ vé")) && !(node instanceof Button)){
+                 nodesToRemove.add(node);
+            }
+        }
+        cartBox.getChildren().removeAll(nodesToRemove);
+
+        // Thêm lại các card từ giỏ hàng (nếu có) - Cần đảm bảo thứ tự đúng
+        int insertIndex = 1; // Sau Label "Giỏ vé"
+        if (lblChieuDiHeader != null) {
+            insertIndex++; // Bỏ qua header đi
+            for (VeTamThoi ve : gioHang_Di.values()) {
+                cartBox.getChildren().add(insertIndex++, ve.getCardNode());
+            }
+        }
+        if (lblChieuVeHeader != null) {
+             insertIndex = cartBox.getChildren().indexOf(lblChieuVeHeader) + 1; // Tìm vị trí sau header về
+            for (VeTamThoi ve : gioHang_Ve.values()) {
+                cartBox.getChildren().add(insertIndex++, ve.getCardNode());
+            }
         }
 
-        // Thêm lại card (nếu có)
-        int insertIndex = 2; // Vị trí ngay sau labelTongTien
-        for (VeTamThoi ve : gioHang_Di.values()) {
-            cartBox.getChildren().add(insertIndex++, ve.getCardNode());
-        }
-        for (VeTamThoi ve : gioHang_Ve.values()) {
-            cartBox.getChildren().add(insertIndex++, ve.getCardNode());
-        }
-        
         updateTongTien();
     }
 
@@ -420,6 +506,18 @@ public class Step2Controller {
             labelTongTien.setText("Tổng tiền: " + moneyFormatter.format(tong));
         }
     }
+    
+    public void cancelTicketBySeatId(int maCho, boolean isChieuDi) {
+    Map<Integer, VeTamThoi> gioHang = isChieuDi ? gioHang_Di : gioHang_Ve;
+    VeTamThoi veToCancel = gioHang.get(maCho);
+
+    if (veToCancel != null) {
+        // Gọi hàm hủy vé nội bộ để đảm bảo logic nhất quán
+        handleHuyVe(veToCancel);
+    } else {
+        System.err.println("Step2Controller: Không tìm thấy vé để hủy cho ghế " + maCho + (isChieuDi ? " (Đi)" : " (Về)"));
+    }
+}
 
     // --- HÀM CHUYỂN BƯỚC (NÚT MUA VÉ) ---
     @FXML
