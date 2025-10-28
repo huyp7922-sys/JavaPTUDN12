@@ -224,10 +224,9 @@ public class InvoiceManagementController {
 		// TODO: Thêm logic xử lý in hóa đơn ở đây.
 		// Ví dụ: tạo một file PDF, gọi một service in ấn, v.v.
 
-		System.out.println("Yêu cầu in hóa đơn: " + selectedInvoice.getMaHoaDon());
-
-		showAlert(Alert.AlertType.INFORMATION, "Thông báo",
-				"Đã gửi yêu cầu in cho hóa đơn mã: " + selectedInvoice.getMaHoaDon());
+//		showAlert(Alert.AlertType.INFORMATION, "Thông báo",
+//				"Đã gửi yêu cầu in cho hóa đơn mã: " + selectedInvoice.getMaHoaDon());
+		showAlert(Alert.AlertType.INFORMATION, "Thông báo", "Chức năng đang phát triển");
 	}
 
 	private void showAlert(Alert.AlertType type, String title, String message) {
