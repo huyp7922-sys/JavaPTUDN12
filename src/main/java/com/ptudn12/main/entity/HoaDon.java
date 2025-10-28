@@ -9,7 +9,7 @@ public class HoaDon {
 	private NhanVien nhanVien;
 	private KhachHang khachHang;
 	private LocalDateTime ngayLap;
-        private LoaiHoaDon loaiHoaDon;
+    private LoaiHoaDon loaiHoaDon;
 	
 	public HoaDon() {
 		super();
