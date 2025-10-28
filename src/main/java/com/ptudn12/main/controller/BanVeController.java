@@ -79,7 +79,6 @@ public class BanVeController {
     private void showBanVe() {
         resetMenuButtons();
         btnBanVe.getStyleClass().add("menu-item-active");
-        // SỬA: Tải file step-1.fxml
         loadContent("step-1.fxml");
     }
 
