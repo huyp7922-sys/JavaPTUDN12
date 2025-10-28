@@ -119,15 +119,15 @@ public class AddCarriageDialogController {
 	private LoaiCho mapLoaiToaToLoaiCho(LoaiToa loaiToa) {
 		switch (loaiToa) {
 		case NGOI_MEM:
-			return LoaiCho.GheNgoiMem;
+			return LoaiCho.GHE_NGOI_MEM;
 		case NGOI_CUNG:
-			return LoaiCho.GheCung;
+			return LoaiCho.GHE_CUNG;
 		case GIUONG_NAM_KHOANG_4:
-			return LoaiCho.Giuong4;
+			return LoaiCho.GIUONG_4;
 		case GIUONG_NAM_KHOANG_6:
-			return LoaiCho.Giuong6;
+			return LoaiCho.GIUONG_66;
 		case GIUONG_NAM_VIP:
-			return LoaiCho.GiuongVIP;
+			return LoaiCho.GIUONG_VIP;
 		default:
 			// Trả về null hoặc throw exception nếu không có mapping
 			return null;

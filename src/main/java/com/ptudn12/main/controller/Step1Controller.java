@@ -23,11 +23,11 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -66,6 +66,39 @@ public class Step1Controller {
     private BanVeController mainController;
     public void setMainController(BanVeController mainController) {
         this.mainController = mainController;
+    }
+    
+    public void initData() {
+        if (mainController == null) return;
+
+        // Lấy dữ liệu đã lưu
+        String savedGaDi = (String) mainController.getUserData("step1_gaDi");
+        String savedGaDen = (String) mainController.getUserData("step1_gaDen");
+        LocalDate savedNgayDi = (LocalDate) mainController.getUserData("step1_ngayDi");
+        Boolean savedIsKhuHoi = (Boolean) mainController.getUserData("step1_isKhuHoi");
+        LocalDate savedNgayVe = (LocalDate) mainController.getUserData("step1_ngayVe");
+
+        // Khôi phục nếu có
+        if (savedGaDi != null) comboGaDi.setValue(savedGaDi);
+        if (savedGaDen != null) comboGaDen.setValue(savedGaDen);
+        if (savedNgayDi != null) datePickerNgayKhoiHanh.setValue(savedNgayDi);
+        
+        if (savedIsKhuHoi != null) {
+             radioKhuHoi.setSelected(savedIsKhuHoi);
+             dateNgayVe.setDisable(!savedIsKhuHoi); // Cập nhật trạng thái disable
+             if (savedIsKhuHoi && savedNgayVe != null) {
+                  dateNgayVe.setValue(savedNgayVe);
+             }
+        }
+
+        // QUAN TRỌNG: Gọi lại handleTimKiem để hiển thị lại danh sách tàu phù hợp
+        // Chỉ gọi nếu các thông tin cần thiết đã được khôi phục
+        if (savedGaDi != null && savedGaDen != null && savedNgayDi != null) {
+            handleTimKiem(); // Tự động tìm lại
+            
+            LichTrinh savedLichTrinhDi = (LichTrinh) mainController.getUserData("lichTrinhChieuDi");
+            LichTrinh savedLichTrinhVe = (LichTrinh) mainController.getUserData("lichTrinhChieuVe");
+        }
     }
 
     @FXML
@@ -327,27 +360,32 @@ public class Step1Controller {
 
     @FXML
     private void handleTiepTheo() {
-        // Gửi dữ liệu qua MainController
-        mainController.setUserData("isKhuHoi", radioKhuHoi.isSelected());
-        
+        // --- Validation chọn tàu (giữ nguyên) ---
         if (radioKhuHoi.isSelected()) {
-            // --- Chế độ Khứ Hồi ---
             if (lichTrinhChieuDi == null || lichTrinhChieuVe == null) {
                 showAlert(Alert.AlertType.WARNING, "Vui lòng chọn chuyến tàu cho cả chiều đi và chiều về.");
                 return;
             }
-            mainController.setUserData("lichTrinhChieuDi", lichTrinhChieuDi);
-            mainController.setUserData("lichTrinhChieuVe", lichTrinhChieuVe);
-            
         } else {
-            // --- Chế độ Một Chiều ---
             if (lichTrinhChieuDi == null) {
                 showAlert(Alert.AlertType.WARNING, "Vui lòng chọn một chuyến tàu trước khi tiếp tục.");
                 return;
             }
-            mainController.setUserData("lichTrinhChieuDi", lichTrinhChieuDi);
-            mainController.setUserData("lichTrinhChieuVe", null); // Xóa vé về (nếu có)
         }
+
+        // --- LƯU TRẠNG THÁI FORM VÀO MAINCONTROLLER ---
+        mainController.setUserData("step1_gaDi", comboGaDi.getValue());
+        mainController.setUserData("step1_gaDen", comboGaDen.getValue());
+        mainController.setUserData("step1_ngayDi", datePickerNgayKhoiHanh.getValue());
+        mainController.setUserData("step1_isKhuHoi", radioKhuHoi.isSelected());
+        mainController.setUserData("step1_ngayVe", dateNgayVe.getValue()); // Lưu cả ngày về (nếu có)
+        // ------------------------------------------------
+
+        mainController.setUserData("lichTrinhChieuDi", lichTrinhChieuDi);
+        mainController.setUserData("lichTrinhChieuVe", lichTrinhChieuVe); // Sẽ là null nếu không khứ hồi
+
+        // mainController.setUserData("gioHang_Di", new ArrayList<>());
+        // mainController.setUserData("gioHang_Ve", new ArrayList<>());
         
         mainController.loadContent("step-2.fxml");
     }

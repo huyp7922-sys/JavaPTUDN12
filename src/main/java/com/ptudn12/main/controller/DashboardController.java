@@ -41,6 +41,7 @@ public class DashboardController {
 	private Button btnEmployee;
 	@FXML
 	private Button btnStatistics;
+        
 	@FXML
 	private Button btnLogout;
 
@@ -99,7 +100,8 @@ public class DashboardController {
 		loadView("train-management.fxml");
 	}
 
-	@FXML
+
+    @FXML
 	private void showEmployee() {
 		resetMenuButtons();
 		btnEmployee.getStyleClass().add("menu-item-active");

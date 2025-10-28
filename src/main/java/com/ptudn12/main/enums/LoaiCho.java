@@ -1,8 +1,12 @@
 package com.ptudn12.main.enums;
 
 public enum LoaiCho {
-	GheCung("Ghế ngồi cứng", 1.0), GheNgoiMem("Ghế ngồi mềm", 1.2), Giuong4("Giường nằm khoang 4", 1.4),
-	Giuong6("Giường nằm khoang 6", 1.6), GiuongVIP("Giường nằm VIP", 2.0);
+
+    GHE_CUNG("Ghế ngồi cứng", 1.0),
+    GHE_NGOI_MEM("Ghế ngồi mềm", 1.2),
+    GIUONG_4("Giường nằm khoang 4", 1.4),
+    GIUONG_66("Giường nằm khoang 6", 1.6),
+    GIUONG_VIP("Giường nằm VIP", 2.0);
 
 	// Thuộc tính
 	private final String tenLoaiCho;

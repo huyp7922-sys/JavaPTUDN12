@@ -255,3 +255,46 @@
     -fx-border-width: 1;
 }
 
+/* step-3.css */
+.box-section {
+    -fx-background-color: #f9f9f9;
+    -fx-padding: 15px;
+    -fx-border-color: #e0e0e0;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+}
+
+.box-title-bold {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+}
+
+.passenger-row {
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 0 0 1px 0; /* Chỉ viền dưới */
+}
+
+.cell-title-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: #666;
+}
+
+.cell-data-label {
+    -fx-font-size: 14px;
+    -fx-text-fill: #333;
+}
+
+.cell-data-label-bold {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #c0392b;
+}
+
+.total-row {
+    -fx-background-color: #f5f5f5;
+    -fx-border-color: #ccc;
+    -fx-border-width: 1px 0 0 0;
+    -fx-padding: 15px 10px;
+}
+

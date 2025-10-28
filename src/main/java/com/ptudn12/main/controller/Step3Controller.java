@@ -9,397 +9,304 @@ package com.ptudn12.main.controller;
  * @author fo3cp
  */
 
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols; 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale; 
-import java.util.Map;
-import java.util.stream.Collectors;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+//import com.ptudn12.main.Controller.VeTamThoi;
+import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
-import javafx.scene.control.cell.ComboBoxTableCell;
-import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.layout.VBox;
+
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javafx.scene.control.Button;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 
 public class Step3Controller {
-   @FXML private TableView<HanhKhachVe> tableViewHanhKhach;
-    @FXML private TableColumn<HanhKhachVe, String> colHoTen;
-    @FXML private TableColumn<HanhKhachVe, String> colDoiTuong;
-    @FXML private TableColumn<HanhKhachVe, String> colSoGiayTo;
-    @FXML private TableColumn<HanhKhachVe, String> colThongTinCho;
-    @FXML private TableColumn<HanhKhachVe, Number> colGiaVe;
-    @FXML private TableColumn<HanhKhachVe, Number> colGiamGia;
-    @FXML private TableColumn<HanhKhachVe, Number> colBaoHiem;
-    @FXML private TableColumn<HanhKhachVe, Number> colThanhTien;
-    @FXML private Label labelTongTien;
-    @FXML private TextField txtNguoiMuaHoTen;
-    @FXML private TextField txtNguoiMuaCMND;
-    @FXML private TextField txtNguoiMuaEmail;
-    @FXML private TextField txtNguoiMuaSDT;
+    @FXML private ScrollPane scrollPaneHanhKhach;
+    @FXML private VBox containerHanhKhach;
+    @FXML private Label lblTongThanhTien;
+    @FXML private Button btnQuayLai;
     @FXML private Button btnTiepTheo;
 
-    private BanVeController mainController;
-    private ObservableList<HanhKhachVe> dsHanhKhach;
-
-    // Danh sách các đối tượng
-    private final ObservableList<String> doiTuongList = FXCollections.observableArrayList(
-            "Người bình thường", "Người lớn tuổi", "Trẻ em", "Học sinh – sinh viên");
-
-    // SỬA LỖI: Định dạng tiền tệ
-    private final DecimalFormat currencyFormat;
+    // Thông tin người mua
+    @FXML private TextField txtNguoiMuaHoTen;
+    @FXML private TextField txtNguoiMuaSoGiayTo;
+    @FXML private TextField txtNguoiMuaEmail;
+    @FXML private TextField txtNguoiMuaSDT;
     
-    // Khối khởi tạo để setup DecimalFormat
-    {
-        // Dùng Locale VIỆT NAM để có dấu chấm "." phân cách ngàn
-        DecimalFormatSymbols symbols = new DecimalFormatSymbols(new Locale("vi", "VN"));
-        // Dùng #,##0 là pattern chuẩn, và ' đồng' là chữ
-        currencyFormat = new DecimalFormat("#,##0' đồng'", symbols);
-    }
+    @FXML private HBox headerRow;
+    @FXML private Label headerHanhKhach;
+    @FXML private Label headerChuyenTau;
+    @FXML private Label headerChoNgoi;
+    @FXML private Label headerGiaVe;
+    @FXML private Label headerGiamGia;
+    @FXML private Label headerBaoHiem;
+    @FXML private Label headerThanhTien;
+    
+    private BanVeController mainController;
+    private DecimalFormat moneyFormatter = new DecimalFormat("#,##0 'VNĐ'");
+    
+    // Danh sách các controller của từng hàng
+    private List<HanhKhachRowController> rowControllers = new ArrayList<>();
+    private List<VeTamThoi> allTickets = new ArrayList<>();
+    
+    // Listeners cho auto-fill
+    private ChangeListener<String> autoFillHoTenListener;
+    private ChangeListener<String> autoFillGiayToListener;
+    private boolean isAutoFillActive = true; 
 
-    /**
-     * Hàm này được BanVeController gọi
-     */
     public void setMainController(BanVeController mainController) {
         this.mainController = mainController;
-        initData(); // Gọi logic khởi tạo sau khi đã có mainController
-    }
-
-    /**
-     * Để trống, vì logic được chuyển sang initData()
-     */
-    @FXML public void initialize() { /* Để trống */ }
-
-    /**
-     * Hàm khởi tạo logic chính
-     */
-    public void initData() {
-        setupTableColumns();
-        loadDataFromStep2(); 
     }
     
-    /**
-     * Cấu hình các cột của TableView
-     * GHI CHÚ: "3 dòng input" của bạn chính là các ô có thể chỉnh sửa.
-     * Hãy NHẤN ĐÚP CHUỘT (DOUBLE-CLICK) vào các ô "Họ tên", "Đối tượng", "Số giấy tờ"
-     * để nhập liệu.
-     */
-    private void setupTableColumns() {
-        // Cột Họ Tên (TextField)
-        colHoTen.setCellValueFactory(new PropertyValueFactory<>("hoTen"));
-        colHoTen.setCellFactory(TextFieldTableCell.forTableColumn());
-        colHoTen.setOnEditCommit(event -> 
-            event.getTableView().getItems().get(event.getTablePosition().getRow())
-                 .setHoTen(event.getNewValue())
-        );
-
-        // Cột Số Giấy Tờ (TextField)
-        colSoGiayTo.setCellValueFactory(new PropertyValueFactory<>("soGiayTo"));
-        colSoGiayTo.setCellFactory(TextFieldTableCell.forTableColumn());
-        colSoGiayTo.setOnEditCommit(event -> 
-            event.getTableView().getItems().get(event.getTablePosition().getRow())
-                 .setSoGiayTo(event.getNewValue())
-        );
-
-        // Cột Đối Tượng (ComboBox)
-        colDoiTuong.setCellValueFactory(new PropertyValueFactory<>("doiTuong"));
-        colDoiTuong.setCellFactory(ComboBoxTableCell.forTableColumn(doiTuongList));
-        colDoiTuong.setOnEditCommit(event -> 
-            event.getTableView().getItems().get(event.getTablePosition().getRow())
-                 .setDoiTuong(event.getNewValue())
-        );
-        
-        // --- CÁC CỘT CHỈ HIỂN THỊ ---
-        colThongTinCho.setCellValueFactory(new PropertyValueFactory<>("thongTinCho"));
-        colGiaVe.setCellValueFactory(new PropertyValueFactory<>("giaVeGoc"));
-        colBaoHiem.setCellValueFactory(new PropertyValueFactory<>("baoHiem"));
-        colGiamGia.setCellValueFactory(new PropertyValueFactory<>("giamDoiTuong"));
-        colThanhTien.setCellValueFactory(new PropertyValueFactory<>("thanhTien"));
-
-        // Áp dụng định dạng tiền tệ cho các cột
-        colGiaVe.setCellFactory(col -> createCurrencyCell());
-        colBaoHiem.setCellFactory(col -> createCurrencyCell());
-        colGiamGia.setCellFactory(col -> createCurrencyCell());
-        colThanhTien.setCellFactory(col -> createCurrencyCell());
-        
-        tableViewHanhKhach.setEditable(true);
-    }
-    
-    /**
-     * Hàm tiện ích tạo TableCell để định dạng số thành tiền tệ
-     */
-    private TableCell<HanhKhachVe, Number> createCurrencyCell() {
-        return new TableCell<>() {
-            @Override
-            protected void updateItem(Number item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                } else {
-                    setText(currencyFormat.format(item.doubleValue()));
-                }
-            }
-        };
-    }
-
-    /**
-     * SỬA: Dùng data MOCK (giả) như bạn yêu cầu
-     * để hiển thị UI mà không cần data từ Step 2
-     */
-    private void loadDataFromStep2() {
-        // Tạo data mock
-        List<VeDaChonMock> dsVe = generateSampleVe(); 
-        
-        // Chuyển đổi dsVe (data) thành dsHanhKhach (model)
-        List<HanhKhachVe> list = dsVe.stream()
-                .map(ve -> {
-                    HanhKhachVe hkv = new HanhKhachVe(ve);
-                    // Lắng nghe thay đổi để tính lại tổng tiền
-                    hkv.thanhTienProperty().addListener((obs) -> calculateTotalPrice());
-                    return hkv;
-                })
-                .collect(Collectors.toList());
-
-        this.dsHanhKhach = FXCollections.observableArrayList(list);
-        tableViewHanhKhach.setItems(this.dsHanhKhach);
-        
-        // Tự động điền thông tin người mua vé (lấy từ vé mock đầu tiên)
-        if (!dsHanhKhach.isEmpty()) {
-            txtNguoiMuaHoTen.setText(dsHanhKhach.get(0).getHoTen());
-            txtNguoiMuaCMND.setText(dsHanhKhach.get(0).getSoGiayTo());
-        }
-        
-        // Tính tổng tiền lần đầu
-        calculateTotalPrice();
-    }
-
-    /**
-     * Tính toán và cập nhật lại Label Tổng Tiền
-     */
-    private void calculateTotalPrice() {
-        double total = 0;
-        if (dsHanhKhach != null) {
-             for (HanhKhachVe hk : dsHanhKhach) {
-                total += hk.getThanhTien();
-            }
-        }
-        labelTongTien.setText(currencyFormat.format(total));
-    }
-    
-    /**
-     * --- MOCK: TẠO DỮ LIỆU GIẢ LẬP VÉ TỪ BƯỚC 2 ---
-     */
-    private List<VeDaChonMock> generateSampleVe() {
-        List<VeDaChonMock> list = new ArrayList<>();
-        // Giả lập có 1 vé như trong hình
-        list.add(new VeDaChonMock("SE1 - Thống nhất", "Toa 1 - Chỗ 36", 1100000));
-        
-        // Thử thêm 1 vé nữa (bạn có thể bỏ comment dòng dưới để test tổng tiền)
-        // list.add(new VeDaChonMock("SE1 - Thống nhất", "Toa 1 - Chỗ 37", 1100000));
-        
-        return list;
-    }
-    
-    /**
-     * --- MOCK: Class mock đại diện cho 1 vé ---
-     */
-    public class VeDaChonMock {
-        private String chuyenTauInfo;
-        private String toaChoInfo;
-        private double giaVeGoc;
-        private final double baoHiem = 2000.0;
-
-        public VeDaChonMock(String chuyenTau, String toaCho, double gia) {
-            this.chuyenTauInfo = chuyenTau;
-            this.toaChoInfo = toaCho;
-            this.giaVeGoc = gia;
-        }
-        
-        public String getThongTinCho() {
-            // Giống trong mockup
-            return chuyenTauInfo + "\n" + "24/12/2025 6:00" + "\n" + toaChoInfo + "\nNgồi cứng";
-        }
-        public double getGiaVeGoc() { return giaVeGoc; }
-        public double getBaoHiem() { return baoHiem; }
-    }
-
-
-    // --- Navigation ---
     @FXML
-    private void handleQuayLai() {
-        // (Lưu ý: Khi chạy thật, bạn nên lưu lại data đã nhập vào mainController)
-        mainController.loadContent("step-2.fxml");
+    public void initialize() {
+        // Thêm listeners để TẮT auto-fill nếu người dùng tự nhập
+        txtNguoiMuaHoTen.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (isAutoFillActive && !newVal.equals(oldVal)) isAutoFillActive = false;
+        });
+        txtNguoiMuaSoGiayTo.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (isAutoFillActive && !newVal.equals(oldVal)) isAutoFillActive = false;
+        });
+    }
+    
+    public void initData() {
+        // 1. Dọn dẹp
+        containerHanhKhach.getChildren().clear();
+        rowControllers.clear();
+
+        // 2. Lấy dữ liệu giỏ hàng từ Step 2
+        List<VeTamThoi> gioHangDi = (List<VeTamThoi>) mainController.getUserData("gioHang_Di");
+        List<VeTamThoi> gioHangVe = (List<VeTamThoi>) mainController.getUserData("gioHang_Ve");
+
+        if (gioHangDi == null || gioHangDi.isEmpty()) {
+            showAlert(Alert.AlertType.ERROR, "Lỗi: Không có vé chiều đi trong giỏ hàng.");
+            return;
+        }
+
+        // 3. Tạo các hàng hành khách
+        boolean isRoundTrip = (gioHangVe != null && !gioHangVe.isEmpty());
+        int passengerCount = gioHangDi.size(); // Số hành khách = số vé chiều đi
+
+        // Kiểm tra số lượng vé khứ hồi (nếu có)
+        if (isRoundTrip && gioHangDi.size() != gioHangVe.size()) {
+             showAlert(Alert.AlertType.WARNING, "Cảnh báo: Số lượng vé đi (" + gioHangDi.size() +
+                       ") và vé về (" + gioHangVe.size() + ") không khớp. Mỗi hành khách cần đủ vé đi và về.");
+             // TẠM DỪNG: Không được đi tiếp nếu số vé không khớp
+             btnTiepTheo.setDisable(true);
+             return;
+        } else {
+             btnTiepTheo.setDisable(false);
+        }
+
+        // 4. Tạo các hàng hành khách
+        boolean isFirstRow = true;
+        for (int i = 0; i < passengerCount; i++) { // Lặp theo số hành khách
+            VeTamThoi veDi = gioHangDi.get(i);
+            VeTamThoi veVe = null; // Mặc định là null (cho vé 1 chiều)
+
+            // Nếu là khứ hồi, lấy vé về tương ứng
+            if (isRoundTrip) {
+                veVe = gioHangVe.get(i);
+            }
+
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/hanhkhach-row.fxml"));
+                Node rowNode = loader.load();
+                HanhKhachRowController rowController = loader.getController();
+
+                // Nạp dữ liệu vào hàng (truyền veDi và veVe (có thể null))
+                rowController.setData(veDi, veVe, this);
+
+                containerHanhKhach.getChildren().add(rowNode);
+                rowControllers.add(rowController);
+
+                if (isFirstRow) {
+                    setupAutoFill(rowController);
+                    syncHeaderWidths(rowController);
+                    isFirstRow = false;
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                showAlert(Alert.AlertType.ERROR, "Lỗi khi tải giao diện hàng hành khách:\n" + e.getMessage());
+            }
+        }
+        
+        // 5. Cập nhật tổng tiền lần đầu
+        updateTongThanhTien();
+    }
+    
+    private void syncHeaderWidths(HanhKhachRowController firstRowController) {
+        if (firstRowController == null || headerRow == null) return;
+
+        // Lấy các cột VBox từ hàng đầu tiên
+        VBox colHanhKhach = firstRowController.getColumnHanhKhach();
+        VBox colChuyenTau = firstRowController.getColumnChuyenTau();
+        VBox colChoNgoi = firstRowController.getColumnChoNgoi();
+        VBox colGiaVe = firstRowController.getColumnGiaVe();
+        VBox colGiamGia = firstRowController.getColumnGiamGia();
+        VBox colBaoHiem = firstRowController.getColumnBaoHiem();
+        VBox colThanhTien = firstRowController.getColumnThanhTien();
+
+        // Áp dụng độ rộng và HGrow cho header tương ứng
+        applyColumnSizing(headerHanhKhach, colHanhKhach);
+        applyColumnSizing(headerChuyenTau, colChuyenTau);
+        applyColumnSizing(headerChoNgoi, colChoNgoi);
+        applyColumnSizing(headerGiaVe, colGiaVe);
+        applyColumnSizing(headerGiamGia, colGiamGia);
+        applyColumnSizing(headerBaoHiem, colBaoHiem);
+        applyColumnSizing(headerThanhTien, colThanhTien);
+        
+        headerRow.setSpacing(10.0); // Đảm bảo spacing khớp với hàng
+    }
+
+    /**
+     * Hàm trợ giúp để áp dụng sizing
+     */
+     private void applyColumnSizing(Label headerLabel, VBox rowColumn) {
+         if (headerLabel == null || rowColumn == null) return;
+
+         // Lấy HGrow từ cột VBox của hàng
+         Priority hGrow = HBox.getHgrow(rowColumn);
+
+         if (hGrow == Priority.ALWAYS) {
+             // Nếu cột hàng co giãn -> header cũng co giãn
+             HBox.setHgrow(headerLabel, Priority.ALWAYS);
+             headerLabel.setMaxWidth(Double.MAX_VALUE); // Cho phép co giãn tối đa
+             headerLabel.setMinWidth(Region.USE_PREF_SIZE); // Ít nhất bằng nội dung
+             headerLabel.setPrefWidth(Region.USE_COMPUTED_SIZE); // Xóa prefWidth cũ (nếu có)
+
+         } else {
+             // Nếu cột hàng có độ rộng cố định
+             double prefWidth = rowColumn.getPrefWidth();
+             if (prefWidth > 0) { // Chỉ set nếu prefWidth hợp lệ
+                 headerLabel.setPrefWidth(prefWidth);
+                 headerLabel.setMinWidth(prefWidth); // Giữ cố định
+                 headerLabel.setMaxWidth(prefWidth); // Giữ cố định
+             }
+              // Đảm bảo header không co giãn
+             HBox.setHgrow(headerLabel, Priority.NEVER);
+         }
+     }
+
+    // Thiết lập tính năng auto-fill
+    private void setupAutoFill(HanhKhachRowController firstRowController) {
+        isAutoFillActive = true; 
+        
+        // Xóa listener cũ (nếu có)
+        if (autoFillHoTenListener != null) {
+            firstRowController.getTxtHoTen().textProperty().removeListener(autoFillHoTenListener);
+        }
+        if (autoFillGiayToListener != null) {
+            firstRowController.getTxtSoGiayTo().textProperty().removeListener(autoFillGiayToListener);
+        }
+
+        // Tạo listener mới
+        autoFillHoTenListener = (obs, oldVal, newVal) -> {
+            if (isAutoFillActive) txtNguoiMuaHoTen.setText(newVal);
+        };
+        autoFillGiayToListener = (obs, oldVal, newVal) -> {
+            if (isAutoFillActive) txtNguoiMuaSoGiayTo.setText(newVal);
+        };
+
+        // Gán listener
+        firstRowController.getTxtHoTen().textProperty().addListener(autoFillHoTenListener);
+        firstRowController.getTxtSoGiayTo().textProperty().addListener(autoFillGiayToListener);
+    }
+    
+    /**
+    * Được gọi bởi HanhKhachRowController để yêu cầu hủy vé ở Step 2.
+    */
+    public void requestCancelTicket(int maCho, boolean isChieuDi) {
+        if (mainController != null) {
+            // Gọi hàm của BanVeController để chuyển tiếp
+            mainController.requestCancelTicketInCart(maCho, isChieuDi);
+        } else {
+             System.err.println("Step3Controller: mainController bị null, không thể yêu cầu hủy vé.");
+        }
+    }
+
+
+    // Hàm này được gọi bởi HanhKhachRowController
+    public void updateTongThanhTien() {
+        double tong = 0;
+        for (HanhKhachRowController row : rowControllers) {
+            tong += row.getThanhTien();
+        }
+        lblTongThanhTien.setText(moneyFormatter.format(tong));
     }
 
     @FXML
     private void handleTiepTheo() {
-        // Kiểm tra validation (họ tên, số giấy tờ không rỗng)
-        for (HanhKhachVe hk : dsHanhKhach) {
-            if (hk.getHoTen() == null || hk.getHoTen().trim().isEmpty() ||
-                hk.getSoGiayTo() == null || hk.getSoGiayTo().trim().isEmpty()) {
-                
-                showAlert(Alert.AlertType.ERROR, "Lỗi", "Vui lòng nhập đầy đủ Họ tên và Số giấy tờ cho tất cả hành khách.");
+        // 1. Validation
+        for (HanhKhachRowController row : rowControllers) {
+            if (row.getHoTen().isEmpty() || row.getSoGiayTo().isEmpty()) {
+                showAlert(Alert.AlertType.WARNING, "Vui lòng nhập đầy đủ thông tin (Họ tên, Số giấy tờ) cho tất cả hành khách.");
                 return;
             }
         }
         
-        // Lưu dữ liệu vào mainController (khi chạy thật)
-        mainController.setUserData("danhSachHanhKhach", new ArrayList<>(dsHanhKhach));
-        
-        // Chuyển sang Step 4
+        if (txtNguoiMuaHoTen.getText().isEmpty() || txtNguoiMuaSoGiayTo.getText().isEmpty() ||
+            txtNguoiMuaEmail.getText().isEmpty() || txtNguoiMuaSDT.getText().isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Vui lòng nhập đầy đủ thông tin người mua vé.");
+            return;
+        }
+
+        // 2. Thu thập dữ liệu
+        List<Map<String, Object>> danhSachHanhKhach = new ArrayList<>();
+        // Lặp qua từng HÀNG (mỗi hàng là 1 hành khách)
+        for (HanhKhachRowController row : rowControllers) {
+            Map<String, Object> hanhKhach = new HashMap<>();
+
+            // Lấy thông tin nhập từ UI của hàng đó
+            hanhKhach.put("hoTen", row.getHoTen());
+            hanhKhach.put("soGiayTo", row.getSoGiayTo());
+            hanhKhach.put("doiTuong", row.getDoiTuong()); // LoaiVe
+            hanhKhach.put("thanhTien", row.getThanhTien()); // Tổng thành tiền của hàng
+
+            // Lấy thông tin vé gốc từ hàng đó
+            hanhKhach.put("veDi", row.getVeDi()); // Vé đi của hành khách này
+            hanhKhach.put("veVe", row.getVeVe()); // Vé về của hành khách này (có thể null)
+
+            danhSachHanhKhach.add(hanhKhach);
+        }
+
+        Map<String, String> nguoiMuaVe = new HashMap<>();
+        nguoiMuaVe.put("hoTen", txtNguoiMuaHoTen.getText());
+        nguoiMuaVe.put("soGiayTo", txtNguoiMuaSoGiayTo.getText());
+        nguoiMuaVe.put("email", txtNguoiMuaEmail.getText());
+        nguoiMuaVe.put("sdt", txtNguoiMuaSDT.getText());
+
+        // 3. Gửi dữ liệu qua MainController
+        mainController.setUserData("danhSachHanhKhachDaNhap", danhSachHanhKhach); // List các Map, mỗi Map là 1 hành khách
+        mainController.setUserData("thongTinNguoiMua", nguoiMuaVe);
+        mainController.setUserData("tongThanhTien", lblTongThanhTien.getText());
+
+        // 4. Chuyển bước
         mainController.loadContent("step-4.fxml");
     }
     
-    private void showAlert(Alert.AlertType type, String title, String message) {
+    @FXML 
+    private void handleQuayLai() { 
+        mainController.loadContent("step-2.fxml"); 
+    }
+
+    private void showAlert(Alert.AlertType type, String message) {
         Alert alert = new Alert(type);
-        alert.setTitle(title);
         alert.setHeaderText(null);
+        alert.setTitle("Thông báo");
         alert.setContentText(message);
         alert.showAndWait();
-    }
-    
-    /**
-     * ========================================================================
-     * CLASS NỘI TẠI (INNER CLASS)
-     * Đây là Model cho mỗi hàng trong TableView.
-     * Chứa logic tự động tính toán.
-     * ========================================================================
-     */
-    public class HanhKhachVe {
-        private final VeDaChonMock veDaChon; // SỬA: Dùng class mock
-
-        // Các cột có thể sửa
-        private final StringProperty hoTen;
-        private final StringProperty soGiayTo;
-        private final ObjectProperty<String> doiTuong;
-        
-        // Các cột hiển thị (lấy từ veDaChon)
-        private final StringProperty thongTinCho;
-        private final DoubleProperty giaVeGoc;
-        private final DoubleProperty baoHiem;
-        
-        // Các cột được tính toán
-        private final DoubleProperty giamDoiTuong;
-        private final DoubleProperty thanhTien;
-        
-        // Bảng hệ số giảm giá
-        private final Map<String, Double> discountMap = Map.of(
-            "Người bình thường", 0.0,
-            "Người lớn tuổi", 0.15,
-            "Trẻ em", 0.25,
-            "Học sinh – sinh viên", 0.1
-        );
-
-        // SỬA: Constructor dùng `VeDaChonMock`
-        public HanhKhachVe(VeDaChonMock ve) {
-            this.veDaChon = ve;
-            
-            // Dữ liệu mock ban đầu (Giống mockup)
-            this.hoTen = new SimpleStringProperty("Nguyễn Văn A"); 
-            this.soGiayTo = new SimpleStringProperty("0123456789"); 
-            this.doiTuong = new SimpleObjectProperty<>("Người lớn"); // Giống mockup
-            
-            this.thongTinCho = new SimpleStringProperty(ve.getThongTinCho());
-            this.giaVeGoc = new SimpleDoubleProperty(ve.getGiaVeGoc());
-            this.baoHiem = new SimpleDoubleProperty(ve.getBaoHiem());
-            
-            // Dữ liệu tính toán ban đầu
-            this.giamDoiTuong = new SimpleDoubleProperty(0);
-            this.thanhTien = new SimpleDoubleProperty(ve.getGiaVeGoc() + ve.getBaoHiem());
-            
-            // **LOGIC CỐT LÕI:**
-            // Khi thuộc tính "doiTuong" thay đổi, tự động tính toán lại
-            this.doiTuong.addListener((obs, oldVal, newVal) -> {
-                recalculate();
-                
-                // Hiển thị modal nếu là đối tượng cần xác minh
-                if (newVal.equals("Người lớn tuổi") || newVal.equals("Trẻ em")) {
-                    showAgeVerificationModal(newVal); 
-                }
-            });
-            
-            // Tính toán lại ngay lập tức dựa trên giá trị "Người lớn" ban đầu
-            recalculate();
-        }
-        
-        /**
-         * Tính toán lại Giảm giá và Thành tiền
-         */
-        private void recalculate() {
-            String doiTuongHienTai = doiTuong.get();
-            // SỬA: Map "Người lớn" (từ mockup) về "Người bình thường" (từ logic)
-            if (doiTuongHienTai.equals("Người lớn")) {
-                doiTuongHienTai = "Người bình thường";
-            }
-            
-            double discountRate = discountMap.getOrDefault(doiTuongHienTai, 0.0);
-            double giam = giaVeGoc.get() * discountRate;
-            this.giamDoiTuong.set(giam);
-            
-            double thanhTienMoi = (giaVeGoc.get() - giam) + baoHiem.get();
-            this.thanhTien.set(thanhTienMoi);
-        }
-        
-        /**
-         * --- MOCK MODAL ---
-         * Hiển thị cửa sổ popup (DatePicker) để xác nhận tuổi
-         */
-        private void showAgeVerificationModal(String doiTuong) {
-            System.out.println("LOGIC: Hiển thị modal chọn ngày sinh cho: " + doiTuong);
-            
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Xác nhận đối tượng");
-            alert.setHeaderText("Vui lòng nhập ngày sinh cho " + doiTuong);
-            alert.setContentText("Đây là nơi DatePicker modal sẽ xuất hiện.");
-            alert.showAndWait();
-            
-            // (Sau khi xác nhận, nếu tuổi không hợp lệ, bạn có thể set đối tượng về "Người bình thường")
-            // if (!isAgeValid) {
-            //     this.doiTuong.set("Người bình thường");
-            // }
-        }
-
-        // --- Getters & Setters (Bắt buộc cho PropertyValueFactory) ---
-        
-        public String getHoTen() { return hoTen.get(); }
-        public void setHoTen(String hoTen) { this.hoTen.set(hoTen); }
-        public StringProperty hoTenProperty() { return hoTen; }
-
-        public String getSoGiayTo() { return soGiayTo.get(); }
-        public void setSoGiayTo(String soGiayTo) { this.soGiayTo.set(soGiayTo); }
-        public StringProperty soGiayToProperty() { return soGiayTo; }
-
-        public String getDoiTuong() { return doiTuong.get(); }
-        public void setDoiTuong(String doiTuong) { this.doiTuong.set(doiTuong); }
-        public ObjectProperty<String> doiTuongProperty() { return doiTuong; }
-
-        public String getThongTinCho() { return thongTinCho.get(); }
-        public StringProperty thongTinChoProperty() { return thongTinCho; }
-
-        public double getGiaVeGoc() { return giaVeGoc.get(); }
-        public DoubleProperty giaVeGocProperty() { return giaVeGoc; }
-
-        public double getBaoHiem() { return baoHiem.get(); }
-        public DoubleProperty baoHiemProperty() { return baoHiem; }
-
-        public double getGiamDoiTuong() { return giamDoiTuong.get(); }
-        public DoubleProperty giamDoiTuongProperty() { return giamDoiTuong; }
-
-        public double getThanhTien() { return thanhTien.get(); }
-        public DoubleProperty thanhTienProperty() { return thanhTien; }
     }
 }

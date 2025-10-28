@@ -49,19 +49,43 @@
                     <!-- Box Thông tin chuyến tàu -->
                     <VBox styleClass="box-section">
                         <Label text="Thông tin chuyến tàu đã chọn" styleClass="box-title-bold"/>
-                        <VBox styleClass="box-content" spacing="5.0">
-                            <VBox spacing="10" styleClass="train-info-label">
-                                <Label fx:id="labelTenTau" text="SE1 - Thống nhất"/>
-                                <HBox>
-                                    <Label text="Thời gian đi:"/>
-                                    <Label fx:id="labelThoiGianDi" text="24/12/2025 6:00"/>
-                                </HBox>
-                                <HBox>
-                                    <Label text="Thời gian đến:"/>
-                                    <Label fx:id="labelThoiGianDen" text="24/12/2025 14:00"/>
-                                </HBox>
+                        <HBox spacing="20.0" styleClass="box-content"> <children>
+                            <VBox spacing="10" styleClass="train-info-label" HBox.hgrow="ALWAYS"> <children>
+                                    <Label fx:id="labelTenTauDi" text="Chiều đi: SE1" style="-fx-font-weight: bold;"/>
+                                    <HBox spacing="5.0">
+                                        <Label text="Khởi hành:"/>
+                                        <Label fx:id="labelKhoiHanhDi" text="24/12/2025 06:00"/>
+                                    </HBox>
+                                    <HBox spacing="5.0">
+                                        <Label text="Đến nơi:"/>
+                                        <Label fx:id="labelDenNoiDi" text="24/12/2025 14:00"/>
+                                    </HBox>
+                                </children>
+                                <padding>
+                                    <Insets right="10.0" /> </padding>
                             </VBox>
-                        </VBox>
+
+                            <VBox fx:id="boxThongTinVe" spacing="10" styleClass="train-info-label" HBox.hgrow="ALWAYS"
+                                  managed="false" visible="false"> <children>
+                                     <Label fx:id="labelTenTauVe" text="Chiều về: SE2" style="-fx-font-weight: bold;"/>
+                                    <HBox spacing="5.0">
+                                        <Label text="Khởi hành:"/>
+                                        <Label fx:id="labelKhoiHanhVe" text="25/12/2025 10:00"/>
+                                    </HBox>
+                                    <HBox spacing="5.0">
+                                        <Label text="Đến nơi:"/>
+                                        <Label fx:id="labelDenNoiVe" text="25/12/2025 18:00"/>
+                                    </HBox>
+                                </children>
+                                 <style>
+                                     -fx-border-color: #e0e0e0 transparent transparent transparent;
+                                     -fx-border-width: 0 0 0 1;
+                                 </style>
+                                 <padding>
+                                     <Insets left="10.0" /> </padding>
+                            </VBox>
+                        </children>
+                        </HBox>
                     </VBox>
 
                     <!-- Box chọn toa & sơ đồ chỗ ngồi -->

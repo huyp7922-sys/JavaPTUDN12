@@ -40,7 +40,7 @@ public class HardSeatCarController {
 	}
 
 	public void initInteractiveMode(List<Boolean> seatStates, Consumer<Cho> clickHandler) {
-		populateLayoutInternal(seatStates, LoaiCho.GheCung, clickHandler);
+		populateLayoutInternal(seatStates, LoaiCho.GHE_CUNG, clickHandler);
 	}
 
 	// --- CÁC PHƯƠNG THỨC NỘI BỘ ---

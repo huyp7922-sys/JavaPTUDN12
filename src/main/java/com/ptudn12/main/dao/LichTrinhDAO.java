@@ -9,7 +9,6 @@ import com.ptudn12.main.enums.TrangThai;
 
 import java.sql.*;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -377,6 +376,45 @@ public class LichTrinhDAO {
     public int layTongSoCho(String maLichTrinh) {
         int[] info = layThongTinChoNgoiTau(maLichTrinh);
         return info[3] == 0 ? info[0] : 0;
+    }
+
+    
+    // Hàm tìm lịch trình theo ga đi, ga đến
+    public List<LichTrinh> timLichTrinhTheoGa(int maGaDi, int maGaDen) {
+        List<LichTrinh> danhSach = new ArrayList<>();
+
+        String sql = "SELECT "
+        + "L.maLichTrinh, L.maTau, L.maTuyenDuong, L.ngayKhoiHanh, L.gioKhoiHanh, "
+        + "L.trangThai AS trangThaiLichTrinh, "
+        + "T.maTuyen, T.thoiGianDuKien, T.giaCoBan, T.trangThai AS trangThaiTuyen, "
+        + "G1.maGa AS maGaDi, G1.viTriGa AS viTriGaDi, G1.mocKm AS mocKmDi, "
+        + "G2.maGa AS maGaDen, G2.viTriGa AS viTriGaDen, G2.mocKm AS mocKmDen "
+        + "FROM LichTrinh L "
+        + "INNER JOIN TuyenDuong T ON L.maTuyenDuong = T.maTuyen "
+        + "INNER JOIN Ga G1 ON T.diemDi = G1.maGa "
+        + "INNER JOIN Ga G2 ON T.diemDen = G2.maGa "
+        + "WHERE G1.maGa = ? AND G2.maGa = ? "
+        + "ORDER BY L.ngayKhoiHanh ASC, L.gioKhoiHanh ASC";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, maGaDi);
+            stmt.setInt(2, maGaDen);
+
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                LichTrinh lt = mapResultSetToLichTrinh(rs);
+                if (lt != null) danhSach.add(lt);
+            }
+
+            System.out.println("Tìm thấy " + danhSach.size() + " lịch trình giữa hai ga.");
+        } catch (SQLException e) {
+            System.err.println("Lỗi khi tìm lịch trình theo ga: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return danhSach;
     }
 
     /**
