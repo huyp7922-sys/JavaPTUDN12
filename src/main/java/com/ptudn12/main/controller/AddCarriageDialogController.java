@@ -2,6 +2,7 @@ package com.ptudn12.main.controller;
 
 import java.io.IOException;
 
+import com.ptudn12.main.dao.TauDAO;
 import com.ptudn12.main.enums.LoaiCho;
 import com.ptudn12.main.enums.LoaiToa;
 
@@ -30,8 +31,11 @@ public class AddCarriageDialogController {
 	@FXML
 	private Button closeButton;
 
+	private TauDAO tauDAO;
+
 	@FXML
 	public void initialize() {
+		this.tauDAO = new TauDAO();
 		carriageTypeComboBox.setItems(FXCollections.observableArrayList(LoaiToa.values()));
 		carriageTypeComboBox.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
 			if (newValue != null) {
@@ -144,15 +148,57 @@ public class AddCarriageDialogController {
 	@FXML
 	private void handleAdd() {
 		LoaiToa selectedType = carriageTypeComboBox.getValue();
-		// TODO: Thêm logic lưu toa mới vào database
-		System.out.println("Lưu toa mới loại: " + selectedType.getDescription());
-		showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã đăng ký toa " + selectedType.getDescription());
-		closeStage();
+		if (selectedType == null) {
+			showAlert(Alert.AlertType.WARNING, "Thiếu thông tin", "Vui lòng chọn một loại toa!");
+			return;
+		}
+
+		// TODO: Cần có giao diện để người dùng nhập tên toa.
+		// Tạm thời, chúng ta sẽ tạo một tên toa ngẫu nhiên để demo.
+		String tenToaMoi = generateNewCarriageName(selectedType);
+
+		// Gọi phương thức DAO để thêm toa mới
+		boolean success = tauDAO.themToaMoi(tenToaMoi, selectedType);
+
+		if (success) {
+			showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã thêm thành công toa mới: " + tenToaMoi);
+			closeStage();
+		} else {
+			showAlert(Alert.AlertType.ERROR, "Thất bại",
+					"Không thể thêm toa mới vào cơ sở dữ liệu. Vui lòng kiểm tra console để biết chi tiết.");
+		}
 	}
 
 	@FXML
 	private void handleClose() {
 		closeStage();
+	}
+
+	/**
+	 * Hàm tạm thời để tạo tên toa mới dựa trên loại toa. Trong thực tế, bạn nên có
+	 * một ô TextField để người dùng nhập.
+	 */
+	private String generateNewCarriageName(LoaiToa type) {
+		String prefix = "";
+		switch (type) {
+		case NGOI_CUNG:
+			prefix = "NC";
+			break;
+		case NGOI_MEM:
+			prefix = "NM";
+			break;
+		case GIUONG_NAM_KHOANG_6:
+			prefix = "GN6";
+			break;
+		case GIUONG_NAM_KHOANG_4:
+			prefix = "GN4";
+			break;
+		case GIUONG_NAM_VIP:
+			prefix = "VIP";
+			break;
+		}
+		// Thêm một số ngẫu nhiên để đảm bảo tên là duy nhất
+		return prefix + String.format("%02d", (int) (Math.random() * 90 + 10));
 	}
 
 	// --- 5. Các hàm tiện ích ---
