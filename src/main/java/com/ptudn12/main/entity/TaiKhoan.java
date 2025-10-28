@@ -1,34 +1,49 @@
 package com.ptudn12.main.entity;
 
 public class TaiKhoan {
-    private String username;
-    private String password;
-    private String role;
-    private String maNV;
-    private String trangThai; // "Đang hoạt động" | "Đã khóa"
-
-    public TaiKhoan(String username, String password, String role, String maNV, String trangThai) {
-        this.username = username;
-        this.password = password;
-        this.role = role;
-        this.maNV = maNV;
-        this.trangThai = trangThai;
-    }
-
+    private String maNhanVien;
+    private String matKhau;
+    private String trangThaiTK; // "danghoatdong", "tamngung", "ngunghan"
+    
+    // Constructors
     public TaiKhoan() {}
-
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
-
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
-
-    public String getRole() { return role; }
-    public void setRole(String role) { this.role = role; }
-
-    public String getMaNV() { return maNV; }
-    public void setMaNV(String maNV) { this.maNV = maNV; }
-
-    public String getTrangThai() { return trangThai; }
-    public void setTrangThai(String trangThai) { this.trangThai = trangThai; }
+    
+    public TaiKhoan(String maNhanVien, String matKhau, String trangThaiTK) {
+        this.maNhanVien = maNhanVien;
+        this.matKhau = matKhau;
+        this.trangThaiTK = trangThaiTK;
+    }
+    
+    // Getters and Setters
+    public String getMaNhanVien() {
+        return maNhanVien;
+    }
+    
+    public void setMaNhanVien(String maNhanVien) {
+        this.maNhanVien = maNhanVien;
+    }
+    
+    public String getMatKhau() {
+        return matKhau;
+    }
+    
+    public void setMatKhau(String matKhau) {
+        this.matKhau = matKhau;
+    }
+    
+    public String getTrangThaiTK() {
+        return trangThaiTK;
+    }
+    
+    public void setTrangThaiTK(String trangThaiTK) {
+        this.trangThaiTK = trangThaiTK;
+    }
+    
+    @Override
+    public String toString() {
+        return "TaiKhoan{" +
+                "maNhanVien='" + maNhanVien + '\'' +
+                ", trangThaiTK='" + trangThaiTK + '\'' +
+                '}';
+    }
 }

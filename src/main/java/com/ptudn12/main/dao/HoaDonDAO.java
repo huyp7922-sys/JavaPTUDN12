@@ -80,8 +80,8 @@ public class HoaDonDAO {
 
 		// Tạo một đối tượng NhanVien đơn giản
 		NhanVien nhanVien = new NhanVien();
-		nhanVien.setMaNV(maNhanVien);
-		nhanVien.setHoTen(tenNhanVien);
+		nhanVien.setMaNhanVien(maNhanVien);
+		nhanVien.setTenNhanVien(tenNhanVien);
 
 		// --- Chuyển đổi String từ DB sang Enum LoaiHoaDon ---
 		// Giả định rằng Enum của bạn có các hằng số là BAN_VE, HOAN_TIEN, DOI_VE

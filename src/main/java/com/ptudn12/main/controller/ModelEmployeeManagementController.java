@@ -29,26 +29,26 @@ public class ModelEmployeeManagementController {
         cbVaiTro.getItems().addAll("Nhân viên", "Quản lý");
 
         if (!isUpdate) {
-            txtMaNV.setText(NhanVienDAO.generateMaNV());
+            txtMaNV.setText(nhanVienDAO.generateMaNhanVien());
         }
     }
 
     public void setEmployeeData(NhanVien nv, TaiKhoan tk) {
         isUpdate = true;
 
-        txtMaNV.setText(nv.getMaNV());
-        txtHoTen.setText(nv.getHoTen());
-        txtCCCD.setText(nv.getCccd());
+        txtMaNV.setText(nv.getMaNhanVien());
+        txtHoTen.setText(nv.getTenNhanVien());
+        txtCCCD.setText(nv.getSoCCCD());
         dpNgaySinh.setValue(nv.getNgaySinh());
-        cbGioiTinh.setValue(nv.getGioiTinh());
-        txtChucVu.setText(nv.getChucVu());
-        txtSdt.setText(nv.getSdt());
+        cbGioiTinh.setValue(nv.getGioiTinhText());
+        txtChucVu.setText(nv.getChucVuText());
+        txtSdt.setText(nv.getSoDienThoai());
         txtEmail.setText(nv.getEmail());
-        cbTrangThai.setValue(nv.getTrangThai());
+        cbTrangThai.setValue(nv.getTinhTrangCV());
 
-        txtTenDangNhap.setText(tk.getUsername());
-        txtMatKhau.setText(tk.getPassword());
-        cbVaiTro.setValue(tk.getRole());
+        txtTenDangNhap.setText(tk.getMaNhanVien());
+        txtMatKhau.setText(tk.getMatKhau());
+        cbVaiTro.setValue(nv.getChucVuText());
 
         txtMaNV.setDisable(true);
         txtCCCD.setDisable(true);
@@ -58,33 +58,38 @@ public class ModelEmployeeManagementController {
     private void saveEmployee() {
         if (!validate()) return;
 
+        // Chuyển đổi giới tính từ ComboBox (String) sang boolean
+        boolean gioiTinh = cbGioiTinh.getValue().equals("Nam");
+        
+        // Chuyển đổi chức vụ từ ComboBox (String) sang boolean
+        boolean chucVu = cbVaiTro.getValue().equals("Quản lý");
+
         NhanVien nv = new NhanVien(
                 txtMaNV.getText(),
                 txtHoTen.getText(),
                 txtCCCD.getText(),
                 dpNgaySinh.getValue(),
-                cbGioiTinh.getValue(),
-                txtChucVu.getText(),
+                gioiTinh,  // Đã chuyển thành boolean
+                chucVu,    // Đã chuyển thành boolean
                 txtSdt.getText(),
                 txtEmail.getText(),
                 cbTrangThai.getValue()
         );
 
+        // TaiKhoan chỉ nhận 3 tham số: maNhanVien, matKhau, trangThaiTK
         TaiKhoan tk = new TaiKhoan(
-                txtTenDangNhap.getText(),
-                txtMatKhau.getText(),
-                cbVaiTro.getValue(),
-                txtMaNV.getText(),
-                cbTrangThai.getValue()
+                txtMaNV.getText(),      // maNhanVien
+                txtMatKhau.getText(),   // matKhau
+                cbTrangThai.getValue()  // trangThaiTK
         );
 
         boolean success;
         if (isUpdate) {
-            success = nhanVienDAO.capNhatNhanVien(nv)
-                    && taiKhoanDAO.capNhatTaiKhoan(tk);
+            success = nhanVienDAO.update(nv)
+                    && taiKhoanDAO.update(tk);
         } else {
-            success = nhanVienDAO.themNhanVien(nv)
-                    && taiKhoanDAO.themTaiKhoan(tk);
+            success = nhanVienDAO.insert(nv)
+                    && taiKhoanDAO.insert(tk);
         }
 
         if (!success) {
@@ -108,13 +113,13 @@ public class ModelEmployeeManagementController {
         if (txtMatKhau.getText().isEmpty()) return showError("Mật khẩu không được trống");
 
         if (!isUpdate) {
-            if (nhanVienDAO.isDuplicateCCCD(txtCCCD.getText()))
+            if (nhanVienDAO.isCCCDExists(txtCCCD.getText()))
                 return showError("CCCD đã tồn tại");
-            if (nhanVienDAO.isDuplicateEmail(txtEmail.getText()))
+            if (nhanVienDAO.isEmailExists(txtEmail.getText()))
                 return showError("Email đã tồn tại");
-            if (nhanVienDAO.isDuplicateSDT(txtSdt.getText()))
+            if (nhanVienDAO.isSDTExists(txtSdt.getText()))
                 return showError("SĐT đã tồn tại");
-            if (taiKhoanDAO.existsUsername(txtTenDangNhap.getText()))
+            if (taiKhoanDAO.exists(txtTenDangNhap.getText()))
                 return showError("Tên đăng nhập đã tồn tại");
         }
         return true;

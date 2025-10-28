@@ -62,7 +62,7 @@ public class InvoiceManagementController {
 		// Sử dụng lambda để truy cập thuộc tính lồng nhau (nested property)
 		// Lấy tên nhân viên từ đối tượng NhanVien bên trong HoaDon
 		employeeColumn.setCellValueFactory(
-				cellData -> new SimpleStringProperty(cellData.getValue().getNhanVien().getHoTen()));
+				cellData -> new SimpleStringProperty(cellData.getValue().getNhanVien().getTenNhanVien()));
 
 		// Lấy tên khách hàng từ đối tượng KhachHang bên trong HoaDon
 		customerColumn.setCellValueFactory(
