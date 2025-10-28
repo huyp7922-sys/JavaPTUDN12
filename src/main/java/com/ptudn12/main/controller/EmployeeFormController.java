@@ -159,7 +159,7 @@ public class EmployeeFormController {
                 );
                 
                 TaiKhoan tk = new TaiKhoan();
-                tk.setMaNhanVien(nv.getMaNhanVien());
+                tk.setNhanVien(nv);  // truyền đối tượng NhanVien
                 tk.setMatKhau(matKhau);
                 tk.setTrangThaiTK("danghoatdong");
                 

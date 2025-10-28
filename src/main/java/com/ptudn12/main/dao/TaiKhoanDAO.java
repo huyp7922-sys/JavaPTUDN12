@@ -2,7 +2,7 @@ package com.ptudn12.main.dao;
 
 import com.ptudn12.main.entity.TaiKhoan;
 import com.ptudn12.main.database.DatabaseConnection;
-
+import com.ptudn12.main.entity.NhanVien;
 import java.sql.*;
 
 public class TaiKhoanDAO {
@@ -16,7 +16,7 @@ public class TaiKhoanDAO {
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             
-            ps.setString(1, tk.getMaNhanVien());
+            ps.setString(1, tk.getNhanVien().getMaNhanVien());
             ps.setString(2, tk.getMatKhau());
             ps.setString(3, tk.getTrangThaiTK());
             
@@ -39,7 +39,7 @@ public class TaiKhoanDAO {
             
             ps.setString(1, tk.getMatKhau());
             ps.setString(2, tk.getTrangThaiTK());
-            ps.setString(3, tk.getMaNhanVien());
+            ps.setString(3, tk.getNhanVien().getMaNhanVien());
             
             return ps.executeUpdate() > 0;
             
@@ -155,10 +155,14 @@ public class TaiKhoanDAO {
      * Map ResultSet to TaiKhoan object
      */
     private TaiKhoan mapResultSetToTaiKhoan(ResultSet rs) throws SQLException {
+        String maNV = rs.getString("maNhanVien");
+        NhanVien nv = new NhanVienDAO().findById(maNV);
+
         TaiKhoan tk = new TaiKhoan();
-        tk.setMaNhanVien(rs.getString("maNhanVien"));
+        tk.setNhanVien(nv);
         tk.setMatKhau(rs.getString("matKhau"));
         tk.setTrangThaiTK(rs.getString("trangThaiTK"));
         return tk;
+
     }
 }

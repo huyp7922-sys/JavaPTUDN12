@@ -46,7 +46,8 @@ public class ModelEmployeeManagementController {
         txtEmail.setText(nv.getEmail());
         cbTrangThai.setValue(nv.getTinhTrangCV());
 
-        txtTenDangNhap.setText(tk.getMaNhanVien());
+        // SỬA DÒNG NÀY (dòng 49):
+        txtTenDangNhap.setText(tk.getNhanVien().getMaNhanVien());  // ← ĐỔI tk.getMaNhanVien() → tk.getNhanVien().getMaNhanVien()
         txtMatKhau.setText(tk.getMatKhau());
         cbVaiTro.setValue(nv.getChucVuText());
 
@@ -58,10 +59,7 @@ public class ModelEmployeeManagementController {
     private void saveEmployee() {
         if (!validate()) return;
 
-        // Chuyển đổi giới tính từ ComboBox (String) sang boolean
         boolean gioiTinh = cbGioiTinh.getValue().equals("Nam");
-        
-        // Chuyển đổi chức vụ từ ComboBox (String) sang boolean
         boolean chucVu = cbVaiTro.getValue().equals("Quản lý");
 
         NhanVien nv = new NhanVien(
@@ -69,18 +67,17 @@ public class ModelEmployeeManagementController {
                 txtHoTen.getText(),
                 txtCCCD.getText(),
                 dpNgaySinh.getValue(),
-                gioiTinh,  // Đã chuyển thành boolean
-                chucVu,    // Đã chuyển thành boolean
+                gioiTinh,
+                chucVu,
                 txtSdt.getText(),
                 txtEmail.getText(),
                 cbTrangThai.getValue()
         );
 
-        // TaiKhoan chỉ nhận 3 tham số: maNhanVien, matKhau, trangThaiTK
         TaiKhoan tk = new TaiKhoan(
-                txtMaNV.getText(),      // maNhanVien
-                txtMatKhau.getText(),   // matKhau
-                cbTrangThai.getValue()  // trangThaiTK
+                nv,                    
+                txtMatKhau.getText(),
+                cbTrangThai.getValue()
         );
 
         boolean success;

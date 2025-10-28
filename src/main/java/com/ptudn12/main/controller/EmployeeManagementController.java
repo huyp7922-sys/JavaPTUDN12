@@ -181,9 +181,6 @@ public class EmployeeManagementController {
         }
     }
     
-    /**
-     * Xóa nhân viên (chuyển trạng thái thành "đã nghỉ")
-     */
     @FXML
     private void deleteEmployee() {
         NhanVien selected = employeeTable.getSelectionModel().getSelectedItem();
@@ -201,9 +198,9 @@ public class EmployeeManagementController {
         Optional<ButtonType> result = confirmAlert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             if (nhanVienDAO.delete(selected.getMaNhanVien())) {
-                // Cập nhật trạng thái tài khoản nếu có
-                if (taiKhoanDAO.exists(selected.getMaNhanVien())) {
-                    taiKhoanDAO.updateStatus(selected.getMaNhanVien(), "ngunghan");
+            
+                if (taiKhoanDAO.exists(selected.getMaNhanVien())) {  
+                    taiKhoanDAO.updateStatus(selected.getMaNhanVien(), "ngunghan");  
                 }
                 
                 showAlert(Alert.AlertType.INFORMATION, "Thành công", "Xóa nhân viên thành công!");
@@ -213,7 +210,6 @@ public class EmployeeManagementController {
             }
         }
     }
-    
     /**
      * Refresh bảng dữ liệu
      */
