@@ -202,27 +202,27 @@ public class Step3Controller {
 
     // Thiết lập tính năng auto-fill
     private void setupAutoFill(HanhKhachRowController firstRowController) {
-        isAutoFillActive = true; 
-        
-        // Xóa listener cũ (nếu có)
-        if (autoFillHoTenListener != null) {
-            firstRowController.getTxtHoTen().textProperty().removeListener(autoFillHoTenListener);
-        }
-        if (autoFillGiayToListener != null) {
-            firstRowController.getTxtSoGiayTo().textProperty().removeListener(autoFillGiayToListener);
-        }
-
-        // Tạo listener mới
-        autoFillHoTenListener = (obs, oldVal, newVal) -> {
-            if (isAutoFillActive) txtNguoiMuaHoTen.setText(newVal);
-        };
-        autoFillGiayToListener = (obs, oldVal, newVal) -> {
-            if (isAutoFillActive) txtNguoiMuaSoGiayTo.setText(newVal);
-        };
-
-        // Gán listener
-        firstRowController.getTxtHoTen().textProperty().addListener(autoFillHoTenListener);
-        firstRowController.getTxtSoGiayTo().textProperty().addListener(autoFillGiayToListener);
+//        isAutoFillActive = true; 
+//        
+//        // Xóa listener cũ (nếu có)
+//        if (autoFillHoTenListener != null) {
+//            firstRowController.getTxtHoTen().textProperty().removeListener(autoFillHoTenListener);
+//        }
+//        if (autoFillGiayToListener != null) {
+//            firstRowController.getTxtSoGiayTo().textProperty().removeListener(autoFillGiayToListener);
+//        }
+//
+//        // Tạo listener mới
+//        autoFillHoTenListener = (obs, oldVal, newVal) -> {
+//            if (isAutoFillActive) txtNguoiMuaHoTen.setText(newVal);
+//        };
+//        autoFillGiayToListener = (obs, oldVal, newVal) -> {
+//            if (isAutoFillActive) txtNguoiMuaSoGiayTo.setText(newVal);
+//        };
+//
+//        // Gán listener
+//        firstRowController.getTxtHoTen().textProperty().addListener(autoFillHoTenListener);
+//        firstRowController.getTxtSoGiayTo().textProperty().addListener(autoFillGiayToListener);
     }
     
     /**
@@ -283,13 +283,13 @@ public class Step3Controller {
         }
 
         Map<String, String> nguoiMuaVe = new HashMap<>();
-        nguoiMuaVe.put("hoTen", txtNguoiMuaHoTen.getText());
-        nguoiMuaVe.put("soGiayTo", txtNguoiMuaSoGiayTo.getText());
+        nguoiMuaVe.put("tenKhachHang", txtNguoiMuaHoTen.getText());
+        nguoiMuaVe.put("soGiayToIdentifier", txtNguoiMuaSoGiayTo.getText());
         nguoiMuaVe.put("email", txtNguoiMuaEmail.getText());
-        nguoiMuaVe.put("sdt", txtNguoiMuaSDT.getText());
+        nguoiMuaVe.put("soDienThoai", txtNguoiMuaSDT.getText());
 
         // 3. Gửi dữ liệu qua MainController
-        mainController.setUserData("danhSachHanhKhachDaNhap", danhSachHanhKhach); // List các Map, mỗi Map là 1 hành khách
+        mainController.setUserData("danhSachHanhKhachDaNhap", danhSachHanhKhach);
         mainController.setUserData("thongTinNguoiMua", nguoiMuaVe);
         mainController.setUserData("tongThanhTien", lblTongThanhTien.getText());
 

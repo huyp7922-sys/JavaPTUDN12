@@ -38,6 +38,7 @@ public class BanVeController {
     private Step1Controller step1ControllerInstance;
     private Step2Controller step2ControllerInstance;
     private Step3Controller step3ControllerInstance;
+    private Step4Controller step4ControllerInstance;
 
     // Menu items
     @FXML private TitledPane menuVeTau;
@@ -144,6 +145,10 @@ public class BanVeController {
             step3ControllerInstance = (Step3Controller) controller;
             step3ControllerInstance.setMainController(this);
             step3ControllerInstance.initData();
+        } else if (controller instanceof Step4Controller) {
+            step4ControllerInstance = (Step4Controller) controller;
+            step4ControllerInstance.setMainController(this);
+            step4ControllerInstance.initData();
         }
 
         contentPane.getChildren().clear();

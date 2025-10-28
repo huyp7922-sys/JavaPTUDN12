@@ -59,8 +59,8 @@ public class EmployeeManagementController {
             return;
         }
         var filtered = data.filtered(nv ->
-            nv.getHoTen().toLowerCase().contains(keyword.toLowerCase()) ||
-            String.valueOf(nv.getMaNV()).contains(keyword)
+            nv.getTenNhanVien().toLowerCase().contains(keyword.toLowerCase()) ||
+            String.valueOf(nv.getMaNhanVien()).contains(keyword)
         );
         employeeTable.setItems(filtered);
     }
@@ -96,9 +96,9 @@ public class EmployeeManagementController {
             new Alert(Alert.AlertType.WARNING, "Bạn chưa chọn nhân viên để xóa").show();
             return;
         }
-
-        if (dao.khoaNhanVien(nv.getMaNV())) {
-            loadData();
-        }
+//
+//        if (dao.khoaNhanVien(nv.getMaNhanVien())) {
+//            loadData();
+//        }
     }
 }
