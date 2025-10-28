@@ -264,7 +264,7 @@ public class Step1Controller {
         }
     }
     
-    private ScrollPane createTrainCardScrollPane(List<LichTrinh> danhSach, boolean isChieuDi) {
+   private ScrollPane createTrainCardScrollPane(List<LichTrinh> danhSach, boolean isChieuDi) {
         TilePane tilePane = new TilePane();
         tilePane.setPadding(new Insets(15));
         tilePane.setHgap(15);

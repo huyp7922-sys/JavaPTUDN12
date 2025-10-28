@@ -1,79 +1,84 @@
 package com.ptudn12.main.entity;
 
-import com.ptudn12.main.enums.LoaiToa;
 import java.util.Objects;
+
+import com.ptudn12.main.enums.LoaiToa;
 
 public class Toa {
 
-    private Integer maToa;
-    private String tenToa;
-    private LoaiToa loaiToa; // Sử dụng Enum thay vì String
+	private Integer maToa;
+	private String tenToa;
+	private LoaiToa loaiToa; // Sử dụng Enum thay vì String
 
-    public Toa() {
-    }
+	public Toa() {
+	}
 
-    public Toa(Integer maToa) {
-        this.maToa = maToa;
-    }
+	public Toa(Integer maToa) {
+		this.maToa = maToa;
+	}
 
-    public Toa(Integer maToa, String tenToa, LoaiToa loaiToa) {
-        this.maToa = maToa;
-        this.tenToa = tenToa;
-        this.loaiToa = loaiToa;
-    }
+	public Toa(LoaiToa loaiToa) {
+		this.loaiToa = loaiToa;
+	}
 
-    // --- Getters and Setters ---
+	public Toa(Integer maToa, String tenToa, LoaiToa loaiToa) {
+		this.maToa = maToa;
+		this.tenToa = tenToa;
+		this.loaiToa = loaiToa;
+	}
 
-    public Integer getMaToa() {
-        return maToa;
-    }
+	// --- Getters and Setters ---
 
-    public void setMaToa(Integer maToa) {
-        this.maToa = maToa;
-    }
+	public Integer getMaToa() {
+		return maToa;
+	}
 
-    public String getTenToa() {
-        return tenToa;
-    }
+	public void setMaToa(Integer maToa) {
+		this.maToa = maToa;
+	}
 
-    public void setTenToa(String tenToa) {
-        this.tenToa = tenToa;
-    }
+	public String getTenToa() {
+		return tenToa;
+	}
 
-    public LoaiToa getLoaiToa() {
-        return loaiToa;
-    }
+	public void setTenToa(String tenToa) {
+		this.tenToa = tenToa;
+	}
 
-    public void setLoaiToa(LoaiToa loaiToa) {
-        this.loaiToa = loaiToa;
-    }
+	public LoaiToa getLoaiToa() {
+		return loaiToa;
+	}
 
-    // --- equals, hashCode, toString ---
+	public void setLoaiToa(LoaiToa loaiToa) {
+		this.loaiToa = loaiToa;
+	}
 
-    @Override
-    public int hashCode() {
-        int hash = 7;
-        hash = 71 * hash + Objects.hashCode(this.maToa);
-        return hash;
-    }
+	// --- equals, hashCode, toString ---
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final Toa other = (Toa) obj;
-        return Objects.equals(this.maToa, other.maToa);
-    }
+	@Override
+	public int hashCode() {
+		int hash = 7;
+		hash = 71 * hash + Objects.hashCode(this.maToa);
+		return hash;
+	}
 
-    @Override
-    public String toString() {
-        return "Toa{" + "maToa=" + maToa + ", tenToa=" + tenToa + ", loaiToa=" + loaiToa + '}';
-    }
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		final Toa other = (Toa) obj;
+		return Objects.equals(this.maToa, other.maToa);
+	}
+
+	@Override
+	public String toString() {
+		return "Toa{" + "maToa=" + maToa + ", tenToa=" + tenToa + ", loaiToa=" + loaiToa + '}';
+	}
 }

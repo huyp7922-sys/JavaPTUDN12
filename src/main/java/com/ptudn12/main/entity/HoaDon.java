@@ -1,16 +1,18 @@
 package com.ptudn12.main.entity;
 
-import com.ptudn12.main.enums.LoaiHoaDon;
 import java.time.LocalDateTime;
 import java.util.Objects;
+
+import com.ptudn12.main.enums.LoaiHoaDon;
 
 public class HoaDon {
 	private String maHoaDon;
 	private NhanVien nhanVien;
 	private KhachHang khachHang;
 	private LocalDateTime ngayLap;
-        private LoaiHoaDon loaiHoaDon;
-	
+
+	private LoaiHoaDon loaiHoaDon;
+
 	public HoaDon() {
 		super();
 	}
@@ -20,14 +22,14 @@ public class HoaDon {
 		this.maHoaDon = maHoaDon;
 	}
 
-        public HoaDon(String maHoaDon, NhanVien nhanVien, KhachHang khachHang, LocalDateTime ngayLap, LoaiHoaDon loaiHoaDon) {
-            this.maHoaDon = maHoaDon;
-            this.nhanVien = nhanVien;
-            this.khachHang = khachHang;
-            this.ngayLap = ngayLap;
-            this.loaiHoaDon = loaiHoaDon;
-        }
-
+	public HoaDon(String maHoaDon, NhanVien nhanVien, KhachHang khachHang, LocalDateTime ngayLap,
+			LoaiHoaDon loaiHoaDon) {
+		this.maHoaDon = maHoaDon;
+		this.nhanVien = nhanVien;
+		this.khachHang = khachHang;
+		this.ngayLap = ngayLap;
+		this.loaiHoaDon = loaiHoaDon;
+	}
 
 	public String getMaHoaDon() {
 		return maHoaDon;
@@ -61,13 +63,13 @@ public class HoaDon {
 		this.ngayLap = ngayLap;
 	}
 
-        public LoaiHoaDon getLoaiHoaDon() {
-            return loaiHoaDon;
-        }
+	public LoaiHoaDon getLoaiHoaDon() {
+		return loaiHoaDon;
+	}
 
-        public void setLoaiHoaDon(LoaiHoaDon loaiHoaDon) {
-            this.loaiHoaDon = loaiHoaDon;
-        }
+	public void setLoaiHoaDon(LoaiHoaDon loaiHoaDon) {
+		this.loaiHoaDon = loaiHoaDon;
+	}
 
 	@Override
 	public int hashCode() {
@@ -86,8 +88,9 @@ public class HoaDon {
 		return Objects.equals(maHoaDon, other.maHoaDon);
 	}
 
-        @Override
-        public String toString() {
-            return "HoaDon{" + "maHoaDon=" + maHoaDon + ", nhanVien=" + nhanVien + ", khachHang=" + khachHang + ", ngayLap=" + ngayLap + ", loaiHoaDon=" + loaiHoaDon + '}';
-        }
+	@Override
+	public String toString() {
+		return "HoaDon{" + "maHoaDon=" + maHoaDon + ", nhanVien=" + nhanVien + ", khachHang=" + khachHang + ", ngayLap="
+				+ ngayLap + ", loaiHoaDon=" + loaiHoaDon + '}';
+	}
 }

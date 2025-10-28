@@ -377,6 +377,7 @@ public class LichTrinhDAO {
         int[] info = layThongTinChoNgoiTau(maLichTrinh);
         return info[3] == 0 ? info[0] : 0;
     }
+
     
     // Hàm tìm lịch trình theo ga đi, ga đến
     public List<LichTrinh> timLichTrinhTheoGa(int maGaDi, int maGaDen) {
@@ -529,5 +530,6 @@ public class LichTrinhDAO {
         }
 
         return danhSach;
+
 }
 }

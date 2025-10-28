@@ -1,86 +1,93 @@
 package com.ptudn12.main.entity;
 
-import com.ptudn12.main.enums.LoaiCho;
 import java.util.Objects;
 
+import com.ptudn12.main.enums.LoaiCho;
+
 public class Cho {
-    private Integer maCho;
-    private Toa toa;
-    private LoaiCho loaiCho;
-    private Integer soThuTu;
+	private Integer maCho;
+	private Toa toa;
+	private LoaiCho loaiCho;
+	private Integer soThuTu;
 
-    public Cho() {
-    }
-    
-    public Cho(Integer maCho) {
-        this.maCho = maCho;
-    }
+	public Cho() {
+	}
 
-    public Cho(Integer maCho, Toa toa, LoaiCho loaiCho, Integer soThuTu) {
-        this.maCho = maCho;
-        this.toa = toa;
-        this.loaiCho = loaiCho;
-        this.soThuTu = soThuTu;
-    }
+	public Cho(LoaiCho loaiCho) {
+		super();
+		this.loaiCho = loaiCho;
+	}
 
-    // --- Getters and Setters ---
+	public Cho(Integer maCho) {
+		this.maCho = maCho;
+	}
 
-    public Integer getMaCho() {
-        return maCho;
-    }
+	public Cho(Integer maCho, Toa toa, LoaiCho loaiCho, Integer soThuTu) {
+		this.maCho = maCho;
+		this.toa = toa;
+		this.loaiCho = loaiCho;
+		this.soThuTu = soThuTu;
+	}
 
-    public void setMaCho(Integer maCho) {
-        this.maCho = maCho;
-    }
+	// --- Getters and Setters ---
 
-    public Toa getToa() {
-        return toa;
-    }
+	public Integer getMaCho() {
+		return maCho;
+	}
 
-    public void setToa(Toa toa) {
-        this.toa = toa;
-    }
+	public void setMaCho(Integer maCho) {
+		this.maCho = maCho;
+	}
 
-    public LoaiCho getLoaiCho() {
-        return loaiCho;
-    }
+	public Toa getToa() {
+		return toa;
+	}
 
-    public void setLoaiCho(LoaiCho loaiCho) {
-        this.loaiCho = loaiCho;
-    }
+	public void setToa(Toa toa) {
+		this.toa = toa;
+	}
 
-    public Integer getSoThuTu() {
-        return soThuTu;
-    }
+	public LoaiCho getLoaiCho() {
+		return loaiCho;
+	}
 
-    public void setSoThuTu(Integer soThuTu) {
-        this.soThuTu = soThuTu;
-    }
+	public void setLoaiCho(LoaiCho loaiCho) {
+		this.loaiCho = loaiCho;
+	}
 
-    @Override
-    public int hashCode() {
-        int hash = 5;
-        hash = 89 * hash + Objects.hashCode(this.maCho);
-        return hash;
-    }
+	public Integer getSoThuTu() {
+		return soThuTu;
+	}
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final Cho other = (Cho) obj;
-        return Objects.equals(this.maCho, other.maCho);
-    }
+	public void setSoThuTu(Integer soThuTu) {
+		this.soThuTu = soThuTu;
+	}
 
-    @Override
-    public String toString() {
-        return "Cho{" + "maCho=" + maCho + ", toa=" + (toa != null ? toa.getMaToa() : "null") + ", loaiCho=" + loaiCho + ", soThuTu=" + soThuTu + '}';
-    }
+	@Override
+	public int hashCode() {
+		int hash = 5;
+		hash = 89 * hash + Objects.hashCode(this.maCho);
+		return hash;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		final Cho other = (Cho) obj;
+		return Objects.equals(this.maCho, other.maCho);
+	}
+
+	@Override
+	public String toString() {
+		return "Cho{" + "maCho=" + maCho + ", toa=" + (toa != null ? toa.getMaToa() : "null") + ", loaiCho=" + loaiCho
+				+ ", soThuTu=" + soThuTu + '}';
+	}
 }

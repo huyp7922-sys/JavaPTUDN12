@@ -4,8 +4,7 @@ public class TaiKhoan {
     private NhanVien nhanVien;
     private String matKhau;
     private String trangThaiTK; // "danghoatdong", "tamngung", "ngunghan"
-    
-    // Constructors
+
     public TaiKhoan() {}
 
     public TaiKhoan(NhanVien nhanVien, String matKhau, String trangThaiTK) {
@@ -22,27 +21,27 @@ public class TaiKhoan {
     public void setNhanVien(NhanVien nhanVien) {
         this.nhanVien = nhanVien;
     }
-    
+
     public String getMatKhau() {
         return matKhau;
     }
-    
+
     public void setMatKhau(String matKhau) {
         this.matKhau = matKhau;
     }
-    
+
     public String getTrangThaiTK() {
         return trangThaiTK;
     }
-    
+
     public void setTrangThaiTK(String trangThaiTK) {
         this.trangThaiTK = trangThaiTK;
     }
-    
+
     @Override
     public String toString() {
         return "TaiKhoan{" +
-                "nhanVien='" + nhanVien + '\'' +
+                "nhanVien=" + (nhanVien != null ? nhanVien.getMaNhanVien() : "null") +
                 ", trangThaiTK='" + trangThaiTK + '\'' +
                 '}';
     }

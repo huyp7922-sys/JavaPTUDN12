@@ -1,0 +1,148 @@
+.carriage-layout-container {
+    -fx-border-color: #a0a0a0;
+    -fx-border-width: 0;
+    -fx-border-style: dashed;
+    -fx-border-radius: 15;
+    -fx-background-radius: 15;
+    -fx-padding: 0;
+}
+
+.berth {
+    -fx-min-width: 35px;
+    -fx-min-height: 35px;
+    -fx-max-width: 35px;
+    -fx-max-height: 35px;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+}
+
+.berth-label {
+    -fx-font-family: "Arial";
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.seat-type .berth-back {
+    -fx-pref-width: 5px;
+    -fx-background-color: #8a865d;
+    -fx-background-radius: 2;
+}
+
+.available {
+    -fx-background-color: white;
+    -fx-border-color: #bDBDBD; 
+    -fx-border-width: 2px;
+}
+.available .berth-label {
+    -fx-text-fill: black;
+}
+
+.sold {
+    -fx-background-color: lightcoral;
+    -fx-border-color: red;    
+    -fx-border-width: 2px;         
+}
+.sold .berth-label {
+    -fx-text-fill: white;
+}
+
+.aisle-divider {
+    -fx-min-width: 15px;
+    -fx-background-color: #8c8c8c;
+    -fx-background-radius: 4;
+}
+
+
+/* Biến màu để dễ thay đổi */
+.root {
+	-carriage-color: #4a6c9b; /* Màu xanh lam-xám */
+}
+
+/* Tiêu đề của toa */
+.carriage-title {
+    -fx-font-family: "Arial";
+    -fx-font-size: 16px; /* Giảm size một chút cho hợp dialog */
+    -fx-font-weight: bold;
+    -fx-text-fill: -carriage-color;
+}
+
+/* Khung toa màu xanh */
+.train-carriage {
+    -fx-background-color: white;
+    -fx-border-color: -carriage-color;
+    -fx-border-width: 3;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10; /* background-radius phải nhỏ hơn hoặc bằng border-radius */
+    -fx-padding: 10px;
+}
+
+/* ======================================= */
+/* === STYLE CHO TOA GIƯỜNG NẰM === */
+/* ======================================= */
+
+/* Nhãn tầng T1, T2, T3 */
+.tier-label {
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-text-fill: #555;
+	-fx-alignment: center;
+}
+
+/* Nhãn Khoang 1, Khoang 2... */
+.compartment-label {
+    -fx-font-size: 14px;
+    -fx-text-fill: #333;
+    -fx-alignment: center;
+}
+
+/* Vách ngăn giữa các khoang */
+.compartment-divider {
+    -fx-background-color: -carriage-color; /* Dùng biến màu xanh đã định nghĩa */
+    -fx-min-width: 4px;
+    -fx-max-width: 4px;
+}
+
+/* === TÙY CHỈNH "CHỖ" KHI LÀ GIƯỜNG === */
+/* Style cho thành giường (phần .berth-back) */
+.bed-type .berth-back {
+    -fx-pref-height: 8px;
+    -fx-background-color: transparent;
+    
+    /* Tạo hình chữ U bằng border */
+    -fx-border-color: -carriage-color;
+    -fx-border-width: 0 4 4 4; /* top right bottom left */
+    -fx-border-radius: 0 0 5 5;
+    -fx-background-radius: 0 0 6 6;
+}
+
+/* Container HBox chứa các khoang và vách ngăn */
+.beds-grid-container {
+    -fx-alignment: center;
+}
+
+/* GridPane cho mỗi khoang (2 cột x 3 hàng) */
+.compartment-pane {
+    -fx-hgap: 20;  /* Khoảng cách giữa 2 giường trong khoang */
+    -fx-vgap: 10; /* Khoảng cách giữa các tầng */
+}
+
+/* File: hard-seat-car.css */
+
+.seat-base {
+    -fx-min-width: 40px;
+    -fx-min-height: 40px;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-cursor: hand;
+}
+
+/* Định nghĩa hướng ghế bằng border */
+.seat-right {
+    -fx-border-width: 2px 2px 2px 6px; /* Viền trái dày hơn */
+}
+
+.seat-left {
+    -fx-border-width: 2px 6px 2px 2px; /* Viền phải dày hơn */
+}

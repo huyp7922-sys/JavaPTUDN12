@@ -1,12 +1,11 @@
 package com.ptudn12.main.dao;
 
-import com.ptudn12.main.database.DatabaseConnection;
 import com.ptudn12.main.entity.TaiKhoan;
-
+import com.ptudn12.main.database.DatabaseConnection;
+import com.ptudn12.main.entity.NhanVien;
 import java.sql.*;
 
 public class TaiKhoanDAO {
-    private NhanVienDAO nhanVienDao;
     
     /**
      * Thêm tài khoản mới cho nhân viên
@@ -97,7 +96,7 @@ public class TaiKhoanDAO {
         String sql = "SELECT COUNT(*) FROM TaiKhoan WHERE maNhanVien = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             
             ps.setString(1, maNhanVien);
             try (ResultSet rs = ps.executeQuery()) {
@@ -156,10 +155,14 @@ public class TaiKhoanDAO {
      * Map ResultSet to TaiKhoan object
      */
     private TaiKhoan mapResultSetToTaiKhoan(ResultSet rs) throws SQLException {
+        String maNV = rs.getString("maNhanVien");
+        NhanVien nv = new NhanVienDAO().findById(maNV);
+
         TaiKhoan tk = new TaiKhoan();
-        tk.setNhanVien(nhanVienDao.findById(rs.getString("maNhanVien")));
+        tk.setNhanVien(nv);
         tk.setMatKhau(rs.getString("matKhau"));
         tk.setTrangThaiTK(rs.getString("trangThaiTK"));
         return tk;
+
     }
 }

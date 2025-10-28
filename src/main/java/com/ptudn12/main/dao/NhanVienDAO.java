@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class NhanVienDAO {
+    
     /**
      * Lấy tất cả nhân viên
      */
@@ -88,7 +89,8 @@ public class NhanVienDAO {
         String sql = "UPDATE NhanVien SET tenNhanVien = ?, soCCCD = ?, ngaySinh = ?, " +
                      "gioiTinh = ?, soDienThoai = ?, email = ?, chucVu = ?, tinhTrangCV = ? " +
                      "WHERE maNhanVien = ?";
-try (Connection conn = DatabaseConnection.getConnection();
+        
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             
             ps.setString(1, nv.getTenNhanVien());
@@ -179,7 +181,8 @@ try (Connection conn = DatabaseConnection.getConnection();
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-ps.setString(1, sdt);
+            
+            ps.setString(1, sdt);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt(1) > 0;
@@ -272,7 +275,7 @@ ps.setString(1, sdt);
     
     /**
      * Map ResultSet to NhanVien object
-*/
+     */
     private NhanVien mapResultSetToNhanVien(ResultSet rs) throws SQLException {
         NhanVien nv = new NhanVien();
         nv.setMaNhanVien(rs.getString("maNhanVien"));

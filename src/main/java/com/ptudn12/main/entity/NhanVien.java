@@ -16,19 +16,20 @@ public class NhanVien {
     // Constructors
     public NhanVien() {}
     
+    
     public NhanVien(String maNhanVien, String tenNhanVien, String soCCCD, 
-                LocalDate ngaySinh, boolean gioiTinh, boolean chucVu,
-                String soDienThoai, String email, String tinhTrangCV) {
-    this.maNhanVien = maNhanVien;
-    this.tenNhanVien = tenNhanVien;
-    this.soCCCD = soCCCD;
-    this.ngaySinh = ngaySinh;
-    this.gioiTinh = gioiTinh;
-    this.chucVu = chucVu;
-    this.soDienThoai = soDienThoai;
-    this.email = email;
-    this.tinhTrangCV = tinhTrangCV;
-}
+                   LocalDate ngaySinh, boolean gioiTinh, boolean chucVu,
+                   String soDienThoai, String email, String tinhTrangCV) {
+       this.maNhanVien = maNhanVien;
+       this.tenNhanVien = tenNhanVien;
+       this.soCCCD = soCCCD;
+       this.ngaySinh = ngaySinh;
+       this.gioiTinh = gioiTinh;
+       this.chucVu = chucVu;
+       this.soDienThoai = soDienThoai;
+       this.email = email;
+       this.tinhTrangCV = tinhTrangCV;
+   }
     
     // Getters and Setters
     public String getMaNhanVien() {
@@ -118,7 +119,7 @@ public class NhanVien {
                 "maNhanVien='" + maNhanVien + '\'' +
                 ", tenNhanVien='" + tenNhanVien + '\'' +
                 ", soCCCD='" + soCCCD + '\'' +
-", ngaySinh=" + ngaySinh +
+                ", ngaySinh=" + ngaySinh +
                 ", gioiTinh=" + gioiTinh +
                 ", soDienThoai='" + soDienThoai + '\'' +
                 ", email='" + email + '\'' +

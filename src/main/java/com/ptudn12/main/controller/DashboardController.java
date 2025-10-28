@@ -21,6 +21,12 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 public class DashboardController {
+
+	@FXML
+	private StackPane contentPane;
+	@FXML
+	private Label dateTimeLabel;
+
 	@FXML
 	private Button btnHome;
 	@FXML
@@ -36,11 +42,9 @@ public class DashboardController {
 	@FXML
 	private Button btnStatistics;
         
-        @FXML private StackPane contentPane;
-	@FXML private Label dateTimeLabel;
-        
 	@FXML
 	private Button btnLogout;
+
 	private String currentUser;
 
 	@FXML
@@ -96,42 +100,45 @@ public class DashboardController {
 		loadView("train-management.fxml");
 	}
 
-        @FXML
+
+    @FXML
 	private void showEmployee() {
 		resetMenuButtons();
 		btnEmployee.getStyleClass().add("menu-item-active");
 		loadView("employee-management.fxml");
 	}
-        
-    @FXML
-    private void showStatistics() {
-        resetMenuButtons();
-        btnStatistics.getStyleClass().add("menu-item-active");
-        loadView("statistics-management.fxml");
-    }
-        @FXML
-    private void showDashboard() {
-        resetMenuButtons();
-        btnStatistics.getStyleClass().add("menu-item-active");
-        loadView("DBoard.fxml");
-    }
-    @FXML
-    private void handleAbout() {
-        try {
-            java.awt.Desktop.getDesktop().browse(new java.net.URI("https://yourcompany.com/about"));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
-    @FXML
-    private void handleHelp() {
-        try {
-            java.awt.Desktop.getDesktop().browse(new java.net.URI("https://yourcompany.com/help"));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+	@FXML
+	private void showStatistics() {
+		resetMenuButtons();
+		btnStatistics.getStyleClass().add("menu-item-active");
+		loadView("statistics-management.fxml");
+	}
+
+	@FXML
+	private void showDashboard() {
+		resetMenuButtons();
+		btnStatistics.getStyleClass().add("menu-item-active");
+		loadView("DBoard.fxml");
+	}
+
+	@FXML
+	private void handleAbout() {
+		try {
+			java.awt.Desktop.getDesktop().browse(new java.net.URI("https://yourcompany.com/about"));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@FXML
+	private void handleHelp() {
+		try {
+			java.awt.Desktop.getDesktop().browse(new java.net.URI("https://yourcompany.com/help"));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
 	@FXML
 	private void handleLogout() {
@@ -167,7 +174,6 @@ public class DashboardController {
 			Node view = loader.load();
 			contentPane.getChildren().clear();
 			contentPane.getChildren().add(view);
-
 
 		} catch (IOException e) {
 			e.printStackTrace();
