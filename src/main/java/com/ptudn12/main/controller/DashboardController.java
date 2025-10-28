@@ -3,7 +3,7 @@ package com.ptudn12.main.controller;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-
+import com.ptudn12.main.util.SessionManager;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.fxml.FXML;
@@ -26,7 +26,10 @@ public class DashboardController {
 	private StackPane contentPane;
 	@FXML
 	private Label dateTimeLabel;
-
+	@FXML
+	private Label lblUsername;
+	@FXML
+	private Label lblRole;
 	@FXML
 	private Button btnHome;
 	@FXML
@@ -57,14 +60,36 @@ public class DashboardController {
 		clock.setCycleCount(Timeline.INDEFINITE);
 		clock.play();
 
+		// ===== THÊM DÒNG NÀY =====
+		updateUserInfo();
+		// =========================
+
 		// Load dashboard statistics by default
 		showHome();
 	}
 
 	public void setUsername(String username) {
 		this.currentUser = username;
+		// ===== THÊM DÒNG NÀY =====
+		updateUserInfo();
+		// =========================
 	}
-
+	/**
+	 * Cập nhật thông tin user trên giao diện
+	 */
+	private void updateUserInfo() {
+		SessionManager session = SessionManager.getInstance();
+		
+		if (session.isLoggedIn()) {
+			// Hiển thị tên và vai trò
+			if (lblUsername != null) {
+				lblUsername.setText(session.getDisplayName());
+			}
+			if (lblRole != null) {
+				lblRole.setText("Vai trò: " + session.getRole());
+			}
+		}
+	}
 	@FXML
 	private void showHome() {
 		resetMenuButtons();
@@ -148,11 +173,13 @@ public class DashboardController {
 		alert.setContentText("Bạn có chắc chắn muốn đăng xuất?");
 
 		if (alert.showAndWait().get() == ButtonType.OK) {
+			SessionManager.getInstance().logout();
+			
 			try {
 				Parent root = FXMLLoader.load(getClass().getResource("/views/login.fxml"));
 				Stage stage = (Stage) contentPane.getScene().getWindow();
 				stage.setScene(new Scene(root));
-				stage.setTitle("Đăng Nhập Hệ Thống");
+				stage.setTitle("Đăng Nhập HệỐng");
 			} catch (IOException e) {
 				e.printStackTrace();
 				showError("Lỗi khi đăng xuất: " + e.getMessage());
