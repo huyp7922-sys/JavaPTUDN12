@@ -139,7 +139,8 @@ public class TrainManagementController {
 			List<Toa> carriages = trainComposition.get(train.getMacTau());
 			int totalSeats = 0;
 			if (carriages != null) {
-				totalSeats = carriages.stream().mapToInt(toa -> toa.getLoaiToa().getSoChoMacDinh()).sum();
+				totalSeats = carriages.stream().mapToInt(toa -> toa.getLoaiToa().getSoChoMacDinh(toa.getLoaiToa()))
+						.sum();
 			}
 			return new SimpleIntegerProperty(totalSeats).asObject();
 		});
@@ -162,15 +163,15 @@ public class TrainManagementController {
 
 	private String getShortCarriageTypeName(LoaiToa loaiToa) {
 		switch (loaiToa) {
-		case Giuong4:
+		case GIUONG_NAM_KHOANG_4:
 			return "Giường 4";
-		case Giuong6:
+		case GIUONG_NAM_KHOANG_6:
 			return "Giường 6";
-		case GiuongVIP:
+		case GIUONG_NAM_VIP:
 			return "Giường VIP";
-		case NgoiMem:
+		case NGOI_MEM:
 			return "Ngồi mềm";
-		case NgoiCung:
+		case NGOI_CUNG:
 			return "Ngồi cứng";
 		default:
 			return "";
@@ -186,11 +187,11 @@ public class TrainManagementController {
 		se1.setTrangThai("Đang chạy");
 		List<Toa> se1Carriages = new ArrayList<>();
 		for (int i = 0; i < 5; i++)
-			se1Carriages.add(new Toa(LoaiToa.Giuong4));
+			se1Carriages.add(new Toa(LoaiToa.GIUONG_NAM_KHOANG_4));
 		for (int i = 0; i < 5; i++)
-			se1Carriages.add(new Toa(LoaiToa.Giuong6));
+			se1Carriages.add(new Toa(LoaiToa.GIUONG_NAM_KHOANG_6));
 		for (int i = 0; i < 2; i++)
-			se1Carriages.add(new Toa(LoaiToa.NgoiMem));
+			se1Carriages.add(new Toa(LoaiToa.NGOI_MEM));
 		trainComposition.put("SE1", se1Carriages);
 
 		Tau se2 = new Tau("SE2");
@@ -201,51 +202,13 @@ public class TrainManagementController {
 		se3.setTrangThai("Dừng chạy");
 		List<Toa> se3Carriages = new ArrayList<>();
 		for (int i = 0; i < 7; i++)
-			se3Carriages.add(new Toa(LoaiToa.Giuong6));
+			se3Carriages.add(new Toa(LoaiToa.GIUONG_NAM_KHOANG_6));
 		for (int i = 0; i < 2; i++)
-			se3Carriages.add(new Toa(LoaiToa.NgoiMem));
-		se3Carriages.add(new Toa(LoaiToa.NgoiCung));
+			se3Carriages.add(new Toa(LoaiToa.NGOI_MEM));
+		se3Carriages.add(new Toa(LoaiToa.NGOI_CUNG));
 		trainComposition.put("SE3", se3Carriages);
 
-		Tau sqn1 = new Tau("SQN1");
-		sqn1.setTrangThai("Đang chạy");
-		List<Toa> sqn1Carriages = new ArrayList<>();
-		sqn1Carriages.add(new Toa(LoaiToa.GiuongVIP));
-		for (int i = 0; i < 3; i++)
-			sqn1Carriages.add(new Toa(LoaiToa.Giuong4));
-		for (int i = 0; i < 4; i++)
-			sqn1Carriages.add(new Toa(LoaiToa.Giuong6));
-		for (int i = 0; i < 3; i++)
-			sqn1Carriages.add(new Toa(LoaiToa.NgoiMem));
-		trainComposition.put("SQN1", sqn1Carriages);
-
-		Tau se21 = new Tau("SE21");
-		se21.setTrangThai("Đang chạy");
-		List<Toa> se21Carriages = new ArrayList<>();
-		for (int i = 0; i < 2; i++)
-			se21Carriages.add(new Toa(LoaiToa.GiuongVIP));
-		for (int i = 0; i < 4; i++)
-			se21Carriages.add(new Toa(LoaiToa.Giuong4));
-		for (int i = 0; i < 4; i++)
-			se21Carriages.add(new Toa(LoaiToa.Giuong6));
-		for (int i = 0; i < 2; i++)
-			se21Carriages.add(new Toa(LoaiToa.NgoiMem));
-		trainComposition.put("SE21", se21Carriages);
-
-		Tau tn1 = new Tau("TN1");
-		tn1.setTrangThai("Dừng chạy");
-		List<Toa> tn1Carriages = new ArrayList<>();
-		for (int i = 0; i < 6; i++)
-			tn1Carriages.add(new Toa(LoaiToa.Giuong4));
-		for (int i = 0; i < 5; i++)
-			tn1Carriages.add(new Toa(LoaiToa.Giuong6));
-		for (int i = 0; i < 2; i++)
-			tn1Carriages.add(new Toa(LoaiToa.NgoiMem));
-		for (int i = 0; i < 2; i++)
-			tn1Carriages.add(new Toa(LoaiToa.NgoiCung));
-		trainComposition.put("TN1", tn1Carriages);
-
-		trainData.addAll(Arrays.asList(se1, se2, se3, sqn1, se21, tn1));
+		trainData.addAll(Arrays.asList(se1, se2, se3));
 		trainTable.setItems(trainData);
 
 		// Cập nhật nhãn đếm

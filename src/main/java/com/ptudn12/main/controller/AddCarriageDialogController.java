@@ -38,7 +38,7 @@ public class AddCarriageDialogController {
 				updateCarriageView(newValue);
 			}
 		});
-		carriageTypeComboBox.setValue(LoaiToa.NgoiMem);
+		carriageTypeComboBox.setValue(LoaiToa.NGOI_MEM);
 	}
 
 	/**
@@ -53,7 +53,7 @@ public class AddCarriageDialogController {
 
 		if (correspondingLoaiCho == null) {
 			showAlert(Alert.AlertType.ERROR, "Lỗi Cấu Hình",
-					"Không tìm thấy Loại Chỗ tương ứng cho Loại Toa: " + type.getTenLoaiToa());
+					"Không tìm thấy Loại Chỗ tương ứng cho Loại Toa: " + type.getDescription());
 			carriageLayoutContainer.getChildren().clear();
 			return;
 		}
@@ -65,34 +65,36 @@ public class AddCarriageDialogController {
 			CarriageFrameController frameController = frameLoader.getController();
 
 			Node carLayoutContent = null;
+
 			switch (type) {
-			case NgoiMem:
-				FXMLLoader contentLoader = new FXMLLoader(getClass().getResource("/views/soft-seat-car-layout.fxml"));
-				carLayoutContent = contentLoader.load();
-				SoftSeatCarController contentController = contentLoader.getController();
-				contentController.initViewOnlyMode(type.getSoChoMacDinh(), correspondingLoaiCho);
+			case NGOI_MEM:
+				FXMLLoader contentLoader1 = new FXMLLoader(getClass().getResource("/views/soft-seat-car-layout.fxml"));
+				carLayoutContent = contentLoader1.load();
+				SoftSeatCarController contentController1 = contentLoader1.getController();
+				contentController1.initViewOnlyMode(type.getSoChoMacDinh(type), correspondingLoaiCho);
 				break;
 
 			// --- CÁC LOẠI TOA KHÁC SẼ ĐƯỢC THÊM VÀO ĐÂY ---
 
-			case Giuong4:
-			case Giuong6:
-			case GiuongVIP:
+			case GIUONG_NAM_KHOANG_4:
+			case GIUONG_NAM_KHOANG_6:
+			case GIUONG_NAM_VIP:
 				FXMLLoader sleeperLoader = new FXMLLoader(getClass().getResource("/views/sleeper-car-layout.fxml"));
 				carLayoutContent = sleeperLoader.load();
 				SleeperCarController sleeperController = sleeperLoader.getController();
 
 				// Xác định số tầng dựa trên LoaiToa
-				int tiers = (type == LoaiToa.Giuong6) ? 3 : (type == LoaiToa.Giuong4) ? 2 : 1;
+				int tiers = (type == LoaiToa.GIUONG_NAM_KHOANG_6) ? 3 : (type == LoaiToa.GIUONG_NAM_KHOANG_4) ? 2 : 1;
 				sleeperController.initViewOnlyMode(tiers, correspondingLoaiCho);
 				break;
-			case NgoiCung:
-				// Tạm thời xóa layout cũ và thông báo chưa có
-				carLayoutContent = null;
-				System.out.println("Chưa triển khai giao diện cho: " + type.getTenLoaiToa());
+			case NGOI_CUNG:
+				FXMLLoader contentLoader2 = new FXMLLoader(getClass().getResource("/views/hard-seat-car-layout.fxml"));
+				carLayoutContent = contentLoader2.load();
+				HardSeatCarController contentController2 = contentLoader2.getController();
+				contentController2.initViewOnlyMode(type.getSoChoMacDinh(type), correspondingLoaiCho);
 				break;
 			}
-			String title = String.format("%s", type.getTenLoaiToa());
+			String title = String.format("%s", type.getDescription());
 			frameController.setTitle(title);
 			frameController.setContent(carLayoutContent); // Cắm nội dung vào khung
 		} catch (IOException e) {
@@ -116,15 +118,15 @@ public class AddCarriageDialogController {
 	 */
 	private LoaiCho mapLoaiToaToLoaiCho(LoaiToa loaiToa) {
 		switch (loaiToa) {
-		case NgoiMem:
+		case NGOI_MEM:
 			return LoaiCho.GheNgoiMem;
-		case NgoiCung:
+		case NGOI_CUNG:
 			return LoaiCho.GheCung;
-		case Giuong4:
+		case GIUONG_NAM_KHOANG_4:
 			return LoaiCho.Giuong4;
-		case Giuong6:
+		case GIUONG_NAM_KHOANG_6:
 			return LoaiCho.Giuong6;
-		case GiuongVIP:
+		case GIUONG_NAM_VIP:
 			return LoaiCho.GiuongVIP;
 		default:
 			// Trả về null hoặc throw exception nếu không có mapping
@@ -143,8 +145,8 @@ public class AddCarriageDialogController {
 	private void handleAdd() {
 		LoaiToa selectedType = carriageTypeComboBox.getValue();
 		// TODO: Thêm logic lưu toa mới vào database
-		System.out.println("Lưu toa mới loại: " + selectedType.getTenLoaiToa());
-		showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã đăng ký toa " + selectedType.getTenLoaiToa());
+		System.out.println("Lưu toa mới loại: " + selectedType.getDescription());
+		showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã đăng ký toa " + selectedType.getDescription());
 		closeStage();
 	}
 

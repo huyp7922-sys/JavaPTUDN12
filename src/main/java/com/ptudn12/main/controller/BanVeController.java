@@ -70,7 +70,6 @@ public class BanVeController {
     }
     
     // --- Các hàm xử lý menu ---
-
     @FXML
     private void showBanVe() {
         resetMenuButtons();
@@ -117,33 +116,40 @@ public class BanVeController {
     // HÀM QUAN TRỌNG: Tải FXML vào vùng nội dung
     public void loadContent(String fxmlFile) {
         try {
-            // Check if file exists
-            if (getClass().getResource("/views/" + fxmlFile) == null) {
-                showPlaceholder("Chức năng chưa được tạo",
-                        "Trang này đang được phát triển.\nVui lòng quay lại sau!");
-                return;
-            }
-
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/" + fxmlFile));
-            Node view = loader.load();
-
-            // SỬA: Cập nhật tên Controller của các step
-            if (loader.getController() instanceof Step1Controller) {
-                ((Step1Controller) loader.getController()).setMainController(this);
-            } else if (loader.getController() instanceof Step2Controller) {
-                ((Step2Controller) loader.getController()).setMainController(this);
-            }
-            // (Thêm else if cho các controller step 3, 4 sau)
-
-            contentPane.getChildren().clear();
-            contentPane.getChildren().add(view);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            showPlaceholder("Lỗi khi tải giao diện",
-                    "Không thể tải file: " + fxmlFile + "\n\n"
-                    + "Chi tiết lỗi: " + e.getMessage());
+        // Check if file exists
+        if (getClass().getResource("/views/" + fxmlFile) == null) {
+            showPlaceholder("Chức năng chưa được tạo",
+                    "Trang này đang được phát triển.\nVui lòng quay lại sau!");
+            return;
         }
+
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/" + fxmlFile));
+        Node view = loader.load();
+
+        // SỬA: Cập nhật tên Controller của các step
+        if (loader.getController() instanceof Step1Controller) {
+            ((Step1Controller) loader.getController()).setMainController(this);
+        } else if (loader.getController() instanceof Step2Controller) {
+            // 1. Gán main controller
+            ((Step2Controller) loader.getController()).setMainController(this);
+            // 2. (THÊM DÒNG NÀY) Báo cho Step 2 tải dữ liệu
+            ((Step2Controller) loader.getController()).initData();
+        }
+        // (Thêm else if cho các controller step 3, 4 sau)
+        // else if (loader.getController() instanceof Step3Controller) {
+        //     ((Step3Controller) loader.getController()).setMainController(this);
+        //     ((Step3Controller) loader.getController()).initData(); // Step 3 cũng sẽ cần
+        // }
+
+        contentPane.getChildren().clear();
+        contentPane.getChildren().add(view);
+
+    } catch (IOException e) {
+        e.printStackTrace();
+        showPlaceholder("Lỗi khi tải giao diện",
+                "Không thể tải file: " + fxmlFile + "\n\n"
+                + "Chi tiết lỗi: " + e.getMessage());
+    }
     }
 
     @FXML

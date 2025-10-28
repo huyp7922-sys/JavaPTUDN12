@@ -1,32 +1,48 @@
 package com.ptudn12.main.enums;
 
 public enum LoaiToa {
-	// Các hằng số
-	NgoiCung("Toa ngồi cứng", 72), NgoiMem("Toa ngồi mềm", 64), Giuong6("Toa giường khoang 6", 42),
-	Giuong4("Toa giường khoang 4", 28), GiuongVIP("Toa giường VIP", 14);
+	NGOI_CUNG("Ngồi cứng"), NGOI_MEM("Ngồi mềm"), GIUONG_NAM_KHOANG_6("Giường nằm khoang 6"),
+	GIUONG_NAM_KHOANG_4("Giường nằm khoang 4"), GIUONG_NAM_VIP("Giường nằm VIP");
 
-	// Thuộc tính
-	private final String tenLoaiToa;
-	private final int soChoMacDinh;
+	private final String description;
 
-	// Constructor
-	private LoaiToa(String tenLoaiToa, int soChoMacDinh) {
-		this.tenLoaiToa = tenLoaiToa;
-		this.soChoMacDinh = soChoMacDinh;
+	LoaiToa(String description) {
+		this.description = description;
 	}
 
-	// Getter
-	public String getTenLoaiToa() {
-		return tenLoaiToa;
+	public String getDescription() {
+		return description;
 	}
 
-	public int getSoChoMacDinh() {
-		return soChoMacDinh;
+	public int getSoChoMacDinh(LoaiToa lt) {
+		switch (lt) {
+		case NGOI_CUNG:
+			return 72;
+		case NGOI_MEM:
+			return 64;
+		case GIUONG_NAM_KHOANG_4:
+			return 42;
+		case GIUONG_NAM_KHOANG_6:
+			return 28;
+		case GIUONG_NAM_VIP:
+			return 14;
+		default:
+			return 0;
+		}
 	}
 
-	// Phương thức toString()
+	// Thêm hàm này để chuyển đổi từ String trong DB sang Enum
+	public static LoaiToa fromDescription(String description) {
+		for (LoaiToa loai : values()) {
+			if (loai.description.equals(description)) {
+				return loai;
+			}
+		}
+		throw new IllegalArgumentException("Không tìm thấy LoaiToa với description: " + description);
+	}
+
 	@Override
 	public String toString() {
-		return tenLoaiToa;
+		return this.description;
 	}
 }

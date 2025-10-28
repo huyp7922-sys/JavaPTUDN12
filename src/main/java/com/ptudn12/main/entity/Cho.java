@@ -5,32 +5,46 @@ import java.util.Objects;
 import com.ptudn12.main.enums.LoaiCho;
 
 public class Cho {
-	// Thuộc tính
-	private String maCho; // duy nhất (id)
-	private int soThuTu; // > 0 và <= SoChoMacDinh
+	private Integer maCho;
+	private Toa toa;
 	private LoaiCho loaiCho;
+	private Integer soThuTu;
 
-	// Constructor có tham số LoaiCho
+	public Cho() {
+	}
+
 	public Cho(LoaiCho loaiCho) {
-		this.soThuTu = 0; // mặc định
+		super();
 		this.loaiCho = loaiCho;
 	}
 
-	// Getter & Setter
-	public String getMaCho() {
-		return maCho;
-	}
-
-	public void setMaCho(String maCho) {
+	public Cho(Integer maCho) {
 		this.maCho = maCho;
 	}
 
-	public int getSoThuTu() {
-		return soThuTu;
+	public Cho(Integer maCho, Toa toa, LoaiCho loaiCho, Integer soThuTu) {
+		this.maCho = maCho;
+		this.toa = toa;
+		this.loaiCho = loaiCho;
+		this.soThuTu = soThuTu;
 	}
 
-	public void setSoThuTu(int soThuTu) {
-		this.soThuTu = soThuTu;
+	// --- Getters and Setters ---
+
+	public Integer getMaCho() {
+		return maCho;
+	}
+
+	public void setMaCho(Integer maCho) {
+		this.maCho = maCho;
+	}
+
+	public Toa getToa() {
+		return toa;
+	}
+
+	public void setToa(Toa toa) {
+		this.toa = toa;
 	}
 
 	public LoaiCho getLoaiCho() {
@@ -41,26 +55,39 @@ public class Cho {
 		this.loaiCho = loaiCho;
 	}
 
-	@Override
-	public String toString() {
-		return "Cho [maCho=" + maCho + ", soThuTu=" + soThuTu + ", loaiCho=" + loaiCho + "]";
+	public Integer getSoThuTu() {
+		return soThuTu;
+	}
+
+	public void setSoThuTu(Integer soThuTu) {
+		this.soThuTu = soThuTu;
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(loaiCho, maCho, soThuTu);
+		int hash = 5;
+		hash = 89 * hash + Objects.hashCode(this.maCho);
+		return hash;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
-		Cho other = (Cho) obj;
-		return loaiCho == other.loaiCho && Objects.equals(maCho, other.maCho) && soThuTu == other.soThuTu;
+		}
+		final Cho other = (Cho) obj;
+		return Objects.equals(this.maCho, other.maCho);
 	}
 
+	@Override
+	public String toString() {
+		return "Cho{" + "maCho=" + maCho + ", toa=" + (toa != null ? toa.getMaToa() : "null") + ", loaiCho=" + loaiCho
+				+ ", soThuTu=" + soThuTu + '}';
+	}
 }
