@@ -1,10 +1,10 @@
 package com.ptudn12.main.enums;
 
 public enum LoaiVe {
-    VE_BINH_THUONG("Vé thường", 0),
+    VE_BINH_THUONG("Vé bình thường", 0),
     VE_NGUOI_LON_TUOI("Vé người lớn tuổi", 0.15),
     VE_TRE_EM("Vé trẻ em", 0.25),
-    VE_HSSV("Vé học sinh - sinh viên", 0.1);
+    VE_HSSV("Vé học sinh – sinh viên", 0.1);
 
     private final String description;
     private final double heSoGiamGia;

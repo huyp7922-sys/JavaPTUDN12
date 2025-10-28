@@ -12,7 +12,8 @@ public class TaiKhoan {
         this.matKhau = matKhau;
         this.trangThaiTK = trangThaiTK;
     }
-
+    
+    // Getters and Setters
     public NhanVien getNhanVien() {
         return nhanVien;
     }

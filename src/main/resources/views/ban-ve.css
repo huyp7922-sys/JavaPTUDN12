@@ -1,7 +1,216 @@
+/* --- Sidebar Container --- */
+.sidebar {
+    -fx-background-color: #2c3e50; /* Giữ nguyên màu nền sidebar */
+    -fx-padding: 15px 0px 15px 0px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0.5, 0, 1);
+}
+
+/* --- Sidebar Title --- */
+.sidebar-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-alignment: center;
+    -fx-padding: 0 0 20px 0;
+    -fx-border-color: #34495e;
+    -fx-border-width: 0 0 1px 0;
+    -fx-pref-width: Infinity;
+    -fx-wrap-text: true;
+    -fx-text-alignment: center;
+}
+
+/* --- TitledPane (Menu Group) --- */
+.menu-titled-pane {
+    -fx-text-fill: #bdc3c7;
+    -fx-font-size: 14px;
+}
+.menu-titled-pane > .title {
+    -fx-background-color: transparent;
+    -fx-padding: 8px 15px;
+}
+.menu-titled-pane > .title > .arrow-button > .arrow {
+     -fx-background-color: #bdc3c7;
+}
+.menu-titled-pane:expanded > .title {
+     -fx-background-color: #34495e;
+     -fx-text-fill: white;
+}
+.menu-titled-pane:expanded > .title > .arrow-button > .arrow {
+      -fx-background-color: white;
+}
+.menu-titled-pane > .content {
+    -fx-background-color: #34495e;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+}
+
+/* --- VBox chứa các menu item trong TitledPane --- */
+.menu-vbox {
+    -fx-spacing: 0;
+}
+
+/* --- General Menu Item Button --- */
+.menu-item {
+    -fx-background-color: transparent;
+    -fx-text-fill: #bdc3c7;
+    -fx-font-size: 13px;
+    -fx-alignment: center-left;
+    -fx-padding: 10px 15px 10px 30px;
+    -fx-pref-width: Infinity;
+    -fx-border-width: 0;
+    -fx-background-radius: 0;
+    -fx-cursor: hand;
+}
+
+/* --- Hover effect for Menu Item --- */
+.menu-item:hover {
+    -fx-background-color: #0066CC; /* SỬA MÀU XANH HOVER */
+    -fx-text-fill: white;
+}
+
+/* --- Active state --- */
+/* Dùng màu xanh đậm hơn một chút cho trạng thái active/focused */
+.menu-item-selected, .menu-item:focused {
+    -fx-background-color: #004C99; /* MÀU XANH ĐẬM HƠN */
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+/* --- Logout Button --- */
+.menu-item-logout {
+    -fx-background-color: transparent;
+    -fx-text-fill: #e74c3c;
+    -fx-font-size: 13px;
+    -fx-alignment: center-left;
+    -fx-padding: 10px 15px;
+    -fx-pref-width: Infinity;
+    -fx-border-width: 1px 0 0 0;
+    -fx-border-color: #34495e;
+    -fx-background-radius: 0;
+     -fx-cursor: hand;
+}
+.menu-item-logout:hover {
+    -fx-background-color: #c0392b;
+    -fx-text-fill: white;
+}
+
+/* --- Header Bar (Top Right) --- */
+.header-bar {
+    -fx-background-color: #ecf0f1;
+    -fx-padding: 10px 15px;
+    -fx-border-color: #bdc3c7;
+    -fx-border-width: 0 0 1px 0;
+}
+.datetime-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: #34495e;
+}
+
+/* --- Content Pane --- */
+.content-pane {
+    -fx-background-color: white;
+    -fx-padding: 0px;
+}
+
+/* --- General Button Styles (for nav-button in steps) --- */
+.nav-button {
+    -fx-font-size: 14px;
+    -fx-padding: 8px 18px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-cursor: hand;
+}
+
+.nav-button-primary {
+    -fx-background-color: #0066CC; /* SỬA MÀU XANH PRIMARY */
+    -fx-text-fill: white;
+}
+.nav-button-primary:hover {
+    -fx-background-color: #004C99; /* MÀU XANH ĐẬM HƠN KHI HOVER */
+}
+
+.nav-button-secondary {
+    -fx-background-color: #bdc3c7;
+    -fx-text-fill: #34495e;
+}
+.nav-button-secondary:hover {
+     -fx-background-color: #95a5a6;
+}
+
+/* (Thêm các style class khác bạn cần cho các step...) */
+.box-section { /* Style cho các box trong step 3, 4 */
+    -fx-background-color: #f9f9f9;
+    -fx-padding: 15px;
+    -fx-border-color: #e0e0e0;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+}
+
+.box-title-bold { /* Style cho tiêu đề box */
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333;
+    -fx-padding-bottom: 10px; /* Thêm khoảng cách dưới */
+}
+
+/* Style cho hàng trong bảng step 3 */
+.passenger-row {
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 0 0 1px 0; /* Chỉ viền dưới */
+}
+
+/* Style cho các label nhỏ trong ô table step 3, 4 */
+.cell-title-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: #666;
+}
+.cell-data-label {
+    -fx-font-size: 14px;
+    -fx-text-fill: #333;
+}
+.cell-data-label-small { /* Thêm cho step 3 */
+     -fx-font-size: 12px;
+     -fx-text-fill: #333;
+}
+.cell-data-label-small-bold { /* Thêm cho step 3 */
+      -fx-font-size: 12px;
+      -fx-font-weight: bold;
+      -fx-text-fill: #333;
+}
+.cell-data-label-bold {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #c0392b; /* Màu đỏ cho thành tiền */
+}
+
+/* Style cho dòng tổng cộng step 3 */
+.total-row {
+    -fx-background-color: #f5f5f5;
+    -fx-border-color: #ccc;
+    -fx-border-width: 1px 0 0 0;
+    -fx-padding: 15px 10px;
+}
+
+/* Style cho các nút action trong step 4 */
+.action-button {
+     -fx-background-color: #ecf0f1;
+     -fx-text-fill: #34495e;
+     -fx-border-color: #bdc3c7;
+     -fx-border-radius: 3px;
+     -fx-background-radius: 3px;
+     -fx-padding: 5px 10px;
+     -fx-cursor: hand;
+}
+.action-button:hover {
+      -fx-background-color: #dadedf;
+}
+.action-button:disabled { /* Style khi nút bị vô hiệu hóa */
+       -fx-opacity: 0.6;
+}
+
 /* ================================== */
 /* STYLE CHUNG */
 /* ================================== */
-
 .banve-content-wrapper {
     -fx-padding: 20px;
     -fx-spacing: 20px;
@@ -298,3 +507,23 @@
     -fx-padding: 15px 10px;
 }
 
+/* step-4.css */
+.grid-payment-details {
+    -fx-background-color: #fff;
+    -fx-border-color: #ccc;
+    -fx-border-width: 1px 0 0 0;
+    -fx-padding: 15px 10px;
+}
+
+.action-button {
+    -fx-padding: 5px 10px;
+    -fx-font-size: 16px;
+    -fx-text-fill: #fff;
+    -fx-background-color: #0066CC;
+}
+
+.tien-khach-dua {
+    -fx-padding: 10px 20px;
+    -fx-font-size: 16px;
+    -fx-height: 50px;
+}
