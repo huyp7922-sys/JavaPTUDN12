@@ -11,6 +11,10 @@ public class KhachHang {
 	private String soDienThoai;
 	private int diemTich;
 
+	public KhachHang() {
+
+	}
+
 	public KhachHang(String maKH, String tenKhachHang, String soCCCD_HoChieu, boolean laNguoiNuocNgoai,
 			String soDienThoai, int diemTich) {
 		this.maKH = maKH;
