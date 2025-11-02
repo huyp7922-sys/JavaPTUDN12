@@ -14,10 +14,6 @@ import java.util.List;
  */
 public class TuyenDuongDAO {
 
-    /**
-     * Thêm tuyến đường mới
-     * Giá cơ bản được tính tự động: soKm * 500 * heSoKhoangCach
-     */
     public boolean themTuyenDuong(TuyenDuong tuyenDuong) {
         String sql = "{CALL sp_ThemTuyenDuong(?, ?, ?, ?)}";
         
@@ -40,9 +36,6 @@ public class TuyenDuongDAO {
         }
     }
 
-    /**
-     * Cập nhật tuyến đường
-     */
     public boolean capNhatTuyenDuong(TuyenDuong tuyenDuong) {
         String sql = "UPDATE TuyenDuong SET diemDi = ?, diemDen = ?, thoiGianDuKien = ?, trangThai = ? WHERE maTuyen = ?";
         
@@ -57,7 +50,6 @@ public class TuyenDuongDAO {
             
             int rows = stmt.executeUpdate();
             
-            // Cập nhật lại giá cơ bản sau khi sửa
             if (rows > 0) {
                 capNhatGiaCoBan(Integer.parseInt(tuyenDuong.getMaTuyen()));
                 System.out.println("Cập nhật tuyến đường thành công!");
@@ -72,13 +64,43 @@ public class TuyenDuongDAO {
         }
     }
 
-    /**
-     * Xóa tuyến đường
-     * - Chỉ xóa được tuyến có trạng thái "Nhap"
-     * - Nếu không phải "Nhap" thì chuyển thành "TamNgung"
-     */
+    public TuyenDuong findTuyenNguoc(String maTuyen) {
+        TuyenDuong tuyenGoc = layTuyenDuongTheoMa(Integer.parseInt(maTuyen));
+        
+        if (tuyenGoc == null) {
+            return null;
+        }
+        
+        String sql = "SELECT T.*, " +
+                    "G1.maGa AS maGaDi, G1.viTriGa AS viTriGaDi, G1.mocKm AS mocKmDi, " +
+                    "G2.maGa AS maGaDen, G2.viTriGa AS viTriGaDen, G2.mocKm AS mocKmDen " +
+                    "FROM TuyenDuong T " +
+                    "INNER JOIN Ga G1 ON T.diemDi = G1.maGa " +
+                    "INNER JOIN Ga G2 ON T.diemDen = G2.maGa " +
+                    "WHERE T.diemDi = ? AND T.diemDen = ?";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, tuyenGoc.getDiemDen().getMaGa());
+            stmt.setInt(2, tuyenGoc.getDiemDi().getMaGa());
+            
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                TuyenDuong tuyenNguoc = mapResultSetToTuyenDuong(rs);
+                return tuyenNguoc;
+            } else {
+                return null; 
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null; 
+        }
+    }
+
     public boolean xoaTuyenDuong(int maTuyen) {
-        // Kiểm tra trạng thái
         TuyenDuong tuyen = layTuyenDuongTheoMa(maTuyen);
         if (tuyen == null) {
             System.err.println("Không tìm thấy tuyến đường!");
@@ -86,7 +108,6 @@ public class TuyenDuongDAO {
         }
         
         if (tuyen.getTrangThai() == TrangThai.Nhap) {
-            // Xóa tuyến
             String sql = "DELETE FROM TuyenDuong WHERE maTuyen = ?";
             try (Connection conn = DatabaseConnection.getConnection();
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -104,7 +125,6 @@ public class TuyenDuongDAO {
                 return false;
             }
         } else {
-            // Chuyển thành tạm ngưng
             String sql = "UPDATE TuyenDuong SET trangThai = 'TamNgung' WHERE maTuyen = ?";
             try (Connection conn = DatabaseConnection.getConnection();
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -124,9 +144,6 @@ public class TuyenDuongDAO {
         }
     }
 
-    /**
-     * Lấy tuyến đường theo mã
-     */
     public TuyenDuong layTuyenDuongTheoMa(int maTuyen) {
         String sql = "SELECT T.*, " +
                     "G1.maGa AS maGaDi, G1.viTriGa AS viTriGaDi, G1.mocKm AS mocKmDi, " +
@@ -154,9 +171,6 @@ public class TuyenDuongDAO {
         return null;
     }
 
-    /**
-     * Lấy tất cả tuyến đường
-     */
     public List<TuyenDuong> layTatCaTuyenDuong() {
         List<TuyenDuong> danhSach = new ArrayList<>();
         String sql = "SELECT T.*, " +
@@ -183,9 +197,6 @@ public class TuyenDuongDAO {
         return danhSach;
     }
 
-    /**
-     * Tìm kiếm tuyến đường theo điều kiện
-     */
     public List<TuyenDuong> timTuyenDuong(Integer maGaDi, Integer maGaDen, TrangThai trangThai) {
         List<TuyenDuong> danhSach = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
@@ -237,9 +248,6 @@ public class TuyenDuongDAO {
         return danhSach;
     }
 
-    /**
-     * Cập nhật giá cơ bản cho tuyến đường
-     */
     private void capNhatGiaCoBan(int maTuyen) {
         String sql = "{CALL sp_TinhGiaCoBan(?)}";
         
@@ -252,7 +260,6 @@ public class TuyenDuongDAO {
             if (rs.next()) {
                 float giaCoBan = rs.getFloat("giaCoBan");
                 
-                // Update giá vào database
                 String updateSql = "UPDATE TuyenDuong SET giaCoBan = ? WHERE maTuyen = ?";
                 try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
                     updateStmt.setFloat(1, giaCoBan);
@@ -267,17 +274,10 @@ public class TuyenDuongDAO {
         }
     }
 
-    /**
-     * Map ResultSet sang TuyenDuong object
-     */
     private TuyenDuong mapResultSetToTuyenDuong(ResultSet rs) throws SQLException {
-        // Map Ga đi
         Ga gaDi = new Ga(rs.getInt("maGaDi"), rs.getString("viTriGaDi"), rs.getInt("mocKmDi"));
-        
-        // Map Ga đến
         Ga gaDen = new Ga(rs.getInt("maGaDen"), rs.getString("viTriGaDen"), rs.getInt("mocKmDen"));
         
-        // Tạo TuyenDuong
         TuyenDuong tuyen = new TuyenDuong(gaDi, gaDen, rs.getInt("thoiGianDuKien"));
         tuyen.setMaTuyen(String.valueOf(rs.getInt("maTuyen")));
         tuyen.setGiaCoBan(rs.getFloat("giaCoBan"));
@@ -285,4 +285,14 @@ public class TuyenDuongDAO {
         
         return tuyen;
     }
-}
+
+    
+    /**
+     * Lấy tất cả tuyến đường (alias cho layTatCaTuyenDuong)
+     * Method này để tương thích với GenerateSchedulesDialogController
+     */
+    public List<TuyenDuong> getAllTuyenDuong() {
+        return layTatCaTuyenDuong();
+    }
+
+} // ← Dấu đóng class

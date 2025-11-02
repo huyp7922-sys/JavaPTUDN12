@@ -204,6 +204,26 @@ public class ScheduleManagementController {
         loadDataFromDatabase();
         setupFilters();
         setupFilterListeners();
+    }   
+    @FXML
+    private void handleGenerateSchedules() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/generate-schedules-dialog.fxml"));
+            Scene scene = new Scene(loader.load());
+            
+            GenerateSchedulesDialogController controller = loader.getController();
+            controller.setParentController(this);
+            
+            Stage dialogStage = new Stage();
+            dialogStage.setTitle("Tự Động Gen Lịch Trình");
+            dialogStage.initModality(Modality.APPLICATION_MODAL);
+            dialogStage.setScene(scene);
+            dialogStage.showAndWait();
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể mở form gen lịch trình:\n" + e.getMessage());
+        }
     }
 
     /**
