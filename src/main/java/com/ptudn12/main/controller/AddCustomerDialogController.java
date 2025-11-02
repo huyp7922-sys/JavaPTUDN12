@@ -90,7 +90,6 @@ public class AddCustomerDialogController {
 		}
 	}
 
-	// THAY THẾ TOÀN BỘ PHƯƠNG THỨC handleSave() BẰNG PHƯƠNG THỨC NÀY
 	@FXML
 	private void handleSave() {
 		// 1. Lấy dữ liệu từ form

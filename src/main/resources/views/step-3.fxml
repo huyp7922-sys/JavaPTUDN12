@@ -47,15 +47,15 @@
         <VBox styleClass="box-section" VBox.vgrow="ALWAYS">
              <children>
                 <Label text="Thông tin hành khách" styleClass="box-title-bold" />
-                <HBox fx:id="headerRow" alignment="CENTER_LEFT" spacing="10.0" style="-fx-padding: 10px; -fx-border-color: #ccc; -fx-border-width: 0 0 2px 0;">
+                <HBox fx:id="headerRow" alignment="CENTER_LEFT" spacing="10.0" style="-fx-padding: 10px; -fx-border-color: #ccc; -fx-border-width: 0 0 2px 0;" maxWidth="Infinity">
                      <children>
-                        <Label text="Họ tên" fx:id="headerHanhKhach" />
-                        <Label text="Thông tin chuyến tàu" fx:id="headerChuyenTau" />
-                        <Label text="Thông tin chỗ ngồi" fx:id="headerChoNgoi" />
-                        <Label text="Giá vé" fx:id="headerGiaVe" />
-                        <Label text="Giảm đối tượng" fx:id="headerGiamGia" />
-                        <Label text="Bảo hiểm" fx:id="headerBaoHiem" />
-                        <Label text="Thành tiền" fx:id="headerThanhTien" />
+                        <Label text="Họ tên" fx:id="headerHanhKhach" minWidth="100.0" maxWidth="Infinity" HBox.hgrow="ALWAYS" />
+                        <Label text="Thông tin chuyến tàu" fx:id="headerChuyenTau" minWidth="150.0" maxWidth="Infinity" HBox.hgrow="ALWAYS" />
+                        <Label text="Thông tin chỗ ngồi" fx:id="headerChoNgoi" minWidth="120.0" maxWidth="Infinity" HBox.hgrow="ALWAYS" />
+                        <Label text="Giá vé" fx:id="headerGiaVe" minWidth="80.0" maxWidth="Infinity" HBox.hgrow="ALWAYS" />
+                        <Label text="Giảm đối tượng" fx:id="headerGiamGia" minWidth="100.0" maxWidth="Infinity" HBox.hgrow="ALWAYS" />
+                        <Label text="Bảo hiểm" fx:id="headerBaoHiem" minWidth="80.0" maxWidth="Infinity" HBox.hgrow="ALWAYS" />
+                        <Label text="Thành tiền" fx:id="headerThanhTien" minWidth="100.0" maxWidth="Infinity" HBox.hgrow="ALWAYS" />
                      </children>
                 </HBox>
 

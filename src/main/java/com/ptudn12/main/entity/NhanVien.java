@@ -10,15 +10,14 @@ public class NhanVien {
     private boolean gioiTinh; // true = Nam, false = Nữ
     private String soDienThoai;
     private String email;
-    private boolean chucVu; // true = Quản lý, false = Nhân viên
+    private Boolean chucVu; // TRUE (1) = Quản lý, FALSE (0) = Nhân viên  
     private String tinhTrangCV; // "đang làm", "tạm nghỉ", "đã nghỉ"
     
     // Constructors
     public NhanVien() {}
     
-    
     public NhanVien(String maNhanVien, String tenNhanVien, String soCCCD, 
-                   LocalDate ngaySinh, boolean gioiTinh, boolean chucVu,
+                   LocalDate ngaySinh, boolean gioiTinh, Boolean chucVu,  
                    String soDienThoai, String email, String tinhTrangCV) {
        this.maNhanVien = maNhanVien;
        this.tenNhanVien = tenNhanVien;
@@ -31,99 +30,59 @@ public class NhanVien {
        this.tinhTrangCV = tinhTrangCV;
    }
     
-    // Getters and Setters
-    public String getMaNhanVien() {
-        return maNhanVien;
-    }
-    
-    public void setMaNhanVien(String maNhanVien) {
-        this.maNhanVien = maNhanVien;
-    }
-    
-    public String getTenNhanVien() {
-        return tenNhanVien;
-    }
-    
-    public void setTenNhanVien(String tenNhanVien) {
-        this.tenNhanVien = tenNhanVien;
-    }
-    
-    public String getSoCCCD() {
-        return soCCCD;
-    }
-    
-    public void setSoCCCD(String soCCCD) {
-        this.soCCCD = soCCCD;
-    }
-    
-    public LocalDate getNgaySinh() {
-        return ngaySinh;
-    }
-    
-    public void setNgaySinh(LocalDate ngaySinh) {
-        this.ngaySinh = ngaySinh;
-    }
-    
-    public boolean isGioiTinh() {
-        return gioiTinh;
-    }
-    
-    public void setGioiTinh(boolean gioiTinh) {
-        this.gioiTinh = gioiTinh;
-    }
-    
-    public String getSoDienThoai() {
-        return soDienThoai;
-    }
-    
-    public void setSoDienThoai(String soDienThoai) {
-        this.soDienThoai = soDienThoai;
-    }
-    
-    public String getEmail() {
-        return email;
-    }
-    
-    public void setEmail(String email) {
-        this.email = email;
-    }
-    
-    public boolean isChucVu() {
+    public Boolean getChucVu() {  
         return chucVu;
     }
     
-    public void setChucVu(boolean chucVu) {
+    public void setChucVu(Boolean chucVu) {  
         this.chucVu = chucVu;
     }
     
-    public String getTinhTrangCV() {
-        return tinhTrangCV;
+    public String getChucVuText() {
+        if (chucVu == null) return "Không xác định";
+        return chucVu ? "Quản lý" : "Nhân viên";
     }
     
-    public void setTinhTrangCV(String tinhTrangCV) {
-        this.tinhTrangCV = tinhTrangCV;
+    public boolean isQuanLy() {
+        return chucVu != null && chucVu;
     }
     
-    // Helper methods for display
     public String getGioiTinhText() {
         return gioiTinh ? "Nam" : "Nữ";
     }
     
-    public String getChucVuText() {
-        return chucVu ? "Quản lý" : "Nhân viên";
-    }
+    // ... các getter/setter khác giữ nguyên
+    
+    public String getMaNhanVien() { return maNhanVien; }
+    public void setMaNhanVien(String maNhanVien) { this.maNhanVien = maNhanVien; }
+    
+    public String getTenNhanVien() { return tenNhanVien; }
+    public void setTenNhanVien(String tenNhanVien) { this.tenNhanVien = tenNhanVien; }
+    
+    public String getSoCCCD() { return soCCCD; }
+    public void setSoCCCD(String soCCCD) { this.soCCCD = soCCCD; }
+    
+    public LocalDate getNgaySinh() { return ngaySinh; }
+    public void setNgaySinh(LocalDate ngaySinh) { this.ngaySinh = ngaySinh; }
+    
+    public boolean isGioiTinh() { return gioiTinh; }
+    public void setGioiTinh(boolean gioiTinh) { this.gioiTinh = gioiTinh; }
+    
+    public String getSoDienThoai() { return soDienThoai; }
+    public void setSoDienThoai(String soDienThoai) { this.soDienThoai = soDienThoai; }
+    
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    
+    public String getTinhTrangCV() { return tinhTrangCV; }
+    public void setTinhTrangCV(String tinhTrangCV) { this.tinhTrangCV = tinhTrangCV; }
     
     @Override
     public String toString() {
         return "NhanVien{" +
                 "maNhanVien='" + maNhanVien + '\'' +
                 ", tenNhanVien='" + tenNhanVien + '\'' +
-                ", soCCCD='" + soCCCD + '\'' +
-                ", ngaySinh=" + ngaySinh +
-                ", gioiTinh=" + gioiTinh +
-                ", soDienThoai='" + soDienThoai + '\'' +
-                ", email='" + email + '\'' +
-                ", chucVu=" + chucVu +
+                ", chucVu=" + getChucVuText() +
                 ", tinhTrangCV='" + tinhTrangCV + '\'' +
                 '}';
     }

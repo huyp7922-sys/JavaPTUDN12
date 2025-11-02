@@ -71,7 +71,13 @@ public class NhanVienDAO {
             ps.setBoolean(5, nv.isGioiTinh());
             ps.setString(6, nv.getSoDienThoai());
             ps.setString(7, nv.getEmail());
-            ps.setBoolean(8, nv.isChucVu());
+            
+            if (nv.getChucVu() != null) {
+                ps.setBoolean(8, nv.getChucVu());
+            } else {
+                ps.setNull(8, Types.BOOLEAN);
+            }
+            
             ps.setString(9, nv.getTinhTrangCV());
             
             return ps.executeUpdate() > 0;
@@ -99,7 +105,13 @@ public class NhanVienDAO {
             ps.setBoolean(4, nv.isGioiTinh());
             ps.setString(5, nv.getSoDienThoai());
             ps.setString(6, nv.getEmail());
-            ps.setBoolean(7, nv.isChucVu());
+            
+            if (nv.getChucVu() != null) {
+                ps.setBoolean(7, nv.getChucVu());
+            } else {
+                ps.setNull(7, Types.BOOLEAN);
+            }
+            
             ps.setString(8, nv.getTinhTrangCV());
             ps.setString(9, nv.getMaNhanVien());
             
@@ -274,19 +286,38 @@ public class NhanVienDAO {
     }
     
     /**
-     * Map ResultSet to NhanVien object
+     * Map ResultSet to NhanVien object - ĐÃ SỬA
      */
     private NhanVien mapResultSetToNhanVien(ResultSet rs) throws SQLException {
         NhanVien nv = new NhanVien();
         nv.setMaNhanVien(rs.getString("maNhanVien"));
         nv.setTenNhanVien(rs.getString("tenNhanVien"));
         nv.setSoCCCD(rs.getString("soCCCD"));
-        nv.setNgaySinh(rs.getDate("ngaySinh").toLocalDate());
+        
+        Date ngaySinhDate = rs.getDate("ngaySinh");
+        if (ngaySinhDate != null) {
+            nv.setNgaySinh(ngaySinhDate.toLocalDate());
+        }
+        
         nv.setGioiTinh(rs.getBoolean("gioiTinh"));
         nv.setSoDienThoai(rs.getString("soDienThoai"));
         nv.setEmail(rs.getString("email"));
-        nv.setChucVu(rs.getBoolean("chucVu"));
+        
+        Boolean chucVu = rs.getBoolean("chucVu");
+        if (rs.wasNull()) {
+            nv.setChucVu(null);
+        } else {
+            nv.setChucVu(chucVu);
+        }
+        
         nv.setTinhTrangCV(rs.getString("tinhTrangCV"));
+        
+        // DEBUG: In ra để kiểm tra
+        System.out.println("🔍 DAO loaded: " + nv.getMaNhanVien() + 
+                          " | Chức vụ (Boolean): " + nv.getChucVu() + 
+                          " | Text: " + nv.getChucVuText() +
+                          " | Tình trạng: " + nv.getTinhTrangCV());
+        
         return nv;
     }
 }

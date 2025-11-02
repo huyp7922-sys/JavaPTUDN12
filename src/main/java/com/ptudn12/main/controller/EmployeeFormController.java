@@ -155,7 +155,7 @@ public class EmployeeFormController {
                 // Tạo tài khoản cho nhân viên
                 String matKhau = PasswordGenerate.generatePassword(
                     nv.getSoCCCD(), 
-                    nv.isChucVu()
+                    nv.getChucVu()
                 );
                 
                 TaiKhoan tk = new TaiKhoan();
