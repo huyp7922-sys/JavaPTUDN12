@@ -1,0 +1,114 @@
+/* ===================================================================== */
+/*                       PHIÊN BẢN CSS CUỐI CÙNG                         */
+/*             Tách biệt định dạng cho Màn hình và In ấn              */
+/* ===================================================================== */
+
+/* --- 1. CÁC QUY TẮC CHUNG (Áp dụng cho cả hai) --- */
+@page {
+    size: A4;
+    margin: 1.5cm;
+}
+
+.invoice-container {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 11pt;
+    background-color: white;
+    box-sizing: border-box;
+}
+
+/* Layout bằng Table (ổn định) */
+.header-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+.header-table td { vertical-align: top; border: none; padding: 0; }
+.logo-cell { width: 25%; }
+.title-cell { width: 50%; text-align: center; }
+.info-cell { width: 25%; text-align: right; }
+.logo-img { max-width: 150px; }
+.title-cell h1 { margin: 0; color: #003366; font-size: 18pt; }
+.info-cell p { margin: 2px 0; font-size: 10pt; }
+
+/* ... (tất cả các quy tắc định dạng nội dung khác giữ nguyên) ... */
+.party-info p { margin: 4px 0; }
+.info-line { overflow: hidden; } .info-line p:first-child { float: left; } .info-line p:last-child { float: right; }
+.separator { border: none; border-top: 1px dashed #000; margin: 10px 0; clear: both; }
+.items-table table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+.items-table th, .items-table td { border: 1px solid black; padding: 5px; vertical-align: top; }
+.items-table thead { background-color: #f2f2f2; }
+
+.summary-section table { width: 100%; border-collapse: collapse; margin-top: 1px; }
+.summary-section td { border: 1px solid black; padding: 5px; } 
+.summary-section .no-border { border: none; }
+
+.final-summary { margin-top: 10px; } .final-summary p { margin: 5px 0; }
+.signature-table { width: 100%; margin-top: 40px; text-align: center; border-collapse: collapse; page-break-inside: avoid;}
+.signature-table td { width: 50%; border: none; padding: 0; }
+footer { margin-top: 30px; font-size: 10pt; page-break-inside: avoid;}
+.text-right { text-align: right; } .text-center { text-align: center; } .strong { font-weight: bold; }
+
+
+
+.items-table .empty-row td {
+    color: #fff; /* Làm cho dấu '...' trắng và gần như vô hình */
+}
+.items-table .calculation-rule-row {
+    font-weight: normal;
+    background-color: #fafafa; /* Một màu xám rất nhạt để phân biệt */
+}
+.items-table .calculation-rule-row th {
+    font-weight: normal;
+}
+
+
+
+
+.items-table thead th {
+    text-align: center;
+}
+
+.items-table td.strong {
+    font-weight: bold;
+}
+
+
+
+
+/* --- QUY TẮC NGẮT TRANG TỰ ĐỘNG --- */
+.items-table thead {
+    display: table-header-group; /* Lặp lại header trên mỗi trang */
+}
+.items-table tr {
+    page-break-inside: avoid; /* Tránh ngắt trang giữa một dòng */
+}
+/* ------------------------------------ */
+
+
+
+/* --- 2. QUY TẮC CHỈ DÀNH CHO XEM TRƯỚC TRÊN MÀN HÌNH (WEBVIEW) --- */
+@media screen {
+    body {
+        background-color: #525659;
+        margin: 0;
+        padding: 20px 0;
+    }
+
+    .invoice-container {
+        width: 210mm;
+        min-height: 297mm;
+        margin: 0 auto 20px auto;
+        /* -webkit-user-select: text; */
+        /* user-select: text; */
+    }
+}
+
+
+/* --- 3. QUY TẮC CHỈ DÀNH CHO VIỆC IN RA PDF --- */
+@media print {
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    .invoice-container {
+        width: 100%;
+        height: 100%;
+    }
+}

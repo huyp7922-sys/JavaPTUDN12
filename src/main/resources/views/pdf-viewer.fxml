@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.effect.DropShadow?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.ptudn12.main.controller.PdfViewerController"
+            prefWidth="400" prefHeight="900">
+
+    <!-- Thanh công cụ trên cùng để điều khiển trang -->
+    <top>
+        <ToolBar>
+            <Button onAction="#handlePreviousPage" text="&lt; Trước"/>
+            <Label fx:id="pageLabel" text="Trang 1 / 1" style="-fx-padding: 0 10 0 10;"/>
+            <Button onAction="#handleNextPage" text="Sau &gt;"/>
+        </ToolBar>
+    </top>
+
+    <!-- Vùng hiển thị chính -->
+    <center>
+        <!-- ScrollPane để cuộn nếu trang quá lớn -->
+        <ScrollPane fx:id="scrollPane" pannable="true" fitToWidth="true" style="-fx-background-color: #525659;">
+            <!-- VBox chứa các trang PDF (dưới dạng hình ảnh) -->
+            <VBox fx:id="pageContainer" alignment="TOP_CENTER" spacing="20" style="-fx-padding: 20px;">
+                <!-- ImageView sẽ được thêm vào đây bằng code -->
+                <ImageView fx:id="pageImageView">
+                    <effect>
+                        <DropShadow color="#000000B2" radius="15" offsetX="0" offsetY="5"/>
+                    </effect>
+                </ImageView>
+            </VBox>
+        </ScrollPane>
+    </center>
+
+    <!-- Thanh công cụ dưới cùng để Zoom và In -->
+    <bottom>
+        <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: #f0f0f0; -fx-padding: 10px; -fx-border-color: #ccc; -fx-border-width: 1 0 0 0;">
+            <HBox alignment="CENTER" spacing="5">
+                <Button onAction="#handleZoomOut" text="-"/>
+                <Label fx:id="zoomLabel" text="100%" style="-fx-min-width: 50px;" alignment="CENTER"/>
+                <Button onAction="#handleZoomIn" text="+"/>
+            </HBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button onAction="#handleFinalPrint" text="In hóa đơn" styleClass="primary-button"/>
+        </HBox>
+    </bottom>
+</BorderPane>

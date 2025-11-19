@@ -3,7 +3,9 @@ package com.ptudn12.main.controller;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import com.ptudn12.main.util.SessionManager;
+
+import com.ptudn12.main.utils.SessionManager;
+
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.fxml.FXML;
@@ -44,7 +46,7 @@ public class DashboardController {
 	private Button btnEmployee;
 	@FXML
 	private Button btnStatistics;
-        
+
 	@FXML
 	private Button btnLogout;
 
@@ -74,12 +76,13 @@ public class DashboardController {
 		updateUserInfo();
 		// =========================
 	}
+
 	/**
 	 * Cập nhật thông tin user trên giao diện
 	 */
 	private void updateUserInfo() {
 		SessionManager session = SessionManager.getInstance();
-		
+
 		if (session.isLoggedIn()) {
 			// Hiển thị tên và vai trò
 			if (lblUsername != null) {
@@ -90,6 +93,7 @@ public class DashboardController {
 			}
 		}
 	}
+
 	@FXML
 	private void showHome() {
 		resetMenuButtons();
@@ -125,8 +129,7 @@ public class DashboardController {
 		loadView("train-management.fxml");
 	}
 
-
-    @FXML
+	@FXML
 	private void showEmployee() {
 		resetMenuButtons();
 		btnEmployee.getStyleClass().add("menu-item-active");
@@ -174,7 +177,7 @@ public class DashboardController {
 
 		if (alert.showAndWait().get() == ButtonType.OK) {
 			SessionManager.getInstance().logout();
-			
+
 			try {
 				Parent root = FXMLLoader.load(getClass().getResource("/views/login.fxml"));
 				Stage stage = (Stage) contentPane.getScene().getWindow();
