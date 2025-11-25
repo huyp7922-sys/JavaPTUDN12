@@ -48,7 +48,7 @@ public class PdfViewerController implements Initializable {
 	private int currentPageIndex = 0;
 
 	// 1. Định nghĩa mức zoom cơ bản (35%) mà chúng ta coi là 100% trên UI
-	private static final double BASE_ZOOM_FACTOR = 0.35;
+	private static final double BASE_ZOOM_FACTOR = 0.4;
 	// 2. Mỗi lần zoom sẽ tăng/giảm 10% của mức zoom CƠ BẢN
 	private static final double ZOOM_INCREMENT = BASE_ZOOM_FACTOR * 0.10;
 	// 3. Khởi tạo zoom hiện tại bằng mức zoom cơ bản
@@ -58,20 +58,6 @@ public class PdfViewerController implements Initializable {
 	public void initialize(URL location, ResourceBundle resources) {
 		// Ban đầu không có gì để hiển thị
 		pageImageView.setImage(null);
-
-		// 4. Thêm listener cho sự kiện lăn chuột trên ScrollPane
-//		scrollPane.setOnScroll((ScrollEvent event) -> {
-//			// Chỉ zoom khi người dùng giữ phím Control
-//			if (event.isControlDown()) {
-//				if (event.getDeltaY() > 0) { // Lăn lên -> Phóng to
-//					handleZoomIn();
-//				} else { // Lăn xuống -> Thu nhỏ
-//					handleZoomOut();
-//				}
-//				// Ngăn sự kiện cuộn trang mặc định của ScrollPane
-//				event.consume();
-//			}
-//		});
 
 		// Chặn sự kiện lăn chuột trước khi ScrollPane xử lý nó
 		scrollPane.addEventFilter(ScrollEvent.SCROLL, (ScrollEvent event) -> {
