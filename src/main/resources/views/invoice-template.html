@@ -3,129 +3,144 @@
 <head>
     <meta charset="UTF-8" />
     <title>Hóa Đơn</title>
-    <!-- Thẻ link này sẽ được OpenHTMLToPdf đọc để áp dụng CSS khi tạo file PDF -->
     <link rel="stylesheet" href="invoice-style.css" />
 </head>
 <body>
     <div class="invoice-container">
-        <!-- HEADER DÙNG TABLE ĐỂ ĐẢM BẢO TƯƠNG THÍCH -->
-        <table class="header-table">
+        
+        <!-- HEADER -->
+		<table class="header-table">
             <tbody>
                 <tr>
                     <td class="logo-cell">
-                        <!--<img src="logo_placeholder.png" alt="Logo" class="logo-img"/> -->
+                        <!-- Logo placeholder -->
                     </td>
                     <td class="title-cell">
                         <h1>HÓA ĐƠN GIÁ TRỊ GIA TĂNG</h1>
-                        <p>Ngày <span th:text="${ngayLap}">...</span> tháng <span th:text="${thangLap}">...</span> năm <span th:text="${namLap}">...</span></p>
+                        <p>Ngày <span th:text="${ngayLap}"></span> tháng <span th:text="${thangLap}"></span> năm <span th:text="${namLap}"></span></p>
                     </td>
                     <td class="info-cell">
-                        <p><strong>Ký hiệu:</strong> <span th:text="${kyHieu}">...</span></p>
-                        <p><strong>Số:</strong> <span th:text="${soHD}">...</span></p>
-                        <p><strong>ID:</strong> <span th:text="${idHD}">...</span></p>
+                        <!-- Bảng mini: 1 cột, 2 hàng, căn phải -->
+                        <table style="width: 100%; text-align: right;">
+                            <tr>
+                                <td style="border: none; padding: 2px;"><strong>Ký hiệu:</strong> <span th:text="${kyHieu}"></span></td>
+                            </tr>
+                            <tr>
+                                <td style="border: none; padding: 2px;"><strong>Số:</strong> <span th:text="${soHD}"></span></td>
+                            </tr>
+                        </table>
                     </td>
                 </tr>
             </tbody>
         </table>
 
+        <!-- THÔNG TIN -->
         <section class="party-info">
             <p><strong>Đơn vị bán hàng:</strong> CÔNG TY CỔ PHẦN VẬN TẢI ĐƯỜNG SẮT HÀ NỘI</p>
             <div class="info-line"><p><strong>MST:</strong> 0100106264</p><p><strong>Điện thoại:</strong> (84-4) 39421117</p></div>
             <p><strong>Địa chỉ:</strong> Số nhà 130, đường Lê Duẩn, Phường Nguyễn Du, Quận Hai Bà Trưng, Thành phố Hà Nội, Việt Nam</p>
             <hr class="separator"/>
-            <div class="info-line"><p><strong>Họ tên người mua hàng:</strong> <span th:text="${tenNguoiMua}">...</span></p><p><strong>Điện thoại:</strong> <span th:text="${sdtNguoiMua}">...</span></p></div>
-            <p><strong>Tên đơn vị:</strong> <span th:text="${tenDonVi}">...</span></p>
-            <p><strong>MST:</strong> <span th:text="${mstDonVi}">...</span></p>
-            <p><strong>Địa chỉ:</strong> <span th:text="${diaChiDonVi}">...</span></p>
-            <div class="info-line"><p><strong>Hình thức thanh toán:</strong> <span th:text="${hinhThucTT}">...</span></p><p><strong>Số tài khoản:</strong> <span th:text="${stkDonVi}">...</span></p></div>
+
+            <div class="info-line"><p><strong>Họ tên người mua hàng:</strong> <span th:text="${tenNguoiMua}"></span></p><p><strong>Điện thoại:</strong> <span th:text="${sdtNguoiMua}"></span></p></div>
+            <p><strong>Tên đơn vị:</strong> <span th:text="${tenDonVi}"></span></p>
+            <p><strong>MST:</strong> <span th:text="${mstDonVi}"></span></p>
+            <p><strong>Địa chỉ:</strong> <span th:text="${diaChiDonVi}"></span></p>
+            <div class="info-line"><p><strong>Hình thức thanh toán: </strong><span style="margin-right: 10px;">TM/CK</span><strong>Số tài khoản: </strong><span>_______________________</span></p><p></p></div>
         </section>
 
+        <!-- BẢNG CHÍNH (GỘP CHUNG) -->
         <section class="items-table">
             <table>
                 <thead>
                     <tr>
-                        <th>STT</th><th>Mã vé</th><th>Tên dịch vụ</th><th>ĐVT</th><th>Số lượng</th><th>Đơn giá</th><th>Thành tiền</th><th>Thuế suất</th><th>Tiền thuế GTGT</th><th>TT có thuế</th>
+                        <th>STT</th><th>Mã vé</th><th>Tên dịch vụ</th><th>ĐVT</th><th>Số lượng</th><th>Đơn giá</th><th>TT chưa thuế</th><th>Thuế suất</th><th>Thuế GTGT</th><th>TT có thuế</th>
                     </tr>
-					<tr class="calculation-rule-row">
-						<th>a</th><th>b</th><th>c</th><th>d</th><th>1</th><th>2</th><th>3=1x2</th><th>4</th><th>5=3x4</th><th>6=3+5</th>
-					</tr>
+                    <tr class="calculation-rule-row">
+                        <th>a</th><th>b</th><th>c</th><th>d</th><th>1</th><th>2</th><th>3=1x2</th><th>4</th><th>5=3x4</th><th>6=3+5</th>
+                    </tr>
                 </thead>
-				<tbody>
-                    <!-- Lặp qua tất cả các loại hàng -->
+                
+                <!-- Thymeleaf sẽ lặp qua danh sách 'allItems' -->
+                <!-- th:remove="all-but-first" để xóa dữ liệu mẫu khi chạy thật -->
+                <tbody th:remove="all-but-first"> 
                     <tr th:each="row : ${allItems}">
-                        <!-- Hàng nội dung hoặc hàng trống -->
+                        
+                        <!-- TRƯỜNG HỢP 1: DÒNG DỮ LIỆU HOẶC HÀNG TRỐNG (ITEM) -->
                         <th:block th:if="${row.type == 'ITEM'}">
-                            <td class="text-center" th:text="${row.stt}">...</td>
-                            <td th:text="${row.maVe}">...</td>
-                            <td th:text="${row.tenDichVu}">...</td>
-                            <td th:text="${row.dvt}">...</td>
-                            <td class="text-right" th:text="${row.soLuong}">...</td>
-                            <td class="text-right" th:text="${row.donGia}">...</td>
-                            <td class="text-right" th:text="${row.thanhTien}">...</td>
-                            <td class="text-center" th:text="${row.thueSuat}">...</td>
-                            <td class="text-right" th:text="${row.tienThue}">...</td>
-                            <td class="text-right" th:text="${row.tongCong}">...</td>
+                            <td class="text-center" th:text="${row.stt}"></td>
+                            <td th:text="${row.maVe}"></td>
+                            <td th:text="${row.tenDichVu}"></td>
+                            <td th:text="${row.dvt}"></td>
+                            <td class="text-right" th:text="${row.soLuong}"></td>
+                            <td class="text-right" th:text="${row.donGia}"></td>
+                            <td class="text-right" th:text="${row.thanhTien}"></td>
+                            <td class="text-center" th:text="${row.thueSuat}"></td>
+                            <td class="text-right" th:text="${row.tienThue}"></td>
+                            <td class="text-right" th:text="${row.tongCong}"></td>
                         </th:block>
 
-                        <!-- Hàng tổng kết theo thuế suất -->
+                        <!-- TRƯỜNG HỢP 2: DÒNG TỔNG KẾT THUẾ (SUMMARY_BY_TAX) -->
                         <th:block th:if="${row.type == 'SUMMARY_BY_TAX'}">
-                            <td class="no-border text-right" colspan="6" th:text="${row.description}">...</td>
-                            <td class="text-right" th:text="${row.thanhTien}">...</td>
-                            <td class="text-center" th:text="${row.thueSuat}">...</td>
-                            <td class="text-right" th:text="${row.tienThue}">...</td>
-                            <td class="text-right" th:text="${row.tongCong}">...</td>
+                            <!-- Nếu description có nội dung, dùng rowspan=2 và căn giữa -->
+                            <td th:if="${!#strings.isEmpty(row.description)}" 
+                                class="no-border text-right" colspan="6" rowspan="2" style="vertical-align: middle;" 
+                                th:text="${row.description}">
+                            </td>
+                            <!-- Nếu description rỗng (dòng KCT), không tạo ô này nữa vì đã bị gộp -->
+                            
+                            <td class="text-right" th:text="${row.thanhTien}"></td>
+                            <td class="text-center" th:text="${row.thueSuat}"></td>
+                            <td class="text-right" th:text="${row.tienThue}"></td>
+                            <td class="text-right" th:text="${row.tongCong}"></td>
                         </th:block>
 
-                        <!-- Hàng tổng cộng cuối cùng -->
+                        <!-- TRƯỜNG HỢP 3: DÒNG TỔNG CỘNG CUỐI CÙNG (FINAL_TOTAL) -->
                         <th:block th:if="${row.type == 'FINAL_TOTAL'}">
-                            <td class="no-border text-right strong" colspan="6" th:text="${row.description}">...</td>
-                            <td class="text-right" th:text="${row.thanhTien}">...</td>
+                            <td class="no-border text-right strong" colspan="6" th:text="${row.description}"></td>
+                            <td class="text-right strong" th:text="${row.thanhTien}"></td>
                             <td class="no-border"></td>
-                            <td class="text-right" th:text="${row.tienThue}">...</td>
-                            <td class="text-right strong" th:text="${row.tongCong}">...</td>
+                            <td class="text-right strong" th:text="${row.tienThue}"></td>
+                            <td class="text-right strong" th:text="${row.tongCong}"></td>
                         </th:block>
                     </tr>
                 </tbody>
             </table>
         </section>
-        <!--
-		<section class="summary-section">
-            <table>
-                <tbody>
-                    <tr th:each="summary : ${summariesByTax}">
-                        <td class="no-border text-right" colspan="6" th:text="${summary.description}">Tổng theo từng loại thuế suất:</td>
-                        <td class="text-right" th:text="${summary.thanhTien}">...</td>
-                        <td class="text-center" th:text="${summary.thueSuat}">...</td>
-                        <td class="text-right" th:text="${summary.tienThue}">...</td>
-                        <td class="text-right" th:text="${summary.tongCong}">...</td>
-                    </tr>
-                    <tr>
-                        <td class="no-border text-right strong" colspan="6">Tổng cộng:</td>
-                        <td class="text-right strong" th:text="${tongTienHang}">...</td>
-                        <td class="no-border"></td>
-                        <td class="text-right strong" th:text="${tongTienThue}">...</td>
-                        <td class="text-right strong" th:text="${tongThanhToan}">...</td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
-		-->
 
-		<section class="final-summary">
-            <p><strong>Số tiền viết bằng chữ:</strong> <span th:text="${tongTienBangChu}">...</span></p>
-            <p><strong>Ghi chú:</strong> .......................................................................................................................................................................</p>
+        <section class="final-summary">
+            <p><strong>Số tiền viết bằng chữ:</strong> <span th:text="${tongTienBangChu}"></span></p>
+            <p><strong>Ghi chú:</strong> <span th:text="${ghiChu}">.......................................................................................................................................................................</span></p>
         </section>
         
-        <table class="signature-table">
+		<table class="signature-table">
             <tbody>
                 <tr>
+                    <!-- Cột Người mua hàng -->
                     <td>
-                        <p><strong>Người mua hàng</strong></p>
-                        <p>(Ký, ghi rõ họ tên)</p>
+                        <p class="sign-title"><strong>Người mua hàng</strong></p>
+                        <p class="sign-note">(Ký, ghi rõ họ tên)</p>
                     </td>
+                    
+                    <!-- Cột Người bán hàng -->
                     <td>
-                        <p><strong>Người bán hàng</strong></p>
-                        <p>(Ký, ghi rõ họ tên)</p>
+                        <p class="sign-title"><strong>Người bán hàng</strong></p>
+                        <p class="sign-note">(Ký, ghi rõ họ tên)</p>
+
+                        <!-- KHUNG CHỮ KÝ SỐ MÀU ĐỎ -->
+                        <table class="digital-signature-table">
+                            <tr>
+								<td class="check-mark">
+								    <!-- th:src sẽ thay thế src bằng đường dẫn thật từ Java -->
+								    <img th:src="${imgCheckUrl}" style="width: 25px; height: auto;" alt="V" />
+								</td>
+                                <td>
+                                    <strong>Signature Valid</strong><br/>
+                                    Ký bởi: Công ty Cổ phần Vận tải<br/>
+                                    Đường sắt Hà Nội<br/>
+                                    Ký ngày: <span th:text="${ngayLap} + '/' + ${thangLap} + '/' + ${namLap}"></span>
+                                </td>
+                            </tr>
+                        </table>
                     </td>
                 </tr>
             </tbody>
@@ -133,7 +148,6 @@
         
         <footer>
             <hr class="separator"/>
-            <p><strong>Mã tra cứu hóa đơn:</strong> <span th:text="${maTraCuu}">...</span></p>
             <p>(*) Cần kiểm tra, đối chiếu khi lập, giao, nhận, hóa đơn</p>
         </footer>
     </div>

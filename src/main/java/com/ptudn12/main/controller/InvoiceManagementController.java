@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.net.URL;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -26,6 +27,7 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import com.ptudn12.main.dao.HoaDonDAO;
 import com.ptudn12.main.entity.HoaDon;
 import com.ptudn12.main.enums.LoaiHoaDon;
+import com.ptudn12.main.utils.NumberUtils;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -328,7 +330,11 @@ public class InvoiceManagementController {
 	private File generateInvoicePdf(HoaDon invoiceData) throws Exception {
 		// BƯỚC 1: LẤY DỮ LIỆU VÀ CHUẨN BỊ CONTEXT CHO THYMELEAF
 		// Trong thực tế, bạn sẽ thay thế createDummyData bằng lời gọi đến DAO
-		Map<String, Object> data = createDummyData(invoiceData.getMaHoaDon());
+
+		// Map<String, Object> data = createDummyData(invoiceData.getMaHoaDon());
+
+		Map<String, Object> data = getRealInvoiceData(invoiceData);
+
 		Context context = new Context();
 		context.setVariables(data);
 
@@ -366,226 +372,330 @@ public class InvoiceManagementController {
 		return tempPdfFile;
 	}
 
-//	private Map<String, Object> createDummyData(String maHoaDon) {
-//		Map<String, Object> data = new HashMap<>();
-//		NumberFormat currencyFormatter = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
-//
-//		// --- CÁC HẰNG SỐ CẤU HÌNH ---
-//		final int MINIMUM_ROWS_IN_TABLE = 15; // Tổng số hàng tối thiểu trong bảng
-//		final double INSURANCE_PRICE = 5000.0;
-//
-//		// --- BƯỚC 1: TẠO DỮ LIỆU VÉ GỐC ---
-//		// Trong thực tế, bạn sẽ lấy danh sách này từ DAO
-//		List<Map<String, Object>> tickets = new ArrayList<>();
-//		tickets.add(Map.of("maVe", "143356995", "tenDichVu", "Vé HK: DIA-DTR-SE30", "dvt", "Vé", "soLuong", 1.0,
-//				"donGia", 1113889.0, "thueSuat", 0.08));
-//		tickets.add(Map.of("maVe", "143356996", "tenDichVu", "Vé HK: DIA-DTR-SE30", "dvt", "Vé", "soLuong", 1.0,
-//				"donGia", 1002778.0, "thueSuat", 0.08));
-//		// Thêm vé khác ở đây nếu muốn...
-//
-//		// --- BƯỚC 2: XỬ LÝ VÀ TÍNH TOÁN DỮ LIỆU ---
-//		List<Map<String, Object>> finalItems = new ArrayList<>();
-//		double totalTicketQuantity = 0;
-//
-//		// Xử lý từng vé
-//		int stt = 1;
-//		for (Map<String, Object> ticket : tickets) {
-//			Map<String, Object> item = new HashMap<>();
-//			double soLuong = (double) ticket.get("soLuong");
-//			double donGia = (double) ticket.get("donGia");
-//			double thueSuat = (double) ticket.get("thueSuat");
-//
-//			double thanhTien = soLuong * donGia;
-//			double tienThue = thanhTien * thueSuat;
-//			double tongCong = thanhTien + tienThue;
-//
-//			item.put("stt", stt++);
-//			item.put("maVe", ticket.get("maVe"));
-//			item.put("tenDichVu", ticket.get("tenDichVu"));
-//			item.put("dvt", ticket.get("dvt"));
-//			item.put("soLuong", currencyFormatter.format(soLuong));
-//			item.put("donGia", currencyFormatter.format(donGia));
-//			item.put("thanhTien", currencyFormatter.format(thanhTien));
-//			item.put("thueSuat", (thueSuat > 0) ? (int) (thueSuat * 100) + "%" : "KCT");
-//			item.put("tienThue", currencyFormatter.format(tienThue));
-//			item.put("tongCong", currencyFormatter.format(tongCong));
-//
-//			finalItems.add(item);
-//			totalTicketQuantity += soLuong;
-//		}
-//
-//		// Thêm dòng Phí bảo hiểm
-//		if (totalTicketQuantity > 0) {
-//			Map<String, Object> insuranceItem = new HashMap<>();
-//			double thanhTienBH = totalTicketQuantity * INSURANCE_PRICE;
-//			insuranceItem.put("stt", stt++);
-//			insuranceItem.put("maVe", null);
-//			insuranceItem.put("tenDichVu", "Phí bảo hiểm hành khách");
-//			insuranceItem.put("dvt", "Người");
-//			insuranceItem.put("soLuong", currencyFormatter.format(totalTicketQuantity));
-//			insuranceItem.put("donGia", currencyFormatter.format(INSURANCE_PRICE));
-//			insuranceItem.put("thanhTien", currencyFormatter.format(thanhTienBH));
-//			insuranceItem.put("thueSuat", "KCT");
-//			insuranceItem.put("tienThue", currencyFormatter.format(0));
-//			insuranceItem.put("tongCong", currencyFormatter.format(thanhTienBH));
-//			finalItems.add(insuranceItem);
-//		}
-//
-//		// Thêm các hàng trống
-//		int currentItemCount = finalItems.size();
-//		if (currentItemCount == 0) {
-//			currentItemCount = 1; // Đảm bảo có ít nhất 1 hàng trống nếu không có dữ liệu
-//		}
-//		int blankRowsToAdd = Math.max(0, MINIMUM_ROWS_IN_TABLE - currentItemCount);
-//		for (int i = 0; i < blankRowsToAdd; i++) {
-//			Map<String, Object> blankItem = new HashMap<>();
-//			blankItem.put("stt", stt++);
-//			finalItems.add(blankItem);
-//		}
-//		data.put("items", finalItems);
-//
-//		// --- BƯỚC 3: TÍNH TOÁN CÁC DÒNG TỔNG KẾT ---
-//		// (Đây là phần giả lập, code thật sẽ phức tạp hơn)
-//		List<Map<String, Object>> summaries = new ArrayList<>();
-//		summaries.add(Map.of("description", "Tổng theo từng loại thuế suất:", "thanhTien", "2.116.667", "thueSuat",
-//				"8%", "tienThue", "169.333", "tongCong", "2.286.000"));
-//		summaries.add(Map.of("description", "", "thanhTien",
-//				currencyFormatter.format(totalTicketQuantity * INSURANCE_PRICE), "thueSuat", "KCT", "tienThue", "0",
-//				"tongCong", currencyFormatter.format(totalTicketQuantity * INSURANCE_PRICE)));
-//		data.put("summariesByTax", summaries);
-//
-//		data.put("tongTienHang", "2.122.667");
-//		data.put("tongTienThue", "169.333");
-//		data.put("tongThanhToan", "2.292.000");
-//		data.put("tongTienBangChu", "Hai triệu hai trăm chín mươi hai nghìn đồng.");
-//
-//		// Các trường dữ liệu khác...
-//		data.put("ngayLap", "28");
-//		data.put("thangLap", "10");
-//		data.put("namLap", "2025");
-//		// ...
-//
-//		return data;
-//	}
+	private Map<String, Object> getRealInvoiceData(HoaDon hd) {
+		Map<String, Object> data = new HashMap<>();
+		NumberFormat currencyFormatter = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
+		currencyFormatter.setMaximumFractionDigits(0);
+
+		final double TAX_RATE = 0.08; // Thuế suất 8% theo yêu cầu
+
+		// 1. HEADER (Ngày, Ký Hiệu, Số)
+		LocalDateTime ngayLap = hd.getNgayLap();
+		String yearFull = String.valueOf(ngayLap.getYear());
+		String yearShort = yearFull.substring(2); // 25
+
+		data.put("ngayLap", String.format("%02d", ngayLap.getDayOfMonth()));
+		data.put("thangLap", String.format("%02d", ngayLap.getMonthValue()));
+		data.put("namLap", yearFull);
+
+		// Ký hiệu: 1K + Năm + T + KH (Ví dụ: 1K25TKH)
+		data.put("kyHieu", "1K" + yearShort + "TKH");
+
+		// Số hóa đơn: Lấy số từ mã (VD: HD001 -> 00000001)
+		String rawId = hd.getMaHoaDon();
+		// Dùng regex lấy tất cả số trong chuỗi
+		String numberOnly = rawId.replaceAll("[^0-9]", "");
+		if (numberOnly.isEmpty())
+			numberOnly = "0"; // Fallback nếu ko có số
+
+		// Parse sang long rồi format lại thành 8 chữ số
+		long soHoaDonVal = Long.parseLong(numberOnly);
+		data.put("soHD", String.format("%08d", soHoaDonVal));
+
+		// Mã tra cứu (giữ nguyên ID gốc)
+		data.put("idHD", rawId);
+
+		// 2. THÔNG TIN KHÁCH HÀNG
+		if (hd.getKhachHang() != null) {
+			data.put("tenNguoiMua", hd.getKhachHang().getTenKhachHang());
+			String sdt = hd.getKhachHang().getSoDienThoai();
+			data.put("sdtNguoiMua", (sdt != null) ? sdt : "");
+		} else {
+			data.put("tenNguoiMua", "");
+			data.put("sdtNguoiMua", "");
+		}
+		// Địa chỉ và thông tin doanh nghiệp để trống theo yêu cầu
+		data.put("diaChiDonVi", "");
+		data.put("tenDonVi", "");
+		data.put("mstDonVi", "");
+		data.put("hinhThucTT", "TM/CK");
+		data.put("stkDonVi", "");
+
+		// 3. XỬ LÝ CHI TIẾT VÉ & TÍNH TOÁN TIỀN
+		List<Map<String, Object>> rawItems = hoaDonDAO.getChiTietHoaDonById(hd.getMaHoaDon());
+		List<Map<String, Object>> allItems = new ArrayList<>();
+
+		int stt = 1;
+		double totalTicketQty = 0;
+
+		// Các biến tổng
+		double sum8_ThanhTien = 0; // Tiền vé trước thuế
+		double sum8_TienThue = 0; // Tiền thuế
+		double sum8_TongCong = 0; // Tiền vé sau thuế (đã trừ BH)
+
+		double totalBaoHiem = 0; // Tổng tiền bảo hiểm
+
+		for (Map<String, Object> itemDB : rawItems) {
+			// SỬA LỖI: Dùng phương thức getOrDefault hoặc kiểm tra null
+			// DAO trả về "thanhTienGoc", không phải "thanhTien"
+
+			Object soLuongObj = itemDB.get("soLuong");
+			double soLuong = (soLuongObj != null) ? ((Number) soLuongObj).doubleValue() : 1.0;
+
+			Object tongTienGocObj = itemDB.get("thanhTienGoc"); // SỬA KEY Ở ĐÂY
+			double tongTienGoc = (tongTienGocObj != null) ? ((Number) tongTienGocObj).doubleValue() : 0.0;
+
+			Object phiBaoHiemObj = itemDB.get("baoHiem");
+			double phiBaoHiem = (phiBaoHiemObj != null) ? ((Number) phiBaoHiemObj).doubleValue() : 0.0;
+
+			// ... (phần còn lại giữ nguyên logic tính toán) ...
+
+			// Tách Bảo Hiểm ra khỏi giá vé để tính thuế
+			double giaChiuThue = tongTienGoc - phiBaoHiem;
+
+			// Tính ngược: Giá chịu thuế = Giá chưa thuế * 1.08
+			double thanhTienChuaThue = giaChiuThue / (1 + TAX_RATE);
+			double tienThue = giaChiuThue - thanhTienChuaThue;
+
+			// Đơn giá hiển thị = Giá chưa thuế / số lượng
+			double donGiaHienThi = (soLuong > 0) ? (thanhTienChuaThue / soLuong) : 0;
+
+			// Cộng dồn
+			sum8_ThanhTien += thanhTienChuaThue;
+			sum8_TienThue += tienThue;
+			sum8_TongCong += giaChiuThue;
+
+			totalBaoHiem += phiBaoHiem;
+			totalTicketQty += soLuong;
+
+			// Tạo dòng hiển thị cho VÉ
+			Map<String, Object> row = new HashMap<>();
+			row.put("type", "ITEM");
+			row.put("stt", stt++);
+			row.put("maVe", itemDB.get("maVe")); // Có thể null nếu vé không có mã
+			row.put("tenDichVu", itemDB.get("tenDichVu"));
+			row.put("dvt", itemDB.get("dvt"));
+			row.put("soLuong", currencyFormatter.format(soLuong));
+			row.put("donGia", currencyFormatter.format(donGiaHienThi));
+			row.put("thanhTien", currencyFormatter.format(thanhTienChuaThue));
+			row.put("thueSuat", "8%");
+			row.put("tienThue", currencyFormatter.format(tienThue));
+			row.put("tongCong", currencyFormatter.format(giaChiuThue));
+
+			allItems.add(row);
+		}
+
+		// 4. DÒNG PHÍ BẢO HIỂM (KCT)
+		// Gom tất cả bảo hiểm lại thành 1 dòng như mẫu
+		if (totalBaoHiem > 0) {
+			// Tính đơn giá bảo hiểm trung bình để hiển thị (thường là 2000)
+			double donGiaBH = (totalTicketQty > 0) ? (totalBaoHiem / totalTicketQty) : 0;
+
+			Map<String, Object> insRow = new HashMap<>();
+			insRow.put("type", "ITEM");
+			insRow.put("stt", stt++);
+			insRow.put("maVe", "");
+			insRow.put("tenDichVu", "Phí bảo hiểm hành khách");
+			insRow.put("dvt", "Người");
+			insRow.put("soLuong", currencyFormatter.format(totalTicketQty));
+			insRow.put("donGia", currencyFormatter.format(donGiaBH));
+			insRow.put("thanhTien", currencyFormatter.format(totalBaoHiem)); // KCT: Thành tiền = Tổng cộng
+			insRow.put("thueSuat", "KCT");
+			insRow.put("tienThue", "0");
+			insRow.put("tongCong", currencyFormatter.format(totalBaoHiem));
+
+			allItems.add(insRow);
+		}
+
+		// 5. TỔNG KẾT (Luôn hiển thị)
+
+		// Tổng nhóm 8%
+		Map<String, Object> summary8 = new HashMap<>();
+		summary8.put("type", "SUMMARY_BY_TAX");
+		summary8.put("description", "Tổng theo từng loại thuế suất:");
+		summary8.put("thanhTien", currencyFormatter.format(sum8_ThanhTien));
+		summary8.put("thueSuat", "8%");
+		summary8.put("tienThue", currencyFormatter.format(sum8_TienThue));
+		summary8.put("tongCong", currencyFormatter.format(sum8_TongCong));
+		allItems.add(summary8);
+
+		// Tổng nhóm KCT (Bảo hiểm)
+		Map<String, Object> summaryKCT = new HashMap<>();
+		summaryKCT.put("type", "SUMMARY_BY_TAX");
+		summaryKCT.put("description", ""); // Rỗng để gộp ô
+		summaryKCT.put("thanhTien", currencyFormatter.format(totalBaoHiem));
+		summaryKCT.put("thueSuat", "KCT");
+		summaryKCT.put("tienThue", "0");
+		summaryKCT.put("tongCong", currencyFormatter.format(totalBaoHiem));
+		allItems.add(summaryKCT);
+
+		// Tổng cộng cuối cùng (Tiền vé sau thuế + Tiền bảo hiểm)
+		double finalTotal = sum8_TongCong + totalBaoHiem;
+		double finalTotal_ChuaThue = sum8_ThanhTien + totalBaoHiem; // Tiền hàng gồm vé gốc + bảo hiểm
+		double finalTotal_Thue = sum8_TienThue;
+
+		Map<String, Object> finalRow = new HashMap<>();
+		finalRow.put("type", "FINAL_TOTAL");
+		finalRow.put("description", "Tổng cộng:");
+		finalRow.put("thanhTien", currencyFormatter.format(finalTotal_ChuaThue));
+		finalRow.put("tienThue", currencyFormatter.format(finalTotal_Thue));
+		finalRow.put("tongCong", currencyFormatter.format(finalTotal));
+		allItems.add(finalRow);
+
+		data.put("allItems", allItems);
+
+		long totalLong = Math.round(finalTotal);
+		data.put("tongTienBangChu", NumberUtils.docSoThanhChu(totalLong));
+		data.put("ghiChu", "");
+
+		URL imgUrl = getClass().getResource("/images/check.png");
+		data.put("imgCheckUrl", imgUrl != null ? imgUrl.toExternalForm() : "");
+
+		return data;
+	}
 
 	private Map<String, Object> createDummyData(String maHoaDon) {
 		Map<String, Object> data = new HashMap<>();
 		NumberFormat currencyFormatter = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
 		currencyFormatter.setMaximumFractionDigits(0);
-		// --- CẤU HÌNH ---
-		final int DESIRED_ROWS_IF_FEW = 10; // Nếu ít hơn số này, sẽ fill cho đủ
-		final double INSURANCE_PRICE = 5000.0;
 
-		// --- DANH SÁCH CHỨA TẤT CẢ CÁC HÀNG CỦA BẢNG ---
+		// Cấu hình hằng số
+		final double TAX_RATE = 0.08;
+		final double INSURANCE_PRICE = 1000.0;
+
+		// 1. Xử lý Ngày tháng & Ký hiệu hóa đơn
+		LocalDate now = LocalDate.now();
+		String day = String.format("%02d", now.getDayOfMonth());
+		String month = String.format("%02d", now.getMonthValue());
+		String yearFull = String.valueOf(now.getYear());
+		String yearShort = yearFull.substring(2); // Lấy 2 số cuối (ví dụ 25)
+
+		data.put("ngayLap", day);
+		data.put("thangLap", month);
+		data.put("namLap", yearFull);
+
+		// Tạo ký hiệu chuẩn: 1C + Năm + T + KH => Ví dụ: 1C25TKH
+		// 1: Loại hóa đơn (GTGT)
+		// C: Có mã của cơ quan thuế (Giả lập)
+		// K: Không có mã của cơ quan thuế
+		// yearShort: 25
+		// T: Áp dụng cho các tổ chức, doanh nghiệp
+		// KH: Mã quản lý nội bộ (Khách Hàng)
+		String kyHieuChuan = "1K" + yearShort + "TKH";
+		data.put("kyHieu", kyHieuChuan);
+
+		// Số hóa đơn (Giả lập lấy từ DB)
+		data.put("soHD", "0000123");
+
+		// 2. Dữ liệu vé (Mock)
+		List<Map<String, Object>> rawTickets = new ArrayList<>();
+		rawTickets.add(Map.of("maVe", "143356995", "tenDichVu", "Vé HK: DIA-DTR-SE30-26/01/2025-3-25-NML", "dvt", "Vé",
+				"soLuong", 1.0, "donGia", 1113889.0));
+		rawTickets.add(Map.of("maVe", "143356996", "tenDichVu", "Vé HK: DIA-DTR-SE30-26/01/2025-3-26-NML", "dvt", "Vé",
+				"soLuong", 1.0, "donGia", 1002778.0));
+
+		// 3. Tính toán chi tiết
 		List<Map<String, Object>> allItems = new ArrayList<>();
-
-		// --- BƯỚC 1: DỮ LIỆU VÉ GỐC (Lấy từ DAO) ---
-		List<Map<String, Object>> tickets = new ArrayList<>();
-		// Bỏ comment dòng dưới để test trường hợp không có vé
-		// tickets.clear();
-		tickets.add(Map.of("maVe", "143356995", "tenDichVu", "Vé HK: DIA-DTR-SE30", "dvt", "Vé", "soLuong", 1.0,
-				"donGia", 1113889.0, "thueSuat", TAX_RATE));
-		tickets.add(Map.of("maVe", "143356996", "tenDichVu", "Vé HK: DIA-DTR-SE30", "dvt", "Vé", "soLuong", 1.0,
-				"donGia", 1002778.0, "thueSuat", TAX_RATE));
-
-		// --- BƯỚC 2: XỬ LÝ DỮ LIỆU GỐC VÀ THÊM VÀO `allItems` ---
 		int stt = 1;
-		double totalTicketQuantity = 0;
+		double totalQty = 0;
+		double sum8_ThanhTien = 0, sum8_TienThue = 0, sum8_TongCong = 0;
 
-		// Xử lý vé
-		for (Map<String, Object> ticket : tickets) {
-			Map<String, Object> item = new HashMap<>();
-			// ... (phần tính toán `thanhTien`, `tienThue`... giữ nguyên) ...
+		for (Map<String, Object> ticket : rawTickets) {
 			double soLuong = (double) ticket.get("soLuong");
 			double donGia = (double) ticket.get("donGia");
-			double thueSuat = (double) ticket.get("thueSuat");
 			double thanhTien = soLuong * donGia;
-			double tienThue = thanhTien * thueSuat;
+			double tienThue = thanhTien * TAX_RATE;
 			double tongCong = thanhTien + tienThue;
 
-			item.put("type", "ITEM"); // Đánh dấu loại hàng
-			item.put("stt", stt++);
-			item.put("maVe", ticket.get("maVe"));
-			item.put("tenDichVu", ticket.get("tenDichVu"));
-			item.put("dvt", ticket.get("dvt"));
-			item.put("soLuong", currencyFormatter.format(soLuong));
-			item.put("donGia", currencyFormatter.format(donGia));
-			item.put("thanhTien", currencyFormatter.format(thanhTien));
-			item.put("thueSuat", (thueSuat > 0) ? "8%" : "KCT");
-			item.put("tienThue", currencyFormatter.format(tienThue));
-			item.put("tongCong", currencyFormatter.format(tongCong));
-			allItems.add(item);
-			totalTicketQuantity += soLuong;
+			sum8_ThanhTien += thanhTien;
+			sum8_TienThue += tienThue;
+			sum8_TongCong += tongCong;
+			totalQty += soLuong;
+
+			Map<String, Object> row = new HashMap<>();
+			row.put("type", "ITEM");
+			row.put("stt", stt++);
+			row.put("maVe", ticket.get("maVe"));
+			row.put("tenDichVu", ticket.get("tenDichVu"));
+			row.put("dvt", ticket.get("dvt"));
+			row.put("soLuong", currencyFormatter.format(soLuong));
+			row.put("donGia", currencyFormatter.format(donGia));
+			row.put("thanhTien", currencyFormatter.format(thanhTien));
+			row.put("thueSuat", "8%");
+			row.put("tienThue", currencyFormatter.format(tienThue));
+			row.put("tongCong", currencyFormatter.format(tongCong));
+			allItems.add(row);
 		}
 
-		// Xử lý phí bảo hiểm
-		if (totalTicketQuantity > 0) {
-			Map<String, Object> insuranceItem = new HashMap<>();
-			double thanhTienBH = totalTicketQuantity * INSURANCE_PRICE;
-			insuranceItem.put("type", "ITEM");
-			insuranceItem.put("stt", stt++);
-			insuranceItem.put("tenDichVu", "Phí bảo hiểm hành khách");
-			insuranceItem.put("dvt", "Người");
-			insuranceItem.put("soLuong", currencyFormatter.format(totalTicketQuantity));
-			insuranceItem.put("donGia", currencyFormatter.format(INSURANCE_PRICE));
-			insuranceItem.put("thanhTien", currencyFormatter.format(thanhTienBH));
-			insuranceItem.put("thueSuat", "KCT");
-			insuranceItem.put("tienThue", "0");
-			insuranceItem.put("tongCong", currencyFormatter.format(thanhTienBH));
-			allItems.add(insuranceItem);
+		// 4. Tính bảo hiểm
+		double sumKCT_ThanhTien = 0, sumKCT_TongCong = 0;
+		if (totalQty > 0) {
+			double bh_ThanhTien = totalQty * INSURANCE_PRICE;
+			double bh_TongCong = bh_ThanhTien;
+			sumKCT_ThanhTien += bh_ThanhTien;
+			sumKCT_TongCong += bh_TongCong;
+
+			Map<String, Object> insRow = new HashMap<>();
+			insRow.put("type", "ITEM");
+			insRow.put("stt", stt++);
+			insRow.put("maVe", "");
+			insRow.put("tenDichVu", "Phí bảo hiểm hành khách");
+			insRow.put("dvt", "Người");
+			insRow.put("soLuong", currencyFormatter.format(totalQty));
+			insRow.put("donGia", currencyFormatter.format(INSURANCE_PRICE));
+			insRow.put("thanhTien", currencyFormatter.format(bh_ThanhTien));
+			insRow.put("thueSuat", "KCT");
+			insRow.put("tienThue", "");
+			insRow.put("tongCong", currencyFormatter.format(bh_TongCong));
+			allItems.add(insRow);
 		}
 
-		// --- BƯỚC 3: ÁP DỤNG LOGIC FILLER MỚI ---
-		int contentRowCount = allItems.size();
-		int blankRowsToAdd = 0;
-		if (contentRowCount < DESIRED_ROWS_IF_FEW) {
-			blankRowsToAdd = DESIRED_ROWS_IF_FEW - contentRowCount;
-		}
+		// KHÔNG CÒN LOGIC FILLER (HÀNG TRỐNG) Ở ĐÂY NỮA
 
-		for (int i = 0; i < blankRowsToAdd; i++) {
-			Map<String, Object> blankItem = new HashMap<>();
-			blankItem.put("type", "ITEM");
-			blankItem.put("stt", ""); // Hàng trống không có STT
-			allItems.add(blankItem);
-		}
+		// 5. Các dòng tổng kết
+		Map<String, Object> sum8 = new HashMap<>();
+		sum8.put("type", "SUMMARY_BY_TAX");
+		sum8.put("description", "Tổng theo từng loại thuế suất:");
+		sum8.put("thanhTien", currencyFormatter.format(sum8_ThanhTien));
+		sum8.put("thueSuat", "8%");
+		sum8.put("tienThue", currencyFormatter.format(sum8_TienThue));
+		sum8.put("tongCong", currencyFormatter.format(sum8_TongCong));
+		allItems.add(sum8);
 
-		// --- BƯỚC 4: THÊM CÁC HÀNG TỔNG KẾT VÀO `allItems` ---
-		// (Giả lập, logic thật sẽ tính toán dựa trên dữ liệu thật)
-		Map<String, Object> summaryTax = new HashMap<>();
-		summaryTax.put("type", "SUMMARY_BY_TAX");
-		summaryTax.put("description", "Tổng theo từng loại thuế suất:");
-		summaryTax.put("thanhTien", "2.116.667");
-		summaryTax.put("thueSuat", "8%");
-		summaryTax.put("tienThue", "169.333");
-		summaryTax.put("tongCong", "2.286.000");
-		allItems.add(summaryTax);
+		Map<String, Object> sumKCT = new HashMap<>();
+		sumKCT.put("type", "SUMMARY_BY_TAX");
+		sumKCT.put("description", "");
+		sumKCT.put("thanhTien", currencyFormatter.format(sumKCT_ThanhTien));
+		sumKCT.put("thueSuat", "KCT");
+		sumKCT.put("tienThue", "0");
+		sumKCT.put("tongCong", currencyFormatter.format(sumKCT_TongCong));
+		allItems.add(sumKCT);
 
-		Map<String, Object> summaryKCT = new HashMap<>();
-		summaryKCT.put("type", "SUMMARY_BY_TAX");
-		summaryKCT.put("description", "");
-		summaryKCT.put("thanhTien", currencyFormatter.format(totalTicketQuantity * INSURANCE_PRICE));
-		summaryKCT.put("thueSuat", "KCT");
-		summaryKCT.put("tienThue", "0");
-		summaryKCT.put("tongCong", currencyFormatter.format(totalTicketQuantity * INSURANCE_PRICE));
-		allItems.add(summaryKCT);
+		double finalTotal = sum8_TongCong + sumKCT_TongCong;
+		Map<String, Object> finalRow = new HashMap<>();
+		finalRow.put("type", "FINAL_TOTAL");
+		finalRow.put("description", "Tổng cộng:");
+		finalRow.put("thanhTien", currencyFormatter.format(sum8_ThanhTien + sumKCT_ThanhTien));
+		finalRow.put("tienThue", currencyFormatter.format(sum8_TienThue));
+		finalRow.put("tongCong", currencyFormatter.format(finalTotal));
+		allItems.add(finalRow);
 
-		Map<String, Object> finalTotal = new HashMap<>();
-		finalTotal.put("type", "FINAL_TOTAL");
-		finalTotal.put("description", "Tổng cộng:");
-		finalTotal.put("thanhTien", "2.122.667");
-		finalTotal.put("tienThue", "169.333");
-		finalTotal.put("tongCong", "2.292.000");
-		allItems.add(finalTotal);
-
-		// --- BƯỚC 5: ĐƯA DANH SÁCH TỔNG HỢP VÀO DATA ---
 		data.put("allItems", allItems);
+		data.put("tongTienBangChu", NumberUtils.docSoThanhChu((long) finalTotal));
 
-		// Các trường dữ liệu ngoài bảng
-		data.put("tongTienBangChu", "Hai triệu hai trăm chín mươi hai nghìn đồng.");
-		data.put("ngayLap", "28");
-		data.put("thangLap", "10");
-		data.put("namLap", "2025");
-		// ...
+		// Thông tin khách hàng (Mock)
+		data.put("tenNguoiMua", "Công ty TNHH Giao nhận và Vận tải Châu Kỳ");
+		data.put("sdtNguoiMua", "0912938469");
+		data.put("ghiChu", "");
+
+		// Dấu tích
+
+		URL imgUrl = getClass().getResource("/images/check.png");
+		if (imgUrl != null) {
+			data.put("imgCheckUrl", imgUrl.toExternalForm());
+		} else {
+			data.put("imgCheckUrl", ""); // Tránh lỗi null nếu quên copy ảnh
+		}
 
 		return data;
 	}

@@ -30,19 +30,66 @@
 .party-info p { margin: 4px 0; }
 .info-line { overflow: hidden; } .info-line p:first-child { float: left; } .info-line p:last-child { float: right; }
 .separator { border: none; border-top: 1px dashed #000; margin: 10px 0; clear: both; }
-.items-table table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+
+.items-table table { width: 100%; border-collapse: collapse; margin-top: 5px; }
 .items-table th, .items-table td { border: 1px solid black; padding: 5px; vertical-align: top; }
+.items-table th { font-size: 10pt; }
 .items-table thead { background-color: #f2f2f2; }
 
 .summary-section table { width: 100%; border-collapse: collapse; margin-top: 1px; }
 .summary-section td { border: 1px solid black; padding: 5px; } 
 .summary-section .no-border { border: none; }
 
-.final-summary { margin-top: 10px; } .final-summary p { margin: 5px 0; }
-.signature-table { width: 100%; margin-top: 40px; text-align: center; border-collapse: collapse; page-break-inside: avoid;}
-.signature-table td { width: 50%; border: none; padding: 0; }
+.final-summary { margin-top: 2px; } 
+.final-summary p { margin: 2px 0; }
+
+.signature-table { width: 100%; margin-top: 2px; text-align: center; border-collapse: collapse; page-break-inside: avoid;}
+.signature-table td { width: 50%; border: none; padding: 0; vertical-align: top; /* Đẩy nội dung lên trên cùng */ }
+
+.sign-title { margin-bottom: 2px; }
+.sign-note { margin-top: 0; font-style: italic; }
+
+
+
+.digital-signature-table {
+    /* QUAN TRỌNG: Tự động co giãn chiều rộng theo nội dung chữ */
+    width: auto; 
+    display: inline-table; /* Giúp khung bao sát nội dung hơn */
+    
+    /* Căn giữa khung đỏ nằm trong ô 50% bên phải */
+    margin-top: 2px;
+    margin-left: auto;
+    margin-right: auto;
+    
+    /* Giao diện khung đỏ */
+    border: 2px solid red;
+    color: red;
+    font-size: 9pt;
+    background-color: white;
+}
+.digital-signature-table td {
+    /* Reset lại các thuộc tính của td cha để không bị ảnh hưởng */
+    width: auto; 
+    border: none; 
+    padding: 5px 10px; /* Thêm padding để khung đỏ thoáng hơn */
+    text-align: left; /* Chữ bên trong khung đỏ căn trái cho đẹp */
+    vertical-align: middle;
+}
+/* Dấu tích xanh */
+.check-mark {
+    color: green;
+    font-size: 24pt;
+    font-weight: bold;
+    line-height: 1;
+}
+
+
+
+
 footer { margin-top: 30px; font-size: 10pt; page-break-inside: avoid;}
-.text-right { text-align: right; } .text-center { text-align: center; } .strong { font-weight: bold; }
+.text-right { text-align: right; } 
+.text-center { text-align: center; } 
+.strong { font-weight: bold; }
 
 
 
@@ -59,15 +106,8 @@ footer { margin-top: 30px; font-size: 10pt; page-break-inside: avoid;}
 
 
 
-
-.items-table thead th {
-    text-align: center;
-}
-
-.items-table td.strong {
-    font-weight: bold;
-}
-
+.items-table thead th { text-align: center; } 
+.items-table td.strong { font-weight: bold; }
 
 
 
