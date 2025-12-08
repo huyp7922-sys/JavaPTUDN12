@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.util.List;
 
 import com.ptudn12.main.dao.KhachHangDAO;
+import com.ptudn12.main.dao.VeTauDAO;
 import com.ptudn12.main.entity.KhachHang;
+import com.ptudn12.main.entity.VeDaMua;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -37,6 +39,8 @@ public class CustomerManagementController {
 	private TableColumn<KhachHang, Integer> pointsColumn;
 
 	private final KhachHangDAO khachHangDAO = new KhachHangDAO();
+
+	private final VeTauDAO veTauDAO = new VeTauDAO();
 
 	// Danh sách dữ liệu khách hàng
 	private ObservableList<KhachHang> customerData = FXCollections.observableArrayList();
@@ -148,20 +152,39 @@ public class CustomerManagementController {
 		}
 
 		try {
+			int maKhachHang = Integer.parseInt(selected.getMaKhachHang().substring(2));
+
+			// Gọi DAO để lấy danh sách lịch sử vé
+			List<VeDaMua> historyList = veTauDAO.layLichSuMuaVeTheoKhachHang(maKhachHang);
+
+			// =================================================================
+			// KIỂM TRA NẾU KHÁCH HÀNG KHÔNG CÓ VÉ NÀO
+			if (historyList.isEmpty()) {
+				showAlert(Alert.AlertType.INFORMATION, "Thông báo",
+						"Khách hàng \"" + selected.getTenKhachHang() + "\" chưa mua vé nào.");
+				return; // Dừng lại, không mở cửa sổ lịch sử
+			}
+			// =================================================================
+
+			// Nếu có vé, tiếp tục mở cửa sổ như bình thường
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/customer-history-view.fxml"));
 			Scene scene = new Scene(loader.load());
 
 			CustomerHistoryController controller = loader.getController();
-			controller.loadCustomerData(selected);
+			controller.initData(selected, historyList);
 
 			Stage dialogStage = new Stage();
 			dialogStage.setTitle("Lịch Sử Mua Vé của " + selected.getTenKhachHang());
 			dialogStage.initModality(Modality.APPLICATION_MODAL);
 			dialogStage.setScene(scene);
 			dialogStage.showAndWait();
+
+		} catch (NumberFormatException e) {
+			e.printStackTrace();
+			showAlert(Alert.AlertType.ERROR, "Lỗi Dữ Liệu", "Mã khách hàng không hợp lệ: " + selected.getMaKhachHang());
 		} catch (IOException e) {
 			e.printStackTrace();
-			showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể mở cửa sổ xem lịch sử mua vé!");
+			showAlert(Alert.AlertType.ERROR, "Lỗi Giao Diện", "Không thể mở cửa sổ xem lịch sử mua vé!");
 		}
 	}
 
