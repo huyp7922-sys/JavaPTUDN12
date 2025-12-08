@@ -82,7 +82,7 @@
                     <TableColumn fx:id="maVeColumn" text="Mã vé" minWidth="120"/>
                     <TableColumn fx:id="macTauColumn" text="Mác tàu" minWidth="80"/>
                     <TableColumn fx:id="hanhTrinhColumn" text="Hành trình" minWidth="200"/>
-                    <TableColumn fx:id="thoiGianColumn" text="Thời gian đi - đến" minWidth="140"/>
+                    <TableColumn fx:id="thoiGianColumn" text="Thời gian đi - đến" minWidth="200"/>
                     <TableColumn fx:id="toaColumn" text="Toa - loại chỗ" minWidth="150"/>
                     <TableColumn fx:id="soChoColumn" text="Số chỗ" minWidth="60"/>
                     <TableColumn fx:id="giaVeColumn" text="Giá vé" minWidth="120"/>

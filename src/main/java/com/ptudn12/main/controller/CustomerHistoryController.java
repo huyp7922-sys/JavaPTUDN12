@@ -2,6 +2,7 @@
 package com.ptudn12.main.controller;
 
 import java.text.NumberFormat;
+import java.util.List;
 import java.util.Locale;
 
 import com.ptudn12.main.entity.KhachHang;
@@ -115,6 +116,33 @@ public class CustomerHistoryController {
 		historyTable.setItems(purchaseHistoryData);
 
 		// Tính toán và hiển thị thông tin tổng kết
+		updateSummary();
+	}
+
+	/**
+	 * Khởi tạo dữ liệu cho toàn bộ cửa sổ, bao gồm thông tin khách hàng và lịch sử
+	 * mua vé.
+	 * 
+	 * @param customer        Khách hàng được chọn.
+	 * @param purchaseHistory Danh sách vé đã mua từ DAO.
+	 */
+	public void initData(KhachHang customer, List<VeDaMua> purchaseHistory) {
+		// 1. Điền thông tin khách hàng
+		maKhField.setText(customer.getMaKhachHang());
+		hoTenField.setText(customer.getTenKhachHang());
+		cccdField.setText(
+				customer.getSoCCCD() != null && !customer.getSoCCCD().isEmpty() ? customer.getSoCCCD() : "N/A");
+		hoChieuField.setText(
+				customer.getHoChieu() != null && !customer.getHoChieu().isEmpty() ? customer.getHoChieu() : "N/A");
+		sdtField.setText(customer.getSoDienThoai());
+		diemTichField.setText(String.valueOf(customer.getDiemTich()));
+
+		// 2. Nạp dữ liệu lịch sử vào bảng
+		purchaseHistoryData.clear();
+		purchaseHistoryData.addAll(purchaseHistory);
+		historyTable.setItems(purchaseHistoryData);
+
+		// 3. Cập nhật phần tổng kết
 		updateSummary();
 	}
 
