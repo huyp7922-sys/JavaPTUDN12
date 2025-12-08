@@ -2,6 +2,7 @@ package com.ptudn12.main.controller;
 
 import java.io.IOException;
 
+import com.ptudn12.main.dao.TauDAO;
 import com.ptudn12.main.enums.LoaiCho;
 import com.ptudn12.main.enums.LoaiToa;
 
@@ -30,15 +31,18 @@ public class AddCarriageDialogController {
 	@FXML
 	private Button closeButton;
 
+	private TauDAO tauDAO;
+
 	@FXML
 	public void initialize() {
+		this.tauDAO = new TauDAO();
 		carriageTypeComboBox.setItems(FXCollections.observableArrayList(LoaiToa.values()));
 		carriageTypeComboBox.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
 			if (newValue != null) {
 				updateCarriageView(newValue);
 			}
 		});
-		carriageTypeComboBox.setValue(LoaiToa.NgoiMem);
+		carriageTypeComboBox.setValue(LoaiToa.NGOI_MEM);
 	}
 
 	/**
@@ -53,7 +57,7 @@ public class AddCarriageDialogController {
 
 		if (correspondingLoaiCho == null) {
 			showAlert(Alert.AlertType.ERROR, "Lỗi Cấu Hình",
-					"Không tìm thấy Loại Chỗ tương ứng cho Loại Toa: " + type.getTenLoaiToa());
+					"Không tìm thấy Loại Chỗ tương ứng cho Loại Toa: " + type.getDescription());
 			carriageLayoutContainer.getChildren().clear();
 			return;
 		}
@@ -65,34 +69,36 @@ public class AddCarriageDialogController {
 			CarriageFrameController frameController = frameLoader.getController();
 
 			Node carLayoutContent = null;
+
 			switch (type) {
-			case NgoiMem:
-				FXMLLoader contentLoader = new FXMLLoader(getClass().getResource("/views/soft-seat-car-layout.fxml"));
-				carLayoutContent = contentLoader.load();
-				SoftSeatCarController contentController = contentLoader.getController();
-				contentController.initViewOnlyMode(type.getSoChoMacDinh(), correspondingLoaiCho);
+			case NGOI_MEM:
+				FXMLLoader contentLoader1 = new FXMLLoader(getClass().getResource("/views/soft-seat-car-layout.fxml"));
+				carLayoutContent = contentLoader1.load();
+				SoftSeatCarController contentController1 = contentLoader1.getController();
+				contentController1.initViewOnlyMode(type.getSoChoMacDinh(type), correspondingLoaiCho);
 				break;
 
 			// --- CÁC LOẠI TOA KHÁC SẼ ĐƯỢC THÊM VÀO ĐÂY ---
 
-			case Giuong4:
-			case Giuong6:
-			case GiuongVIP:
+			case GIUONG_NAM_KHOANG_4:
+			case GIUONG_NAM_KHOANG_6:
+			case GIUONG_NAM_VIP:
 				FXMLLoader sleeperLoader = new FXMLLoader(getClass().getResource("/views/sleeper-car-layout.fxml"));
 				carLayoutContent = sleeperLoader.load();
 				SleeperCarController sleeperController = sleeperLoader.getController();
 
 				// Xác định số tầng dựa trên LoaiToa
-				int tiers = (type == LoaiToa.Giuong6) ? 3 : (type == LoaiToa.Giuong4) ? 2 : 1;
+				int tiers = (type == LoaiToa.GIUONG_NAM_KHOANG_6) ? 3 : (type == LoaiToa.GIUONG_NAM_KHOANG_4) ? 2 : 1;
 				sleeperController.initViewOnlyMode(tiers, correspondingLoaiCho);
 				break;
-			case NgoiCung:
-				// Tạm thời xóa layout cũ và thông báo chưa có
-				carLayoutContent = null;
-				System.out.println("Chưa triển khai giao diện cho: " + type.getTenLoaiToa());
+			case NGOI_CUNG:
+				FXMLLoader contentLoader2 = new FXMLLoader(getClass().getResource("/views/hard-seat-car-layout.fxml"));
+				carLayoutContent = contentLoader2.load();
+				HardSeatCarController contentController2 = contentLoader2.getController();
+				contentController2.initViewOnlyMode(type.getSoChoMacDinh(type), correspondingLoaiCho);
 				break;
 			}
-			String title = String.format("%s", type.getTenLoaiToa());
+			String title = String.format("%s", type.getDescription());
 			frameController.setTitle(title);
 			frameController.setContent(carLayoutContent); // Cắm nội dung vào khung
 		} catch (IOException e) {
@@ -116,16 +122,16 @@ public class AddCarriageDialogController {
 	 */
 	private LoaiCho mapLoaiToaToLoaiCho(LoaiToa loaiToa) {
 		switch (loaiToa) {
-		case NgoiMem:
-			return LoaiCho.GheNgoiMem;
-		case NgoiCung:
-			return LoaiCho.GheCung;
-		case Giuong4:
-			return LoaiCho.Giuong4;
-		case Giuong6:
-			return LoaiCho.Giuong6;
-		case GiuongVIP:
-			return LoaiCho.GiuongVIP;
+		case NGOI_MEM:
+			return LoaiCho.GHE_NGOI_MEM;
+		case NGOI_CUNG:
+			return LoaiCho.GHE_CUNG;
+		case GIUONG_NAM_KHOANG_4:
+			return LoaiCho.GIUONG_4;
+		case GIUONG_NAM_KHOANG_6:
+			return LoaiCho.GIUONG_66;
+		case GIUONG_NAM_VIP:
+			return LoaiCho.GIUONG_VIP;
 		default:
 			// Trả về null hoặc throw exception nếu không có mapping
 			return null;
@@ -142,15 +148,57 @@ public class AddCarriageDialogController {
 	@FXML
 	private void handleAdd() {
 		LoaiToa selectedType = carriageTypeComboBox.getValue();
-		// TODO: Thêm logic lưu toa mới vào database
-		System.out.println("Lưu toa mới loại: " + selectedType.getTenLoaiToa());
-		showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã đăng ký toa " + selectedType.getTenLoaiToa());
-		closeStage();
+		if (selectedType == null) {
+			showAlert(Alert.AlertType.WARNING, "Thiếu thông tin", "Vui lòng chọn một loại toa!");
+			return;
+		}
+
+		// TODO: Cần có giao diện để người dùng nhập tên toa.
+		// Tạm thời, chúng ta sẽ tạo một tên toa ngẫu nhiên để demo.
+		String tenToaMoi = generateNewCarriageName(selectedType);
+
+		// Gọi phương thức DAO để thêm toa mới
+		boolean success = tauDAO.themToaMoi(tenToaMoi, selectedType);
+
+		if (success) {
+			showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã thêm thành công toa mới: " + tenToaMoi);
+			closeStage();
+		} else {
+			showAlert(Alert.AlertType.ERROR, "Thất bại",
+					"Không thể thêm toa mới vào cơ sở dữ liệu. Vui lòng kiểm tra console để biết chi tiết.");
+		}
 	}
 
 	@FXML
 	private void handleClose() {
 		closeStage();
+	}
+
+	/**
+	 * Hàm tạm thời để tạo tên toa mới dựa trên loại toa. Trong thực tế, bạn nên có
+	 * một ô TextField để người dùng nhập.
+	 */
+	private String generateNewCarriageName(LoaiToa type) {
+		String prefix = "";
+		switch (type) {
+		case NGOI_CUNG:
+			prefix = "NC";
+			break;
+		case NGOI_MEM:
+			prefix = "NM";
+			break;
+		case GIUONG_NAM_KHOANG_6:
+			prefix = "GN6";
+			break;
+		case GIUONG_NAM_KHOANG_4:
+			prefix = "GN4";
+			break;
+		case GIUONG_NAM_VIP:
+			prefix = "VIP";
+			break;
+		}
+		// Thêm một số ngẫu nhiên để đảm bảo tên là duy nhất
+		return prefix + String.format("%02d", (int) (Math.random() * 90 + 10));
 	}
 
 	// --- 5. Các hàm tiện ích ---

@@ -6,6 +6,10 @@ public class Tau {
 	private String macTau;
 	private String TrangThai;
 
+	private int soToa;
+	private int tongChoNgoi;
+	private String cauTrucTau;
+
 	public Tau(String macTau) {
 		this.macTau = macTau;
 	}
@@ -24,6 +28,30 @@ public class Tau {
 
 	public void setTrangThai(String trangThai) {
 		TrangThai = trangThai;
+	}
+
+	public int getSoToa() {
+		return soToa;
+	}
+
+	public void setSoToa(int soToa) {
+		this.soToa = soToa;
+	}
+
+	public int getTongChoNgoi() {
+		return tongChoNgoi;
+	}
+
+	public void setTongChoNgoi(int tongChoNgoi) {
+		this.tongChoNgoi = tongChoNgoi;
+	}
+
+	public String getCauTrucTau() {
+		return cauTrucTau;
+	}
+
+	public void setCauTrucTau(String cauTrucTau) {
+		this.cauTrucTau = cauTrucTau;
 	}
 
 	@Override

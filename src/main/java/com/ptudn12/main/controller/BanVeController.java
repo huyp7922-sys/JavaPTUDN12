@@ -34,6 +34,11 @@ import javafx.util.Duration;
 public class BanVeController {
     @FXML private StackPane contentPane;
     @FXML private Label dateTimeLabel;
+    
+    private Step1Controller step1ControllerInstance;
+    private Step2Controller step2ControllerInstance;
+    private Step3Controller step3ControllerInstance;
+    private Step4Controller step4ControllerInstance;
 
     // Menu items
     @FXML private TitledPane menuVeTau;
@@ -70,12 +75,10 @@ public class BanVeController {
     }
     
     // --- Các hàm xử lý menu ---
-
     @FXML
     private void showBanVe() {
         resetMenuButtons();
         btnBanVe.getStyleClass().add("menu-item-active");
-        // SỬA: Tải file step-1.fxml
         loadContent("step-1.fxml");
     }
 
@@ -117,33 +120,45 @@ public class BanVeController {
     // HÀM QUAN TRỌNG: Tải FXML vào vùng nội dung
     public void loadContent(String fxmlFile) {
         try {
-            // Check if file exists
-            if (getClass().getResource("/views/" + fxmlFile) == null) {
-                showPlaceholder("Chức năng chưa được tạo",
-                        "Trang này đang được phát triển.\nVui lòng quay lại sau!");
-                return;
-            }
-
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/" + fxmlFile));
-            Node view = loader.load();
-
-            // SỬA: Cập nhật tên Controller của các step
-            if (loader.getController() instanceof Step1Controller) {
-                ((Step1Controller) loader.getController()).setMainController(this);
-            } else if (loader.getController() instanceof Step2Controller) {
-                ((Step2Controller) loader.getController()).setMainController(this);
-            }
-            // (Thêm else if cho các controller step 3, 4 sau)
-
-            contentPane.getChildren().clear();
-            contentPane.getChildren().add(view);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            showPlaceholder("Lỗi khi tải giao diện",
-                    "Không thể tải file: " + fxmlFile + "\n\n"
-                    + "Chi tiết lỗi: " + e.getMessage());
+        // Check if file exists
+        if (getClass().getResource("/views/" + fxmlFile) == null) {
+            showPlaceholder("Chức năng chưa được tạo",
+                    "Trang này đang được phát triển.\nVui lòng quay lại sau!");
+            return;
         }
+
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/" + fxmlFile));
+        Node view = loader.load();
+        Object controller = loader.getController();
+
+        // Lưu lại instance của controller
+        if (controller instanceof Step1Controller) {
+            step1ControllerInstance = (Step1Controller) controller;
+            step1ControllerInstance.setMainController(this);
+            step1ControllerInstance.initData();
+        } else if (controller instanceof Step2Controller) {
+            step2ControllerInstance = (Step2Controller) controller;
+            step2ControllerInstance.setMainController(this);
+            step2ControllerInstance.initData();
+        } else if (controller instanceof Step3Controller) {
+            step3ControllerInstance = (Step3Controller) controller;
+            step3ControllerInstance.setMainController(this);
+            step3ControllerInstance.initData();
+        } else if (controller instanceof Step4Controller) {
+            step4ControllerInstance = (Step4Controller) controller;
+            step4ControllerInstance.setMainController(this);
+            step4ControllerInstance.initData();
+        }
+
+        contentPane.getChildren().clear();
+        contentPane.getChildren().add(view);
+
+    } catch (IOException e) {
+        e.printStackTrace();
+        showPlaceholder("Lỗi khi tải giao diện",
+                "Không thể tải file: " + fxmlFile + "\n\n"
+                + "Chi tiết lỗi: " + e.getMessage());
+    }
     }
 
     @FXML
@@ -164,6 +179,17 @@ public class BanVeController {
                 e.printStackTrace();
                 showError("Lỗi khi đăng xuất: " + e.getMessage());
             }
+        }
+    }
+    
+    /**
+    * Hàm chuyển tiếp yêu cầu hủy vé từ Step 3 đến Step 2
+    */
+    public void requestCancelTicketInCart(int maCho, boolean isChieuDi) {
+        if (step2ControllerInstance != null) {
+            step2ControllerInstance.cancelTicketBySeatId(maCho, isChieuDi);
+        } else {
+            System.err.println("BanVeController: Step2Controller chưa được khởi tạo, không thể hủy vé.");
         }
     }
     

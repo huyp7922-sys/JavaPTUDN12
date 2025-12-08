@@ -10,7 +10,7 @@ package com.ptudn12.main.enums;
  */
 public enum LoaiHoaDon {
     BAN_VE("Hóa đơn bán vé"),
-	HOAN_TIEN("Hóa đơn trả vé");
+    HOAN_TIEN("Hóa đơn trả vé");
 
     private final String description;
 

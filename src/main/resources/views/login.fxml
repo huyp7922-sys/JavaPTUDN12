@@ -3,8 +3,6 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.image.ImageView?>
-<?import javafx.scene.image.Image?>
 
 <StackPane xmlns="http://javafx.com/javafx"
            xmlns:fx="http://javafx.com/fxml"
@@ -13,8 +11,6 @@
            styleClass="root"
            prefWidth="1040" prefHeight="585">
 
-
-    <!-- Login Card - Positioned at RIGHT -->
     <VBox alignment="CENTER" spacing="25" 
           styleClass="login-card"
           maxWidth="420" minWidth="420"
@@ -29,16 +25,13 @@
             <Insets right="50"/>
         </StackPane.margin>
 
-        <!-- Title -->
         <VBox alignment="CENTER" spacing="10">
             <Label text="Đăng Nhập Hệ Thống" styleClass="title"/>
             <Label text="Vui lòng nhập thông tin đăng nhập" styleClass="subtitle"/>
         </VBox>
 
-        <!-- Spacer -->
         <Region prefHeight="10"/>
 
-        <!-- Username Field -->
         <VBox spacing="10">
             <Label text="Tên đăng nhập / Email" styleClass="field-label"/>
             <TextField fx:id="usernameField" 
@@ -47,7 +40,6 @@
                        prefHeight="45"/>
         </VBox>
 
-        <!-- Password Field -->
         <VBox spacing="10">
             <Label text="Mật khẩu" styleClass="field-label"/>
             <PasswordField fx:id="passwordField" 
@@ -56,7 +48,12 @@
                            prefHeight="45"/>
         </VBox>
 
-        <!-- Login Button -->
+        <HBox alignment="CENTER_RIGHT">
+            <Hyperlink text="Quên mật khẩu?" 
+                       styleClass="hyperlink"
+                       onAction="#handleForgotPassword"/>
+        </HBox>
+
         <Button text="Đăng Nhập" 
                 onAction="#handleLogin"
                 maxWidth="Infinity"
@@ -67,7 +64,6 @@
             </VBox.margin>
         </Button>
 
-        <!-- Spacer -->
         <Region prefHeight="5"/>
     </VBox>
 

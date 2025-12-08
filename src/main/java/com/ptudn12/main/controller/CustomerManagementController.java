@@ -2,6 +2,7 @@
 package com.ptudn12.main.controller;
 
 import java.io.IOException;
+import java.util.List;
 
 import com.ptudn12.main.dao.KhachHangDAO;
 import com.ptudn12.main.dao.VeTauDAO;
@@ -22,7 +23,6 @@ import javafx.stage.Stage;
 
 public class CustomerManagementController {
 
-	// Khai báo các thành phần FXML cho bảng Khách hàng
 	@FXML
 	private TableView<KhachHang> customerTable;
 	@FXML
@@ -56,16 +56,20 @@ public class CustomerManagementController {
 		pointsColumn.setCellValueFactory(new PropertyValueFactory<>("diemTich"));
 
 		// Tải dữ liệu mẫu
-		loadMockData();
+		loadDataFromDatabase();
 	}
 
-	private void loadMockData() {
+	private void loadDataFromDatabase() {
 		customerData.clear();
-		customerData.addAll(new KhachHang("KH000000001", "Nguyễn Văn An", "012345678912", false, "0905123456", 150),
-				new KhachHang("KH000000002", "John Doe", "C1234567", true, "+1-202-555-0182", 2000),
-				new KhachHang("KH000000003", "Lê Thị Cẩm", "098765432109", false, "0989999888", 50),
-				new KhachHang("KH000000004", "Phạm Văn Dũng", "011223344556", false, "0977123789", 0),
-				new KhachHang("KH000000005", "Emily Smith", "B9876543", true, "+44 20 7946 0958", 320));
+
+		// Gọi DAO để lấy danh sách khách hàng từ DB
+		List<KhachHang> danhSach = khachHangDAO.layTatCaKhachHang();
+
+		// Thêm danh sách lấy được vào ObservableList để hiển thị
+		customerData.addAll(danhSach);
+
+		// Dòng này không bắt buộc nếu bạn đã set một lần trong initialize()
+		// nhưng để đây để đảm bảo bảng luôn được cập nhật.
 		customerTable.setItems(customerData);
 	}
 
@@ -75,13 +79,22 @@ public class CustomerManagementController {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/add-customer-dialog.fxml"));
 			Scene scene = new Scene(loader.load());
 
+			// Lấy controller của dialog
+			AddCustomerDialogController controller = loader.getController();
+
 			Stage dialogStage = new Stage();
 			dialogStage.setTitle("Thêm Khách Hàng Mới");
 			dialogStage.initModality(Modality.APPLICATION_MODAL);
 			dialogStage.setScene(scene);
+
+			// Hiển thị và chờ cho đến khi dialog được đóng
 			dialogStage.showAndWait();
 
-			handleRefresh();
+			// CHỈ làm mới dữ liệu nếu người dùng đã bấm LƯU thành công
+			if (controller.isSaveClicked()) {
+				handleRefresh();
+			}
+
 		} catch (IOException e) {
 			e.printStackTrace();
 			showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể mở form thêm khách hàng!");
@@ -100,6 +113,7 @@ public class CustomerManagementController {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/add-customer-dialog.fxml"));
 			Scene scene = new Scene(loader.load());
 
+			// Lấy controller của dialog và truyền dữ liệu khách hàng qua
 			AddCustomerDialogController controller = loader.getController();
 			controller.loadCustomerForEdit(selected);
 
@@ -107,9 +121,15 @@ public class CustomerManagementController {
 			dialogStage.setTitle("Sửa Thông Tin Khách Hàng");
 			dialogStage.initModality(Modality.APPLICATION_MODAL);
 			dialogStage.setScene(scene);
+
+			// Hiển thị và chờ
 			dialogStage.showAndWait();
 
-			customerTable.refresh();
+			// CHỈ làm mới bảng nếu người dùng đã bấm LƯU thành công
+			if (controller.isSaveClicked()) {
+				customerTable.refresh(); // .refresh() hiệu quả hơn là load lại toàn bộ
+			}
+
 		} catch (IOException e) {
 			e.printStackTrace();
 			showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể mở form sửa thông tin khách hàng!");
@@ -118,7 +138,7 @@ public class CustomerManagementController {
 
 	@FXML
 	private void handleRefresh() {
-		loadMockData();
+		loadDataFromDatabase();
 		customerTable.refresh();
 		showAlert(Alert.AlertType.INFORMATION, "Thông báo", "Đã tải lại danh sách khách hàng!");
 	}

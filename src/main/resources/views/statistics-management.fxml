@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/8.0.171"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.ptudn12.main.controller.StatisticsManagementController"
+            stylesheets="@statistics-management-styles.css">
+            
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="12">
+            <padding>
+        <Insets top="10" right="10" bottom="10" left="10"/>
+    </padding>
+            <Label text="📊 Thống Kê Chi Tiết Theo Tuyến Đường" styleClass="header-title"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Lọc Thời Gian" onAction="#handleFilter"/>
+            <TextField fx:id="txtSearch" promptText="Lọc tên tuyến..." onKeyReleased="#handleSearch"/>
+        </HBox>
+    </top>
+
+    <center>
+        <TableView fx:id="tableStats">
+            <columns>
+                <TableColumn text="Mã Tuyến" prefWidth="100" fx:id="colMaTuyen"/>
+                <TableColumn text="Tên Tuyến" prefWidth="220" fx:id="colTenTuyen"/>
+                <TableColumn text="Tổng Vé Bán" prefWidth="120" fx:id="colTongVe"/>
+                <TableColumn text="Tỷ Lệ Lấp Đầy" prefWidth="120" fx:id="colTiLe"/>
+                <TableColumn text="Chuyến Khởi Hành" prefWidth="150" fx:id="colSoChuyen"/>
+                <TableColumn text="Doanh Thu Ước Tính" prefWidth="180" fx:id="colDoanhThu"/>
+            </columns>
+        </TableView>
+    </center>
+</BorderPane>

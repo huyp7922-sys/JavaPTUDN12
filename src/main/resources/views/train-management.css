@@ -125,3 +125,24 @@
     -fx-hgap: 20;  /* Khoảng cách giữa 2 giường trong khoang */
     -fx-vgap: 10; /* Khoảng cách giữa các tầng */
 }
+
+/* File: hard-seat-car.css */
+
+.seat-base {
+    -fx-min-width: 40px;
+    -fx-min-height: 40px;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-cursor: hand;
+}
+
+/* Định nghĩa hướng ghế bằng border */
+.seat-right {
+    -fx-border-width: 2px 2px 2px 6px; /* Viền trái dày hơn */
+}
+
+.seat-left {
+    -fx-border-width: 2px 6px 2px 2px; /* Viền phải dày hơn */
+}

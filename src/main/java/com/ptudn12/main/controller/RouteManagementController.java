@@ -31,7 +31,7 @@ public class RouteManagementController {
     @FXML private ComboBox<String> statusCombo;
 
     private ObservableList<TuyenDuong> routeData = FXCollections.observableArrayList();
-    private ObservableList<TuyenDuong> allRouteData = FXCollections.observableArrayList(); // ✅ Lưu toàn bộ data
+    private ObservableList<TuyenDuong> allRouteData = FXCollections.observableArrayList();
     private TuyenDuongDAO tuyenDuongDAO = new TuyenDuongDAO();
 
     @FXML
@@ -72,13 +72,8 @@ public class RouteManagementController {
             }
         });
 
-        // Load data from database
         loadDataFromDatabase();
-
-        // Setup filters
         setupFilters();
-        
-        // Setup filter listeners
         setupFilterListeners();
     }
 
@@ -95,7 +90,6 @@ public class RouteManagementController {
             routeData.addAll(danhSach);
             routeTable.setItems(routeData);
             
-            System.out.println("Đã tải " + danhSach.size() + " tuyến đường");
         } catch (Exception e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể tải dữ liệu từ database:\n" + e.getMessage());
@@ -103,12 +97,12 @@ public class RouteManagementController {
     }
 
     private void setupFilters() {
-        // ✅ Kiểm tra null để tránh NullPointerException
+        // Kiểm tra null để tránh NullPointerException
         if (startStationCombo == null || endStationCombo == null || statusCombo == null) {
             return;
         }
         
-        // ✅ Lấy danh sách ga từ data thực tế
+        // Lấy danh sách ga từ data thực tế
         ObservableList<String> stations = FXCollections.observableArrayList("Tất cả điểm đi");
         
         // Lấy unique ga từ dữ liệu
@@ -182,8 +176,6 @@ public class RouteManagementController {
         
         routeData.clear();
         routeData.addAll(filtered);
-        
-        System.out.println("🔍 Lọc: " + filtered.size() + "/" + allRouteData.size() + " tuyến");
     }
 
     @FXML
@@ -261,11 +253,11 @@ public class RouteManagementController {
         if (selected.getTrangThai() == TrangThai.Nhap) {
             contentText = "Bạn có chắc muốn xóa tuyến:\n\n" + 
                          selected.getTenDiemDi() + " → " + selected.getTenDiemDen() + "\n\n" +
-                         "⚠️ Tuyến ở trạng thái Nháp sẽ bị XÓA HOÀN TOÀN khỏi hệ thống!";
+                         "Tuyến ở trạng thái Nháp sẽ bị XÓA HOÀN TOÀN khỏi hệ thống!";
         } else {
             contentText = "Bạn có chắc muốn xóa tuyến:\n\n" + 
                          selected.getTenDiemDi() + " → " + selected.getTenDiemDen() + "\n\n" +
-                         "⚠️ Tuyến đang hoạt động sẽ chuyển sang trạng thái TẠM NGƯNG\n" +
+                         "Tuyến đang hoạt động sẽ chuyển sang trạng thái TẠM NGƯNG\n" +
                          "(không xóa hoàn toàn).";
         }
         
@@ -330,7 +322,7 @@ public class RouteManagementController {
             "   " + selected.getTenDiemDi() + " → " + selected.getTenDiemDen() + "\n" +
             "   Khoảng cách: " + selected.getSoKm() + " km\n" +
             "   Giá: " + selected.getGiaCoBanFormatted() + "\n\n" +
-            "⚠️ Lưu ý: Sau khi phát triển, tuyến sẽ chuyển sang trạng thái Sẵn Sàng\n" +
+            "Lưu ý: Sau khi phát triển, tuyến sẽ chuyển sang trạng thái Sẵn Sàng\n" +
             "và KHÔNG THỂ QUAY LẠI trạng thái Nháp!"
         );
 
@@ -347,7 +339,7 @@ public class RouteManagementController {
                     showAlert(Alert.AlertType.INFORMATION, "Thành công", 
                              "Đã phát triển tuyến đường thành công!\n\n" +
                              selected.getTenDiemDi() + " → " + selected.getTenDiemDen() + 
-                             "\n\nTrạng thái: Sẵn Sàng ✅");
+                             "\n\nTrạng thái: Sẵn Sàng");
                     handleRefresh();
                 } else {
                     showAlert(Alert.AlertType.ERROR, "Lỗi", 
