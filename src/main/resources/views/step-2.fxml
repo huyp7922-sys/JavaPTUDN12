@@ -124,7 +124,7 @@
                 <!-- RIGHT SECTION -->
                 <VBox fx:id="rightSection" spacing="15.0" prefWidth="380.0"> <VBox styleClass="box-section" spacing="10.0" VBox.vgrow="ALWAYS">
         
-                        <Label text="Giỏ vé" styleClass="box-title-bold"/>
+                        <Label text="Giỏ vé" styleClass="box-title-bold" alignment="CENTER"/>
 
                         <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" 
                                     style="-fx-background-color: transparent; -fx-background: transparent;" 

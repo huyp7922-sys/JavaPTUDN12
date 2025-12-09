@@ -188,7 +188,7 @@ public class Step2Controller_update {
         // --- 2. GIAO DIỆN CHỌN NHANH ---
         TextField txtSoLuong = new TextField();
         txtSoLuong.setPromptText("Số lượng: ");
-        txtSoLuong.setPrefWidth(50);
+        txtSoLuong.setPrefWidth(150);
         
         Button btnChonNhanh = new Button("Chọn nhanh");
         btnChonNhanh.getStyleClass().add("btn-secondary");
