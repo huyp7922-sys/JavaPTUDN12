@@ -37,6 +37,7 @@ public class BanVeController {
     
     private Step1Controller step1ControllerInstance;
     private Step2Controller step2ControllerInstance;
+    private Step2Controller_update step2Controller_updateInstance;
     private Step3Controller step3ControllerInstance;
     private Step4Controller step4ControllerInstance;
 
@@ -136,11 +137,19 @@ public class BanVeController {
             step1ControllerInstance = (Step1Controller) controller;
             step1ControllerInstance.setMainController(this);
             step1ControllerInstance.initData();
-        } else if (controller instanceof Step2Controller) {
-            step2ControllerInstance = (Step2Controller) controller;
-            step2ControllerInstance.setMainController(this);
-            step2ControllerInstance.initData();
-        } else if (controller instanceof Step3Controller) {
+        }
+//        else if (controller instanceof Step2Controller) {
+//            step2ControllerInstance = (Step2Controller) controller;
+//            step2ControllerInstance.setMainController(this);
+//            step2ControllerInstance.initData();
+//        } 
+        else if (controller instanceof Step2Controller_update) {
+            step2Controller_updateInstance = (Step2Controller_update) controller;
+            step2Controller_updateInstance.setMainController(this);
+            step2Controller_updateInstance.initData();
+        }
+        
+        else if (controller instanceof Step3Controller) {
             step3ControllerInstance = (Step3Controller) controller;
             step3ControllerInstance.setMainController(this);
             step3ControllerInstance.initData();

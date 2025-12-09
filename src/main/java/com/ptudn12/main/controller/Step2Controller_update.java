@@ -11,32 +11,24 @@ package com.ptudn12.main.controller;
 
 import com.ptudn12.main.dao.ChiTietLichTrinhDAO;
 import com.ptudn12.main.dao.ChiTietToaDAO;
-import com.ptudn12.main.entity.ChiTietToa;
-import com.ptudn12.main.entity.LichTrinh;
-import com.ptudn12.main.entity.Toa;
-import java.text.DecimalFormat;
-import java.time.format.DateTimeFormatter;
-import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.layout.*;
-import com.ptudn12.main.controller.VeTamThoi;
-import com.ptudn12.main.enums.LoaiCho;
-
-import java.util.*;
-import java.util.stream.Collectors;
+import com.ptudn12.main.entity.*;
+import com.ptudn12.main.enums.*;
 import javafx.collections.FXCollections;
+import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Separator;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
+import javafx.scene.shape.Rectangle;
 
-public class Step2Controller {
+import java.text.DecimalFormat;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
+
+public class Step2Controller_update {
     @FXML private VBox toaSection;
     @FXML private Label labelTenTau;
     @FXML private Button btnQuayLai;
@@ -48,8 +40,9 @@ public class Step2Controller {
     @FXML private Label labelTenTauVe;
     @FXML private Label labelKhoiHanhVe;
     @FXML private Label labelDenNoiVe;
-    @FXML private VBox cartBox; // VBox chứa giỏ vé
-    private Label labelTongTien;
+    @FXML private VBox ticketListContainer;
+    @FXML private Label labelTongTien;
+
     private VeTamThoi veTamThoi;
     
     // --- CSS Styles ---
@@ -74,6 +67,10 @@ public class Step2Controller {
     // Biến lưu trữ Label tiêu đề (tạo động)
     private Label lblChieuDiHeader = null;
     private Label lblChieuVeHeader = null;
+    
+    // Biến cho các nút "Xóa tất cả"
+    private Button btnXoaTatCaDi;
+    private Button btnXoaTatCaVe;
     
     private BanVeController mainController;
     public void setMainController(BanVeController mainController) {
@@ -119,10 +116,12 @@ public class Step2Controller {
         LichTrinh lichTrinhDi = (LichTrinh) mainController.getUserData("lichTrinhChieuDi");
         LichTrinh lichTrinhVe = (LichTrinh) mainController.getUserData("lichTrinhChieuVe");
         
+        // Xóa nội dung cũ trong toaSection để vẽ mới
         toaSection.getChildren().clear();
         
-        // Cập nhật UI giỏ hàng (vẽ lại trạng thái rỗng)
-        updateCartUI(); 
+        // CẬP NHẬT: Gọi hàm updateCartUI để rebuild giỏ hàng
+        // Hàm này sẽ vẽ lại giỏ hàng dựa trên `gioHang_Di` và `gioHang_Ve`
+        updateCartUI();
         
         // Hiển thị box Thông tin chuyến tàu
         if (lichTrinhDi != null) {
@@ -181,61 +180,41 @@ public class Step2Controller {
         Label lblTitle = new Label(title);
         lblTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #333;");
 
-        // --- UI MỚI: ComboBox + Chọn nhanh số lượng ---
+        // --- 1. COMBOBOX CHỌN TOA ---
         ComboBox<ToaInfo> comboToa = new ComboBox<>();
         comboToa.setPrefWidth(200.0);
         comboToa.setPromptText("Chọn toa");
-
-        // Thêm ô nhập số lượng
+        
+        // --- 2. GIAO DIỆN CHỌN NHANH ---
         TextField txtSoLuong = new TextField();
-        txtSoLuong.setPromptText("SL");
+        txtSoLuong.setPromptText("Số lượng: ");
         txtSoLuong.setPrefWidth(50);
-
-        // Thêm nút chọn nhanh
+        
         Button btnChonNhanh = new Button("Chọn nhanh");
-        btnChonNhanh.getStyleClass().add("btn-action-secondary"); // Style tùy ý
-
-        HBox comboContainer = new HBox(10, 
-            new Label("Toa:"), comboToa, 
-            new Separator(Orientation.VERTICAL), // Đường gạch dọc ngăn cách
-            new Label("Chọn nhanh:"), txtSoLuong, btnChonNhanh
+        btnChonNhanh.getStyleClass().add("btn-secondary");
+        
+        HBox comboContainer = new HBox(10,
+                new Label("Toa:"), comboToa,
+                new Separator(Orientation.VERTICAL), // Đường gạch dọc
+                new Label("Chọn nhanh:"), txtSoLuong, btnChonNhanh
         );
         comboContainer.setAlignment(Pos.CENTER_LEFT);
         
+        // --- 3. GRID SƠ ĐỒ GHẾ ---
         GridPane gridSeats = new GridPane();
         gridSeats.setHgap(6);
         gridSeats.setVgap(6);
         gridSeats.setPadding(new Insets(5));
         
-        // XỬ LÝ SỰ KIỆN NÚT CHỌN NHANH
-        btnChonNhanh.setOnAction(e -> {
-            ToaInfo selectedToa = comboToa.getValue();
-            if (selectedToa == null) {
-                showAlert(Alert.AlertType.WARNING, "Vui lòng chọn toa trước!");
-                return;
-            }
+        // --- 4. CHÚ THÍCH MÀU (Tạo lại vì VBox cha đã clear) ---
+        HBox legendBox = createLegendBox();
 
-            String strSL = txtSoLuong.getText();
-            if (strSL == null || strSL.isEmpty() || !strSL.matches("\\d+")) {
-                showAlert(Alert.AlertType.WARNING, "Vui lòng nhập số lượng ghế hợp lệ!");
-                return;
-            }
+        if (dsChiTiet.isEmpty()) {
+            blockBox.getChildren().addAll(lblTitle, new Label("Không có dữ liệu chỗ ngồi cho tàu này."));
+            return blockBox;
+        }
 
-            int soLuongCanChon = Integer.parseInt(strSL);
-            if (soLuongCanChon <= 0) return;
-
-            // Lọc danh sách ghế của toa hiện tại
-            List<ChiTietToa> currentToaSeats = chiTietToaDAO.getChiTietToaByTau(lichTrinh.getTau().getMacTau())
-                    .stream()
-                    .filter(ct -> ct.getToa().getMaToa().equals(selectedToa.getMaToa()))
-                    .sorted(Comparator.comparing(ChiTietToa::getSoThuTu)) // Quan trọng: Sắp xếp để chọn liền kề
-                    .collect(Collectors.toList());
-
-            // Gọi hàm xử lý logic chọn hàng loạt
-            handleBatchSelection(soLuongCanChon, currentToaSeats, lichTrinh, isChieuDi, gridSeats);
-        });
-        
-
+        // XỬ LÝ DỮ LIỆU COMBOBOX
         if (dsChiTiet.isEmpty()) {
             blockBox.getChildren().addAll(lblTitle, new Label("Không có dữ liệu chỗ ngồi cho tàu này."));
             return blockBox;
@@ -247,26 +226,134 @@ public class Step2Controller {
                 .map(ToaInfo::new)
                 .sorted()
                 .collect(Collectors.toList());
-        
+
         comboToa.setItems(FXCollections.observableArrayList(danhSachToaInfo));
 
+        // SỰ KIỆN KHI CHỌN TOA
         comboToa.setOnAction(e -> {
-            ToaInfo selectedToaInfo = comboToa.getValue(); 
+            ToaInfo selectedToaInfo = comboToa.getValue();
             if (selectedToaInfo == null) {
                 gridSeats.getChildren().clear();
                 return;
             }
-            
             List<ChiTietToa> danhSachChoCuaToa = dsChiTiet.stream()
-                .filter(ct -> ct.getToa().getMaToa().equals(selectedToaInfo.getMaToa()))
-                .collect(Collectors.toList());
-            
+                    .filter(ct -> ct.getToa().getMaToa().equals(selectedToaInfo.getMaToa()))
+                    .collect(Collectors.toList());
+
             // Vẽ lại GridPane
             populateGridPane(gridSeats, danhSachChoCuaToa, danhSachChoDaBan, isChieuDi, lichTrinh);
         });
+        
+        // --- XỬ LÝ SỰ KIỆN NÚT CHỌN NHANH (MỚI) ---
+        btnChonNhanh.setOnAction(e -> {
+            ToaInfo selectedToa = comboToa.getValue();
+            if (selectedToa == null) {
+                showAlert(Alert.AlertType.WARNING, "Vui lòng chọn toa trước khi dùng chức năng chọn nhanh!");
+                return;
+            }
 
-        blockBox.getChildren().addAll(lblTitle, comboContainer, gridSeats);
+            String strSL = txtSoLuong.getText();
+            if (strSL == null || strSL.isEmpty() || !strSL.matches("\\d+")) {
+                showAlert(Alert.AlertType.WARNING, "Vui lòng nhập số lượng ghế hợp lệ (số nguyên dương)!");
+                return;
+            }
+
+            int soLuongCanChon = Integer.parseInt(strSL);
+            if (soLuongCanChon <= 0) {
+                 showAlert(Alert.AlertType.WARNING, "Số lượng phải lớn hơn 0!");
+                 return;
+            }
+
+            // Lấy danh sách ghế của toa hiện tại
+            List<ChiTietToa> currentToaSeats = dsChiTiet.stream()
+                    .filter(ct -> ct.getToa().getMaToa().equals(selectedToa.getMaToa()))
+                    .sorted(Comparator.comparing(ChiTietToa::getSoThuTu)) // Sắp xếp để chọn liền kề
+                    .collect(Collectors.toList());
+
+            // Gọi hàm logic chọn hàng loạt
+            handleBatchSelection(soLuongCanChon, currentToaSeats, lichTrinh, isChieuDi, gridSeats);
+        });
+
+        blockBox.getChildren().addAll(lblTitle, comboContainer, legendBox, gridSeats);
         return blockBox;
+    }
+    
+    // Hàm logic xử lý chọn ghế hàng loạt
+    private void handleBatchSelection(int amountNeeded, List<ChiTietToa> allSeatsInToa, LichTrinh lichTrinh, boolean isChieuDi, GridPane gridSeats) {
+        Set<Integer> soldSet = chiTietLichTrinhDAO.getCacChoDaBan(lichTrinh.getMaLichTrinh());
+        Set<Integer> currentSelectedSet = isChieuDi ? danhSachChoDaChon_Di : danhSachChoDaChon_Ve;
+        Map<Integer, VeTamThoi> currentCart = isChieuDi ? gioHang_Di : gioHang_Ve;
+
+        // Kiểm tra xem giỏ hàng có bị quá giới hạn không
+        if (currentCart.size() + amountNeeded > 10) {
+            showAlert(Alert.AlertType.WARNING, "Tổng số vé sẽ vượt quá giới hạn 10 vé!");
+            return;
+        }
+
+        List<ChiTietToa> seatsToSelect = new ArrayList<>();
+
+        // --- THUẬT TOÁN: Tìm n ghế trống LIỀN KỀ ---
+        for (int i = 0; i < allSeatsInToa.size(); i++) {
+            seatsToSelect.clear();
+            for (int j = i; j < allSeatsInToa.size(); j++) {
+                ChiTietToa seat = allSeatsInToa.get(j);
+                int seatId = seat.getCho().getMaCho();
+
+                // Nếu ghế chưa bán VÀ chưa được chọn trong giỏ
+                if (!soldSet.contains(seatId) && !currentSelectedSet.contains(seatId)) {
+                    seatsToSelect.add(seat);
+                    if (seatsToSelect.size() == amountNeeded) {
+                        break; 
+                    }
+                } else {
+                    seatsToSelect.clear();
+                    i = j; // Nhảy cóc
+                    break;
+                }
+            }
+            if (seatsToSelect.size() == amountNeeded) {
+                break;
+            }
+        }
+
+        // --- KẾT QUẢ ---
+        if (seatsToSelect.size() < amountNeeded) {
+            showAlert(Alert.AlertType.INFORMATION, "Không tìm thấy " + amountNeeded + " ghế liền kề trống trong toa này.\nVui lòng chọn toa khác hoặc chọn thủ công.");
+            return;
+        }
+
+        // --- THỰC HIỆN CHỌN (Click giả lập) ---
+        for (ChiTietToa seat : seatsToSelect) {
+            // Tìm nút button tương ứng trên GridPane để gọi hàm click
+            for (Node node : gridSeats.getChildren()) {
+                if (node instanceof Button) {
+                    Button btn = (Button) node;
+                    // So sánh text của button với số thứ tự ghế
+                    if (btn.getText().equals(String.valueOf(seat.getSoThuTu()))) {
+                        handleChonCho(btn, seat, isChieuDi, lichTrinh);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    
+    // Helper tạo chú thích màu (để tái sử dụng)
+    private HBox createLegendBox() {
+        HBox box = new HBox(10);
+        box.setAlignment(Pos.CENTER_LEFT);
+        
+        HBox boxTrong = new HBox(5, new Rectangle(20, 20, javafx.scene.paint.Color.WHITE) {{ setStroke(javafx.scene.paint.Color.BLACK); }}, new Label("Trống"));
+        boxTrong.setAlignment(Pos.CENTER);
+        
+        HBox boxDaBan = new HBox(5, new Rectangle(20, 20, javafx.scene.paint.Color.RED), new Label("Đã bán"));
+        boxDaBan.setAlignment(Pos.CENTER);
+        
+        HBox boxDangChon = new HBox(5, new Rectangle(20, 20, javafx.scene.paint.Color.GREEN), new Label("Đang chọn"));
+        boxDangChon.setAlignment(Pos.CENTER);
+        
+        box.getChildren().addAll(boxTrong, boxDaBan, boxDangChon, new Label("| Lưu ý: Tối đa 10 vé/giao dịch"));
+        return box;
     }
     
     /**
@@ -288,74 +375,6 @@ public class Step2Controller {
             btn.setOnAction(ev -> handleChonCho(btn, ct, isChieuDi, lichTrinh));
         }
         return btn;
-    }
-    
-    private void handleBatchSelection(int amountNeeded, List<ChiTietToa> allSeatsInToa, LichTrinh lichTrinh, boolean isChieuDi, GridPane gridSeats) {
-        Set<Integer> soldSet = chiTietLichTrinhDAO.getCacChoDaBan(lichTrinh.getMaLichTrinh());
-        Set<Integer> currentSelectedSet = isChieuDi ? danhSachChoDaChon_Di : danhSachChoDaChon_Ve;
-        Map<Integer, VeTamThoi> currentCart = isChieuDi ? gioHang_Di : gioHang_Ve;
-
-        List<ChiTietToa> seatsToSelect = new ArrayList<>();
-
-        // --- THUẬT TOÁN: Tìm n ghế trống LIỀN KỀ ---
-        // Duyệt qua danh sách ghế đã sort
-        for (int i = 0; i < allSeatsInToa.size(); i++) {
-            seatsToSelect.clear();
-
-            // Thử tạo một chuỗi ghế bắt đầu từ vị trí i
-            for (int j = i; j < allSeatsInToa.size(); j++) {
-                ChiTietToa seat = allSeatsInToa.get(j);
-                int seatId = seat.getCho().getMaCho();
-
-                // Nếu ghế chưa bán VÀ chưa được chọn trong giỏ
-                if (!soldSet.contains(seatId) && !currentSelectedSet.contains(seatId)) {
-                    seatsToSelect.add(seat);
-
-                    // Nếu đã đủ số lượng yêu cầu -> Dừng tìm kiếm
-                    if (seatsToSelect.size() == amountNeeded) {
-                        break; 
-                    }
-                } else {
-                    // Gặp ghế đã bán hoặc đã chọn -> Chuỗi bị đứt -> Reset chuỗi
-                    seatsToSelect.clear();
-                    // Nhảy i đến vị trí j để bỏ qua đoạn hỏng (tối ưu vòng lặp)
-                    i = j; 
-                    break; 
-                }
-            }
-
-            // Nếu tìm đủ chuỗi -> Thoát vòng lặp ngoài
-            if (seatsToSelect.size() == amountNeeded) {
-                break;
-            }
-        }
-
-        // --- KẾT QUẢ ---
-        if (seatsToSelect.size() < amountNeeded) {
-            // Nếu không tìm thấy chuỗi liền kề, thử tìm N ghế bất kỳ còn trống (Optional)
-            // Hoặc báo lỗi
-            showAlert(Alert.AlertType.INFORMATION, "Không tìm thấy " + amountNeeded + " ghế liền kề trong toa này. Vui lòng chọn toa khác hoặc chọn thủ công.");
-            return;
-        }
-
-        // --- THỰC HIỆN CHỌN ---
-        for (ChiTietToa seat : seatsToSelect) {
-            // Tìm button tương ứng trong GridPane để click giả lập
-            // Lưu ý: Cách này hơi thủ công, tốt hơn là gọi trực tiếp logic chọn
-            // Ta sẽ gọi logic add vào giỏ hàng trực tiếp và update UI
-
-            // Tìm button trong GridPane children (dựa vào text là Số thứ tự) - Cách nhanh nhất hiện tại
-            for (Node node : gridSeats.getChildren()) {
-                if (node instanceof Button) {
-                    Button btn = (Button) node;
-                    if (btn.getText().equals(String.valueOf(seat.getSoThuTu()))) {
-                        // Gọi hàm handleChonCho như khi người dùng click
-                        handleChonCho(btn, seat, isChieuDi, lichTrinh);
-                        break;
-                    }
-                }
-            }
-        }
     }
 
 
@@ -463,7 +482,7 @@ public class Step2Controller {
         }
     }
 
-    // --- HÀM XỬ LÝ CHỌN/BỎ CHỌN GHẾ ---
+    // CẬP NHẬT: Hàm `handleChonCho`
     private void handleChonCho(Button btn, ChiTietToa ct, boolean isChieuDi, LichTrinh lichTrinh) {
         Map<Integer, VeTamThoi> gioHang = isChieuDi ? gioHang_Di : gioHang_Ve;
         Set<Integer> selectedSet = isChieuDi ? danhSachChoDaChon_Di : danhSachChoDaChon_Ve;
@@ -472,42 +491,42 @@ public class Step2Controller {
         if (gioHang.containsKey(maCho)) {
             handleHuyVe(gioHang.get(maCho));
         } else {
-            // --- CHỌN ---
+            if (gioHang.size() >= 10) {
+                showAlert(Alert.AlertType.WARNING, "Bạn chỉ được chọn tối đa 10 vé cho " + (isChieuDi ? "chiều đi" : "chiều về") + ".");
+                return;
+            }
             double giaVe = calculateTicketPrice(lichTrinh, ct);
             VeTamThoi ve = new VeTamThoi(lichTrinh, ct, giaVe, btn, isChieuDi);
             Node cardNode = createTicketCard(ve);
-            ve.setCardNode(cardNode); 
+            ve.setCardNode(cardNode);
             gioHang.put(maCho, ve);
             selectedSet.add(maCho);
             btn.setStyle(STYLE_DANGCHON);
-            
-            int insertIndex; // Vị trí để chèn card vé
+
+            // THÊM VÀO TICKET LIST CONTAINER (Trong ScrollPane)
+            int insertIndex;
             if (isChieuDi) {
-                // Nếu chưa có header "Chiều đi", tạo và thêm nó
                 if (lblChieuDiHeader == null) {
                     lblChieuDiHeader = new Label("Chiều đi");
                     lblChieuDiHeader.setStyle("-fx-font-weight: bold; -fx-padding: 8 0 2 0;");
-                    // Chèn ngay sau label "Giỏ vé" (index 1)
-                    cartBox.getChildren().add(1, lblChieuDiHeader);
+                    ticketListContainer.getChildren().add(0, lblChieuDiHeader); // Luôn ở đầu
+                    ticketListContainer.getChildren().add(1, btnXoaTatCaDi);
                 }
-                // Chèn card vé ngay sau header "Chiều đi"
-                insertIndex = cartBox.getChildren().indexOf(lblChieuDiHeader) + 1;
-            } else { // Chiều về
-                // Nếu chưa có header "Chiều về", tạo và thêm nó
+                insertIndex = ticketListContainer.getChildren().indexOf(btnXoaTatCaDi) + 1;
+            } else {
                 if (lblChieuVeHeader == null) {
                     lblChieuVeHeader = new Label("Chiều về");
                     lblChieuVeHeader.setStyle("-fx-font-weight: bold; -fx-padding: 8 0 2 0;");
-                    // Chèn ngay sau header "Chiều đi" (hoặc label "Giỏ vé" nếu chỉ có vé về)
-                    int baseIndex = (lblChieuDiHeader != null) ? cartBox.getChildren().indexOf(lblChieuDiHeader) : 0;
-                    // Đếm số vé chiều đi để chèn header "Chiều về" vào đúng chỗ
-                    int countDi = gioHang_Di.size();
-                    cartBox.getChildren().add(baseIndex + countDi + 1, lblChieuVeHeader);
+                    int baseIndex = 0;
+                    if (lblChieuDiHeader != null) {
+                        baseIndex = ticketListContainer.getChildren().indexOf(btnXoaTatCaDi) + 1 + gioHang_Di.size();
+                    }
+                    ticketListContainer.getChildren().add(baseIndex, lblChieuVeHeader);
+                    ticketListContainer.getChildren().add(baseIndex + 1, btnXoaTatCaVe);
                 }
-                 // Chèn card vé ngay sau header "Chiều về"
-                insertIndex = cartBox.getChildren().indexOf(lblChieuVeHeader) + 1;
+                insertIndex = ticketListContainer.getChildren().indexOf(btnXoaTatCaVe) + 1;
             }
-            // Chèn card vé vào vị trí đã xác định
-            cartBox.getChildren().add(insertIndex, cardNode);
+            ticketListContainer.getChildren().add(insertIndex, cardNode);
             updateTongTien();
         }
     }
@@ -520,9 +539,11 @@ public class Step2Controller {
         
         VBox infoBox = new VBox(5);
         Label lblTenTau = new Label("Tàu " + ve.getLichTrinh().getTau().getMacTau());
-        lblTenTau.setStyle("-fx-font-weight: bold;");
+        lblTenTau.setStyle("-fx-font-weight: bold; -fx-text-fill: black;");
         Label lblThoiGian = new Label(ve.getLichTrinh().getNgayGioKhoiHanh().format(formatter));
+        lblThoiGian.setStyle("-fx-text-fill: black;");
         Label lblToaCho = new Label("Toa " + ve.getChiTietToa().getToa().getMaToa() + " - Ghế " + ve.getChiTietToa().getSoThuTu());
+        lblToaCho.setStyle("-fx-text-fill: black;");
         infoBox.getChildren().addAll(lblTenTau, lblThoiGian, lblToaCho);
         
         VBox priceBox = new VBox(5);
@@ -541,7 +562,7 @@ public class Step2Controller {
         return card;
     }
 
-    // --- HÀM XỬ LÝ HỦY VÉ (NÚT X) ---
+    // CẬP NHẬT: Hàm `handleHuyVe`
     private void handleHuyVe(VeTamThoi ve) {
         Map<Integer, VeTamThoi> gioHang = ve.isChieuDi() ? gioHang_Di : gioHang_Ve;
         Set<Integer> selectedSet = ve.isChieuDi() ? danhSachChoDaChon_Di : danhSachChoDaChon_Ve;
@@ -549,60 +570,63 @@ public class Step2Controller {
         gioHang.remove(ve.getMaCho());
         selectedSet.remove(ve.getMaCho());
 
-        cartBox.getChildren().remove(ve.getCardNode());
-        ve.getSeatButton().setStyle(STYLE_TRONG);
-        
-        if (ve.getCardNode() != null && cartBox != null) {
-         cartBox.getChildren().remove(ve.getCardNode());
+        if (ve.getCardNode() != null) {
+            ticketListContainer.getChildren().remove(ve.getCardNode());
         }
         if (ve.getSeatButton() != null) {
-             ve.getSeatButton().setStyle(STYLE_TRONG);
-              ve.getSeatButton().setDisable(false);
-        } else {
-             System.err.println("Lỗi: Không tìm thấy SeatButton để đổi màu khi hủy vé ghế " + ve.getMaCho());
+            ve.getSeatButton().setStyle(STYLE_TRONG);
+            ve.getSeatButton().setDisable(false);
         }
 
-        // --- XÓA LABEL HEADER NẾU HẾT VÉ ---
         if (ve.isChieuDi() && gioHang_Di.isEmpty() && lblChieuDiHeader != null) {
-            cartBox.getChildren().remove(lblChieuDiHeader);
-            lblChieuDiHeader = null; // Reset biến
+            ticketListContainer.getChildren().remove(lblChieuDiHeader);
+            ticketListContainer.getChildren().remove(btnXoaTatCaDi);
+            lblChieuDiHeader = null;
         } else if (!ve.isChieuDi() && gioHang_Ve.isEmpty() && lblChieuVeHeader != null) {
-            cartBox.getChildren().remove(lblChieuVeHeader);
-            lblChieuVeHeader = null; // Reset biến
+            ticketListContainer.getChildren().remove(lblChieuVeHeader);
+            ticketListContainer.getChildren().remove(btnXoaTatCaVe);
+            lblChieuVeHeader = null;
         }
-
         updateTongTien();
     }
+    
+    /**
+     * MỚI: (Phản hồi 1) Hàm xóa tất cả vé trong giỏ hàng cho một chiều
+     */
+    private void clearCartSection(boolean isChieuDi) {
+        Map<Integer, VeTamThoi> gioHang = isChieuDi ? gioHang_Di : gioHang_Ve;
+        
+        // Phải tạo 1 list mới để tránh lỗi ConcurrentModificationException
+        List<VeTamThoi> veToCancel = new ArrayList<>(gioHang.values());
+        
+        for (VeTamThoi ve : veToCancel) {
+            handleHuyVe(ve); // Tái sử dụng logic hủy từng vé
+        }
+    }
 
-    // --- HÀM CẬP NHẬT UI GIỎ HÀNG ---
     private void updateCartUI() {
-        // Chỉ xóa card vé, không xóa header
-        // Header được quản lý bởi handleChonCho và handleHuyVe
-        List<Node> nodesToRemove = new ArrayList<>();
-        for(Node node : cartBox.getChildren()){
-            // Kiểm tra xem node có phải là card vé không (dựa vào style class hoặc kiểu HBox)
-            // Cách đơn giản nhất là kiểm tra xem nó có phải là Label header không
-            if(node != lblChieuDiHeader && node != lblChieuVeHeader && node != labelTongTien && !(node instanceof Label && ((Label)node).getText().equals("Giỏ vé")) && !(node instanceof Button)){
-                 nodesToRemove.add(node);
-            }
-        }
-        cartBox.getChildren().removeAll(nodesToRemove);
+        ticketListContainer.getChildren().clear(); // Clear vùng scroll
+        lblChieuDiHeader = null;
+        lblChieuVeHeader = null;
 
-        // Thêm lại các card từ giỏ hàng (nếu có) - Cần đảm bảo thứ tự đúng
-        int insertIndex = 1; // Sau Label "Giỏ vé"
-        if (lblChieuDiHeader != null) {
-            insertIndex++; // Bỏ qua header đi
+        if (!gioHang_Di.isEmpty()) {
+            lblChieuDiHeader = new Label("Chiều đi");
+            lblChieuDiHeader.setStyle("-fx-font-weight: bold; -fx-padding: 8 0 2 0; -fx-text-fill: black;");
+            ticketListContainer.getChildren().add(lblChieuDiHeader);
+            ticketListContainer.getChildren().add(btnXoaTatCaDi);
             for (VeTamThoi ve : gioHang_Di.values()) {
-                cartBox.getChildren().add(insertIndex++, ve.getCardNode());
+                ticketListContainer.getChildren().add(ve.getCardNode());
             }
         }
-        if (lblChieuVeHeader != null) {
-             insertIndex = cartBox.getChildren().indexOf(lblChieuVeHeader) + 1; // Tìm vị trí sau header về
+        if (!gioHang_Ve.isEmpty()) {
+            lblChieuVeHeader = new Label("Chiều về");
+            lblChieuVeHeader.setStyle("-fx-font-weight: bold; -fx-padding: 8 0 2 0; -fx-text-fill: black;");
+            ticketListContainer.getChildren().add(lblChieuVeHeader);
+            ticketListContainer.getChildren().add(btnXoaTatCaVe);
             for (VeTamThoi ve : gioHang_Ve.values()) {
-                cartBox.getChildren().add(insertIndex++, ve.getCardNode());
+                ticketListContainer.getChildren().add(ve.getCardNode());
             }
         }
-
         updateTongTien();
     }
 
@@ -633,37 +657,39 @@ public class Step2Controller {
     }
 }
 
-    // --- HÀM CHUYỂN BƯỚC (NÚT MUA VÉ) ---
+    // CẬP NHẬT: Hàm `handleTiepTheo`
     @FXML
     private void handleTiepTheo() {
-        // 1. Kiểm tra chiều đi
         if (gioHang_Di.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Vui lòng chọn ít nhất một chỗ cho chiều đi.");
             return;
         }
-
-        // 2. Kiểm tra chiều về (Nếu có vé khứ hồi)
+        
         LichTrinh lichTrinhVe = (LichTrinh) mainController.getUserData("lichTrinhChieuVe");
         if (lichTrinhVe != null) {
+            // Đây là vé khứ hồi
             if (gioHang_Ve.isEmpty()) {
-                showAlert(Alert.AlertType.WARNING, "Bạn đang đặt vé KHỨ HỒI.\nVui lòng chọn chỗ cho chiều về.");
+                showAlert(Alert.AlertType.WARNING, "Vui lòng chọn ít nhất một chỗ cho chiều về.");
                 return;
             }
-
-            // --- CHECK NGHIỆP VỤ: SỐ LƯỢNG PHẢI KHỚP ---
+            
+            // MỚI: (Phản hồi 2) KIỂM TRA SỐ LƯỢNG VÉ ĐI/VỀ TƯƠNG XỨNG
             if (gioHang_Di.size() != gioHang_Ve.size()) {
-                String msg = String.format(
-                    "Số lượng vé chiều đi và chiều về không khớp!\n\nChiều đi: %d vé\nChiều về: %d vé\n\nVui lòng điều chỉnh lại số lượng ghế.",
-                    gioHang_Di.size(), gioHang_Ve.size()
+                showAlert(Alert.AlertType.WARNING, 
+                    "Số lượng vé không tương xứng.\n\n" +
+                    "Bạn đã chọn " + gioHang_Di.size() + " vé chiều đi và " + 
+                    gioHang_Ve.size() + " vé chiều về.\n" +
+                    "Vui lòng chọn số lượng vé bằng nhau cho cả hai chiều."
                 );
-                showAlert(Alert.AlertType.ERROR, msg);
-                return; // Chặn không cho đi tiếp
+                return;
             }
         }
 
-        // --- Lưu dữ liệu và chuyển trang (Code cũ) ---
+        // --- Lưu dữ liệu giỏ hàng vào MainController ---
         mainController.setUserData("gioHang_Di", new ArrayList<>(gioHang_Di.values()));
         mainController.setUserData("gioHang_Ve", new ArrayList<>(gioHang_Ve.values()));
+
+        // Chuyển sang Step 3
         mainController.loadContent("step-3.fxml");
     }
 
@@ -684,17 +710,12 @@ public class Step2Controller {
     
     @FXML
     private void initialize() {
-        // Tự tạo Label tổng tiền vì FXML không có
-        labelTongTien = new Label("Tổng tiền: 0 VNĐ");
-        labelTongTien.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #333;");
-        labelTongTien.setPadding(new Insets(10, 0, 5, 0)); // Thêm khoảng đệm
+        btnXoaTatCaDi = new Button("Xóa tất cả (Đi)");
+        btnXoaTatCaDi.setStyle("-fx-background-color: transparent; -fx-text-fill: #e74c3c; -fx-underline: true; -fx-cursor: hand;");
+        btnXoaTatCaDi.setOnAction(e -> clearCartSection(true));
         
-        // FXML: cartBox có [Label("Giỏ vé"), Button("Mua vé")]
-        // Thêm labelTongTien vào giữa (tại vị trí index 1)
-        if (cartBox != null) {
-            cartBox.getChildren().add(1, labelTongTien);
-        } else {
-            System.err.println("Lỗi FXML: cartBox bị null, không thể thêm Label tổng tiền.");
-        }
+        btnXoaTatCaVe = new Button("Xóa tất cả (Về)");
+        btnXoaTatCaVe.setStyle("-fx-background-color: transparent; -fx-text-fill: #e74c3c; -fx-underline: true; -fx-cursor: hand;");
+        btnXoaTatCaVe.setOnAction(e -> clearCartSection(false));
     }
 }
