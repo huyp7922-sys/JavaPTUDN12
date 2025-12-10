@@ -1,7 +1,7 @@
-package com.ptudn12.main.util;
+package com. ptudn12.main.util;
 
 import com.ptudn12.main.entity.NhanVien;
-import com.ptudn12.main.entity.TaiKhoan;
+import com.ptudn12.main.entity. TaiKhoan;
 
 /**
  * Quản lý phiên đăng nhập hiện tại
@@ -31,16 +31,16 @@ public class SessionManager {
         this.currentNhanVien = nhanVien;
         this.currentTaiKhoan = taiKhoan;
         
-        // Kiểm tra quyền: true = Quản lý, false = Nhân viên
+        // Kiểm tra quyền:  true = Quản lý (Admin), false = Nhân viên
         if (nhanVien != null) {
-            // ===== SỬA DÒNG NÀY =====
-            // Kiểm tra chức vụ: "Quản lý" = true, "Nhân viên" = false
-            String chucVu = nhanVien.getChucVuText();
-            this.isAdmin = chucVu != null && chucVu.equalsIgnoreCase("Quản lý");
-            // ========================
+            // ===== SỬA:  getChucVu() TRẢ VỀ BOOLEAN =====
+            // true (1 trong DB) = Quản lý
+            // false (0 trong DB) = Nhân viên
+            this.isAdmin = nhanVien.getChucVu();
+            // ===========================================
         } else {
             // Tài khoản test
-            this.isAdmin = username.equals("admin");
+            this.isAdmin = username. equals("admin");
         }
     }
     
@@ -49,7 +49,7 @@ public class SessionManager {
      */
     public void logout() {
         this.currentUsername = null;
-        this.currentNhanVien = null;
+        this. currentNhanVien = null;
         this.currentTaiKhoan = null;
         this.isAdmin = false;
     }
@@ -94,7 +94,7 @@ public class SessionManager {
      */
     public String getCurrentMaNhanVien() {
         if (currentNhanVien != null) {
-            return currentNhanVien.getMaNhanVien();
+            return currentNhanVien. getMaNhanVien();
         }
         return currentUsername; // Trả về username nếu là tài khoản test
     }
@@ -110,9 +110,37 @@ public class SessionManager {
     }
     
     /**
-     * Lấy vai trò
+     * Lấy vai trò (text để hiển thị)
      */
     public String getRole() {
         return isAdmin ? "Quản lý" : "Nhân viên";
+    }
+    
+    /**
+     * Lấy mã chức vụ (1 = Quản lý, 0 = Nhân viên)
+     */
+    public int getRoleCode() {
+        return isAdmin ? 1 :  0;
+    }
+    
+    /**
+     * Lấy boolean chức vụ (true = Quản lý, false = Nhân viên)
+     */
+    public boolean getRoleBoolean() {
+        return isAdmin;
+    }
+    
+    /**
+     * Chuyển đổi boolean sang text để hiển thị
+     */
+    public static String getRoleText(boolean chucVu) {
+        return chucVu ? "Quản lý" : "Nhân viên";
+    }
+    
+    /**
+     * Chuyển đổi int (từ DB) sang text để hiển thị
+     */
+    public static String getRoleText(int chucVu) {
+        return chucVu == 1 ? "Quản lý" : "Nhân viên";
     }
 }

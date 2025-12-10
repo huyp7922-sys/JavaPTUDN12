@@ -179,7 +179,8 @@ public class DashboardController {
 				Parent root = FXMLLoader.load(getClass().getResource("/views/login.fxml"));
 				Stage stage = (Stage) contentPane.getScene().getWindow();
 				stage.setScene(new Scene(root));
-				stage.setTitle("Đăng Nhập HệỐng");
+				stage.setTitle("Đăng Nhập Hệ Thống");
+				stage.centerOnScreen();
 			} catch (IOException e) {
 				e.printStackTrace();
 				showError("Lỗi khi đăng xuất: " + e.getMessage());
