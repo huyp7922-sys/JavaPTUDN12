@@ -36,6 +36,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class Step4Controller {
     // --- FXML Left Section ---
@@ -77,8 +79,9 @@ public class Step4Controller {
     
     private List<Map<String, Object>> danhSachHanhKhach;
     private Map<String, String> thongTinNguoiMua;
-    private double tongThanhToanValue = 0;
+    private double tongThanhToanValue = 0; // Giá trị này LUÔN LÀ SỐ ĐÃ LÀM TRÒN
     
+    // DAOs
     private final HoaDonDAO hoaDonDAO = new HoaDonDAO();
     private final VeTauDAO veTauDAO = new VeTauDAO();
     private final ChiTietHoaDonDAO chiTietHoaDonDAO = new ChiTietHoaDonDAO();
@@ -109,14 +112,21 @@ public class Step4Controller {
         thongTinNguoiMua = (Map<String, String>) mainController.getUserData("thongTinNguoiMua");
         String tongThanhToanStr = (String) mainController.getUserData("tongThanhTien");
 
-        // Chuyển đổi tổng thành toán String -> double
+        // Chuyển đổi và LÀM TRÒN tổng thành toán ngay lập tức
+        double rawTotal = 0;
         try {
-            String numericString = tongThanhToanStr.replaceAll("[^\\d]", "");
-            tongThanhToanValue = Double.parseDouble(numericString);
+            if (tongThanhToanStr != null) {
+                String numericString = tongThanhToanStr.replaceAll("[^\\d]", "");
+                rawTotal = Double.parseDouble(numericString);
+            }
         } catch (Exception e) {
             System.err.println("Lỗi chuyển đổi tổng thành tiền: " + e.getMessage());
-            tongThanhToanValue = 0;
+            rawTotal = 0;
         }
+        
+        // QUAN TRỌNG: Làm tròn lên 1.000đ ngay tại đây
+        // Ví dụ: 8.293.400 -> 8.294.000
+        tongThanhToanValue = roundUpToThousand(rawTotal);
 
         if (danhSachHanhKhach == null || danhSachHanhKhach.isEmpty() || thongTinNguoiMua == null) {
             showAlert(Alert.AlertType.ERROR, "Lỗi dữ liệu", "Không thể tải thông tin từ bước trước.");
@@ -130,7 +140,7 @@ public class Step4Controller {
         // 3. Hiển thị chi tiết thanh toán
         displayPaymentDetails();
 
-        // 4. Hiển thị tổng thanh toán bên phải
+        // 4. Hiển thị tổng thanh toán (Đã làm tròn) bên phải
         lblDisplayTongThanhToan.setText(moneyFormatter.format(tongThanhToanValue));
 
         // 5. Tạo các nút gợi ý mệnh giá
@@ -142,6 +152,12 @@ public class Step4Controller {
         btnXacNhanVaIn.setDisable(true);
     }
     
+    // --- HÀM LÀM TRÒN 1000đ ---
+    private double roundUpToThousand(double value) {
+        if (value % 1000 == 0) return value;
+        return Math.ceil(value / 1000.0) * 1000;
+    }
+
     // Hiển thị bảng xác nhận thông tin vé
     private void populateTicketTable() {
         containerVe.getChildren().clear();
@@ -155,14 +171,14 @@ public class Step4Controller {
                 Node rowNode = createTicketTableRow(veDi, hanhKhach);
                 containerVe.getChildren().add(rowNode);
                 if (firstRow) {
-                    syncTicketTableHeaderWidths((HBox) rowNode); // Đồng bộ header
+                    syncTicketTableHeaderWidths((HBox) rowNode);
                     firstRow = false;
                 }
             }
             if (veVe != null) {
                  Node rowNode = createTicketTableRow(veVe, hanhKhach);
                  containerVe.getChildren().add(rowNode);
-                 if (firstRow) { // Nếu chưa có vé đi nào được thêm
+                 if (firstRow) {
                      syncTicketTableHeaderWidths((HBox) rowNode);
                      firstRow = false;
                  }
@@ -172,13 +188,13 @@ public class Step4Controller {
 
     // Tạo một hàng (Node) cho bảng xác nhận vé
     private Node createTicketTableRow(VeTamThoi ve, Map<String, Object> hanhKhachInfo) {
-        HBox row = new HBox(10.0); // Giữ spacing của header
+        HBox row = new HBox(10.0);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setStyle("-fx-padding: 8px 0; -fx-border-color: #eee; -fx-border-width: 0 0 1px 0;");
 
         // Cột 1: Chuyến tàu
         VBox col1 = new VBox(2);
-        col1.setPrefWidth(150.0); // Sizing cột 1
+        col1.setPrefWidth(150.0);
         col1.getChildren().addAll(
                 new Label("Tàu " + ve.getLichTrinh().getTau().getMacTau()),
                 new Label(ve.getLichTrinh().getNgayGioKhoiHanh().format(formatter)){{ setStyle("-fx-font-size: 11px;");}}
@@ -186,11 +202,11 @@ public class Step4Controller {
 
         // Cột 2: Toa - Chỗ
         Label col2 = new Label("Toa " + ve.getChiTietToa().getToa().getMaToa() + " - Ghế " + ve.getChiTietToa().getSoThuTu());
-        col2.setPrefWidth(150.0); // Sizing cột 2
+        col2.setPrefWidth(150.0);
 
         // Cột 3: Hành khách
         VBox col3 = new VBox(2);
-        HBox.setHgrow(col3, Priority.ALWAYS); // Sizing cột 3
+        HBox.setHgrow(col3, Priority.ALWAYS);
         col3.getChildren().addAll(
                 new Label((String) hanhKhachInfo.get("hoTen")),
                 new Label("ID: " + hanhKhachInfo.get("soGiayTo")){{ setStyle("-fx-font-size: 11px;");}}
@@ -198,16 +214,15 @@ public class Step4Controller {
 
         // Cột 4: Loại vé
         Label col4 = new Label(((LoaiVe) hanhKhachInfo.get("doiTuong")).getDescription());
-        col4.setPrefWidth(150.0); // Sizing cột 4
+        col4.setPrefWidth(150.0);
 
         // Cột 5: Đơn giá
-        double donGia = 0;
         double giaGoc = ve.getGiaVe() - PHI_BAO_HIEM;
         double heSoGiam = ((LoaiVe) hanhKhachInfo.get("doiTuong")).getHeSoGiamGia();
-        donGia = (giaGoc * (1 - heSoGiam)) + PHI_BAO_HIEM;
+        double donGia = (giaGoc * (1 - heSoGiam)) + PHI_BAO_HIEM;
 
         Label col5 = new Label(moneyFormatter.format(donGia));
-        col5.setPrefWidth(120.0); // Sizing cột 5
+        col5.setPrefWidth(120.0);
         col5.setAlignment(Pos.CENTER_RIGHT);
         col5.setMaxWidth(Double.MAX_VALUE);
 
@@ -215,32 +230,19 @@ public class Step4Controller {
         return row;
     }
 
-    // Đồng bộ độ rộng header vé với hàng đầu tiên
     private void syncTicketTableHeaderWidths(HBox firstRowNode) {
         if (firstRowNode == null || ticketHeaderRow == null || firstRowNode.getChildren().size() != 5) {
-             System.err.println("Lỗi đồng bộ header vé: Hàng đầu tiên không hợp lệ.");
              return;
         }
-
-        Node col1 = firstRowNode.getChildren().get(0);
-        Node col2 = firstRowNode.getChildren().get(1);
-        Node col3 = firstRowNode.getChildren().get(2);
-        Node col4 = firstRowNode.getChildren().get(3);
-        Node col5 = firstRowNode.getChildren().get(4);
-
-        applyTicketColumnSizing(headerChuyenTau, col1);
-        applyTicketColumnSizing(headerToaCho, col2);
-        applyTicketColumnSizing(headerHanhKhach, col3);
-        applyTicketColumnSizing(headerLoaiVe, col4);
-        applyTicketColumnSizing(headerDonGia, col5);
-
-        // ticketHeaderRow.setSpacing(10.0); // Đảm bảo spacing khớp
+        applyTicketColumnSizing(headerChuyenTau, firstRowNode.getChildren().get(0));
+        applyTicketColumnSizing(headerToaCho, firstRowNode.getChildren().get(1));
+        applyTicketColumnSizing(headerHanhKhach, firstRowNode.getChildren().get(2));
+        applyTicketColumnSizing(headerLoaiVe, firstRowNode.getChildren().get(3));
+        applyTicketColumnSizing(headerDonGia, firstRowNode.getChildren().get(4));
     }
 
-    // Hàm trợ giúp áp dụng sizing cho header vé
     private void applyTicketColumnSizing(Label headerLabel, Node rowColumnNode) {
          if (headerLabel == null || rowColumnNode == null || !(rowColumnNode instanceof Region)) return;
-
          Region rowColumn = (Region) rowColumnNode;
          Priority hGrow = HBox.getHgrow(rowColumn);
 
@@ -260,7 +262,7 @@ public class Step4Controller {
          }
      }
     
-    // Hiển thị chi tiết thanh toán
+    // Hiển thị chi tiết thanh toán (Bảng bên trái)
     private void displayPaymentDetails() {
         double tongTienVeGoc = 0;
         double tongGiamDoiTuong = 0;
@@ -271,35 +273,45 @@ public class Step4Controller {
             VeTamThoi veVe = (VeTamThoi) hanhKhach.get("veVe");
             LoaiVe loaiVe = (LoaiVe) hanhKhach.get("doiTuong");
 
-            double giaVeGocDi = (veDi != null) ? veDi.getGiaVe() - PHI_BAO_HIEM : 0;
-            double giaVeGocVe = (veVe != null) ? veVe.getGiaVe() - PHI_BAO_HIEM : 0;
-            double giaVeGocHanhKhach = giaVeGocDi + giaVeGocVe;
-
-            tongTienVeGoc += giaVeGocHanhKhach;
-            tongGiamDoiTuong += giaVeGocHanhKhach * loaiVe.getHeSoGiamGia();
-            tongBaoHiem += (veDi != null ? PHI_BAO_HIEM : 0) + (veVe != null ? PHI_BAO_HIEM : 0);
+            if (veDi != null) {
+                double giaVeGoc = veDi.getGiaVe() - PHI_BAO_HIEM;
+                tongTienVeGoc += giaVeGoc;
+                tongGiamDoiTuong += giaVeGoc * loaiVe.getHeSoGiamGia();
+                tongBaoHiem += PHI_BAO_HIEM;
+            }
+            if (veVe != null) {
+                double giaVeGoc = veVe.getGiaVe() - PHI_BAO_HIEM;
+                tongTienVeGoc += giaVeGoc;
+                tongGiamDoiTuong += giaVeGoc * loaiVe.getHeSoGiamGia();
+                tongBaoHiem += PHI_BAO_HIEM;
+            }
         }
 
         double giamDiem = 0; // Tạm thời
-        tongThanhToanValue = tongTienVeGoc - tongGiamDoiTuong - giamDiem + tongBaoHiem;
 
         lblDetailTongTienVe.setText(moneyFormatter.format(tongTienVeGoc));
         lblDetailGiamDoiTuong.setText("- " + moneyFormatter.format(tongGiamDoiTuong));
         lblDetailGiamDiem.setText("- " + moneyFormatter.format(giamDiem));
         lblDetailBaoHiem.setText(moneyFormatter.format(tongBaoHiem));
+        
+        // QUAN TRỌNG: Hiển thị Tổng cuối cùng phải khớp với số đã làm tròn
         lblDetailTongThanhToan.setText(moneyFormatter.format(tongThanhToanValue));
     }
 
-    // Tạo các nút gợi ý mệnh giá
+    // --- CẬP NHẬT: Tạo nút gợi ý với Style Class mới ---
     private void generateSuggestionButtons() {
         flowPaneSuggestions.getChildren().clear();
         if (tongThanhToanValue <= 0) return;
 
-        double[] suggestions = calculateSuggestions(tongThanhToanValue);
+        double[] suggestions = calculateSmartSuggestions(tongThanhToanValue);
 
         for (double amount : suggestions) {
             Button btn = new Button(moneyFormatter.format(amount));
+            // Áp dụng CSS class cho nút đẹp
+            btn.getStyleClass().add("money-suggestion-button");
+            
             btn.setOnAction(e -> {
+                // Xóa chữ " VNĐ" và dấu chấm để lấy số raw nhập vào ô
                 txtTienKhachDua.setText(String.valueOf((long)amount));
                 calculateChange();
             });
@@ -307,26 +319,40 @@ public class Step4Controller {
         }
     }
 
-    // Thuật toán đơn giản để tính mệnh giá gợi ý
-    private double[] calculateSuggestions(double total) {
-        long totalLong = (long) Math.ceil(total);
-        List<Double> suggestionList = new ArrayList<>();
-        suggestionList.add((double) totalLong);
-        long rounded10k = (long) (Math.ceil(totalLong / 10000.0) * 10000);
-        if (rounded10k > totalLong) suggestionList.add((double) rounded10k);
-        long rounded50k = (long) (Math.ceil(totalLong / 50000.0) * 50000);
-         if (rounded50k > totalLong && !suggestionList.contains((double)rounded50k)) suggestionList.add((double) rounded50k);
-        long rounded100k = (long) (Math.ceil(totalLong / 100000.0) * 100000);
-         if (rounded100k > totalLong && !suggestionList.contains((double)rounded100k)) suggestionList.add((double) rounded100k);
-        long plus20k = (long) (Math.ceil(totalLong / 20000.0) * 20000);
-        if (plus20k > totalLong && !suggestionList.contains((double)plus20k)) suggestionList.add((double) plus20k);
-        else if (plus20k <= totalLong && !suggestionList.contains((double)(plus20k + 20000))) suggestionList.add((double)(plus20k + 20000));
-        long plus50k_variant = (long) (Math.ceil(totalLong / 50000.0) * 50000 + 50000);
-        if (plus50k_variant > totalLong && !suggestionList.contains((double)plus50k_variant)) suggestionList.add((double) plus50k_variant);
+    // --- CẬP NHẬT: Thuật toán gợi ý tiền thông minh cho VNĐ (Dựa trên số đã làm tròn) ---
+    private double[] calculateSmartSuggestions(double total) {
+        // Lúc này 'total' (tức tongThanhToanValue) đã là số chẵn nghìn (VD: 8.294.000)
+        long totalLong = (long) total;
+        
+        Set<Long> suggestions = new TreeSet<>(); // Dùng TreeSet để tự sắp xếp và loại trùng
+        
+        // Gợi ý 1: Đưa đúng số tiền (Chính xác)
+        suggestions.add(totalLong);
 
-        return suggestionList.stream().distinct().sorted().limit(6).mapToDouble(Double::doubleValue).toArray();
+        // Gợi ý 2: Làm tròn lên các mốc chẵn chục nghìn
+        suggestions.add(roundUpTo(totalLong, 10000));
+        
+        // Gợi ý 3: Làm tròn lên các mốc chẵn 50k, 100k, 500k, 1M
+        suggestions.add(roundUpTo(totalLong, 50000));
+        suggestions.add(roundUpTo(totalLong, 100000));
+        suggestions.add(roundUpTo(totalLong, 500000));
+        suggestions.add(roundUpTo(totalLong, 1000000));
+
+        // Lọc lấy các giá trị >= tổng tiền và giới hạn 6 nút
+        return suggestions.stream()
+                .filter(val -> val >= totalLong)
+                .limit(6)
+                .mapToDouble(Long::doubleValue)
+                .toArray();
     }
-
+    
+    // Hàm tiện ích làm tròn lên theo bội số
+    private long roundUpTo(long value, long multiple) {
+        if (multiple == 0) return value;
+        long remainder = value % multiple;
+        if (remainder == 0) return value;
+        return value + multiple - remainder;
+    }
 
     // Tính tiền thối lại
     private void calculateChange() {
@@ -338,7 +364,7 @@ public class Step4Controller {
                 return;
             }
             double tienKhachDua = Double.parseDouble(tienKhachDuaStr);
-            double tienThoi = tienKhachDua - tongThanhToanValue;
+            double tienThoi = tienKhachDua - tongThanhToanValue; // Trừ đi số tiền đã làm tròn
 
             if (tienThoi >= 0) {
                 lblTienThoiLai.setText(moneyFormatter.format(tienThoi));
@@ -356,19 +382,16 @@ public class Step4Controller {
     
     @FXML
     private void handleXuatHoaDon() {
-        // Lấy thông tin người mua từ biến thongTinNguoiMua
         showAlert(Alert.AlertType.INFORMATION, "Thông báo", "Chức năng Xuất hóa đơn VAT đang được phát triển.");
     }
 
     @FXML
     private void handleDoiDiem() {
-        // TODO: Implement logic đổi điểm
         showAlert(Alert.AlertType.INFORMATION, "Thông báo", "Chức năng Đổi điểm tích lũy đang được phát triển.");
     }
 
     @FXML
     private void handleTichDiem() {
-        // TODO: Implement logic tích điểm
         showAlert(Alert.AlertType.INFORMATION, "Thông báo", "Chức năng Tích điểm khách hàng đang được phát triển.");
     }
 
@@ -380,110 +403,43 @@ public class Step4Controller {
         }
 
         try {
-            String maNhanVien = "NV001"; // Lấy từ session hoặc nơi khác
+            String maNhanVien = "NV001"; // TODO: Lấy từ session thực tế
 
-            // --- a. Tìm hoặc Tạo Khách Hàng ---
-            
+            // a. Tìm hoặc Tạo Khách Hàng
             int khachHangId = khachHangDAO.findOrInsertKhachHang(thongTinNguoiMua);
             if (khachHangId == -1) {
                 showAlert(Alert.AlertType.ERROR, "Lỗi khách hàng", "Không thể xử lý thông tin khách hàng.");
                 return;
             }
 
-            // --- b. Tạo Hóa Đơn ---
+            // b. Tạo Hóa Đơn
             String maHoaDon = hoaDonDAO.generateUniqueHoaDonId();
             if (maHoaDon == null) {
                  showAlert(Alert.AlertType.ERROR, "Lỗi tạo mã", "Không thể tạo mã hóa đơn.");
                  return;
             }
+            // Lưu tổng tiền (đã làm tròn) vào DB
             boolean hoaDonCreated = hoaDonDAO.createHoaDon(maHoaDon, khachHangId, maNhanVien, tongThanhToanValue);
             if (!hoaDonCreated) {
                 showAlert(Alert.AlertType.ERROR, "Lỗi tạo hóa đơn", "Không thể lưu thông tin hóa đơn.");
                 return;
             }
 
-            // --- c. Tạo Vé và Chi Tiết Hóa Đơn ---
+            // c. Tạo Vé và Chi Tiết Hóa Đơn
             for (Map<String, Object> hanhKhach : danhSachHanhKhach) {
                 VeTamThoi veDi = (VeTamThoi) hanhKhach.get("veDi");
                 VeTamThoi veVe = (VeTamThoi) hanhKhach.get("veVe");
                 LoaiVe loaiVe = (LoaiVe) hanhKhach.get("doiTuong");
 
-                // Xử lý vé đi
                 if (veDi != null) {
-                    double giaChoNgoiDi = veDi.getGiaVe() - PHI_BAO_HIEM;
-                     int chiTietLichTrinhIdDi = chiTietLichTrinhDAO.createChiTietLichTrinh(
-                             veDi.getLichTrinh().getMaLichTrinh(),
-                             veDi.getChiTietToa().getCho().getMaCho(),
-                             giaChoNgoiDi, "DaBan");
-                    
-                    if (chiTietLichTrinhIdDi == -1) {
-                         showAlert(Alert.AlertType.ERROR, "Lỗi tạo CTLT", "Không thể tạo chi tiết lịch trình cho vé đi.");
-                         return;
-                    }
-
-                    String maVeDi = veTauDAO.generateUniqueVeId();
-                    if (maVeDi == null) { 
-                        showAlert(Alert.AlertType.ERROR, "Lỗi mã vé", "Không thể sinh ra mã vé đi tự động."); 
-                        return; 
-                    }
-                    boolean veDiCreated = veTauDAO.createVeTau(maVeDi, khachHangId, chiTietLichTrinhIdDi, loaiVe.getDescription(), false, "DaBan");
-                    if (!veDiCreated) { 
-                        showAlert(Alert.AlertType.ERROR, "Lỗi tạo vé", "Không thể tạo được vé tàu đi."); 
-                        return;  
-                    }
-
-                    // Tính giảm giá và thành tiền
-                    double giaGocDi = giaChoNgoiDi;
-                    double giamGiaDi = giaGocDi * loaiVe.getHeSoGiamGia();
-                    double thanhTienVeDi = veDi.getGiaVe() - giamGiaDi;
-                    boolean cthdDiCreated = chiTietHoaDonDAO.createChiTietHoaDon(maHoaDon, maVeDi, giamGiaDi, thanhTienVeDi);
-
-                    if (!cthdDiCreated)  { 
-                        showAlert(Alert.AlertType.ERROR, "Lỗi tạo chi tiết hoá đơn", "Không thể tạo được chi tiết hoá đơn"); 
-                        return;  
-                    }
+                    processVe(maHoaDon, khachHangId, veDi, loaiVe);
                 }
-
-                // Xử lý vé về (tương tự vé đi)
                 if (veVe != null) {
-                      double giaChoNgoiVe = veVe.getGiaVe() - PHI_BAO_HIEM;
-                      int chiTietLichTrinhIdVe = chiTietLichTrinhDAO.createChiTietLichTrinh(
-                              veVe.getLichTrinh().getMaLichTrinh(),
-                              veVe.getChiTietToa().getCho().getMaCho(),
-                              giaChoNgoiVe, "DaBan");
-                     
-                     if (chiTietLichTrinhIdVe == -1)  {
-                         showAlert(Alert.AlertType.ERROR, "Lỗi tạo CTLT", "Không thể tạo chi tiết lịch trình cho vé về.");
-                         return;
-                     }
-
-                     // Tạo Vé về
-                     String maVeVe = veTauDAO.generateUniqueVeId();
-                     if (maVeVe == null) { 
-                        showAlert(Alert.AlertType.ERROR, "Lỗi mã vé", "Không thể sinh ra mã vé về tự động."); 
-                        return; 
-                    }
-                     boolean veVeCreated = veTauDAO.createVeTau(maVeVe, khachHangId, chiTietLichTrinhIdVe, loaiVe.getDescription(), true, "DaBan");
-                     if (!veVeCreated) { 
-                        showAlert(Alert.AlertType.ERROR, "Lỗi tạo vé", "Không thể tạo được vé tàu về."); 
-                        return;  
-                    }
-
-                     // Tính giảm giá, thành tiền
-                     double giaGocVe = giaChoNgoiVe;
-                     double giamGiaVe = giaGocVe * loaiVe.getHeSoGiamGia();
-                     double thanhTienVeVe = veVe.getGiaVe() - giamGiaVe;
-                     boolean cthdVeCreated = chiTietHoaDonDAO.createChiTietHoaDon(maHoaDon, maVeVe, giamGiaVe, thanhTienVeVe);
-                     
-                     if (!cthdVeCreated) { 
-                        showAlert(Alert.AlertType.ERROR, "Lỗi tạo chi tiết hoá đơn", "Không thể tạo được chi tiết hoá đơn"); 
-                        return;  
-                    }
+                    processVe(maHoaDon, khachHangId, veVe, loaiVe);
                 }
-           }
+            }
 
-            // TODO: Mở dialog in vé
-            showAlert(Alert.AlertType.INFORMATION, "In vé", "Đã in vé thành công!");
+            showAlert(Alert.AlertType.INFORMATION, "In vé", "Thanh toán thành công! Đang in vé...");
             
             clearAllUserData();
             mainController.loadContent("step-1.fxml");
@@ -494,9 +450,29 @@ public class Step4Controller {
             showAlert(Alert.AlertType.ERROR, "Lỗi hệ thống", "Đã xảy ra lỗi không mong muốn khi xử lý thanh toán.");
         }
     }
+    
+    // Tách hàm xử lý lưu vé để code gọn hơn
+    private void processVe(String maHoaDon, int khachHangId, VeTamThoi ve, LoaiVe loaiVe) {
+        double giaChoNgoi = ve.getGiaVe() - PHI_BAO_HIEM;
+        int chiTietLichTrinhId = chiTietLichTrinhDAO.createChiTietLichTrinh(
+                ve.getLichTrinh().getMaLichTrinh(),
+                ve.getChiTietToa().getCho().getMaCho(),
+                giaChoNgoi, "DaBan");
+        
+        if (chiTietLichTrinhId != -1) {
+            String maVe = veTauDAO.generateUniqueVeId();
+            if (maVe != null) {
+                veTauDAO.createVeTau(maVe, khachHangId, chiTietLichTrinhId, loaiVe.getDescription(), ve.isChieuDi() ? false : true, "DaBan");
+                
+                double giaGoc = giaChoNgoi;
+                double giamGia = giaGoc * loaiVe.getHeSoGiamGia();
+                double thanhTien = ve.getGiaVe() - giamGia;
+                
+                chiTietHoaDonDAO.createChiTietHoaDon(maHoaDon, maVe, giamGia, thanhTien);
+            }
+        }
+    }
 
-
-    // Hàm xóa dữ liệu người dùng khỏi MainController (sau khi thanh toán thành công)
     private void clearAllUserData() {
          mainController.setUserData("lichTrinhChieuDi", null);
          mainController.setUserData("lichTrinhChieuVe", null);
@@ -505,7 +481,6 @@ public class Step4Controller {
          mainController.setUserData("danhSachHanhKhachDaNhap", null);
          mainController.setUserData("thongTinNguoiMua", null);
          mainController.setUserData("tongThanhTien", null);
-         // Xóa cả state của Step 1
          mainController.setUserData("step1_gaDi", null);
          mainController.setUserData("step1_gaDen", null);
          mainController.setUserData("step1_ngayDi", null);
@@ -513,10 +488,8 @@ public class Step4Controller {
          mainController.setUserData("step1_ngayVe", null);
     }
 
-
     @FXML
     private void handleQuayLai() {
-        // Quay lại Step 3
         mainController.loadContent("step-3.fxml");
     }
 

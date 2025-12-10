@@ -245,6 +245,13 @@
     -fx-border-radius: 5;
 }
 
+.step-button-done {
+    -fx-background-color: #008000;
+    -fx-text-fill: white;
+    -fx-border-color: #008000;
+    -fx-font-weight: bold;
+}
+
 .step-button-active {
     -fx-background-color: #0066CC;
     -fx-text-fill: white;
@@ -526,4 +533,20 @@
     -fx-padding: 10px 20px;
     -fx-font-size: 16px;
     -fx-height: 50px;
+}
+
+/* Style cho các nút gợi ý mệnh giá tiền */
+.money-suggestion-button {
+    -fx-background-color: #0066CC; /* Xanh dương */
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 8 15 8 15;
+    -fx-background-radius: 4;
+    -fx-cursor: hand;
+    -fx-font-size: 14px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 3, 0, 0, 1);
+}
+
+.money-suggestion-button:hover {
+    -fx-background-color: #004C99; /* Xanh đậm hơn khi hover */
 }
