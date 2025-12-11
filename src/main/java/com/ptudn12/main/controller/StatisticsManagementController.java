@@ -27,6 +27,32 @@ public class StatisticsManagementController {
         colSoChuyen.setCellValueFactory(new PropertyValueFactory<>("soChuyen"));
         colDoanhThu.setCellValueFactory(new PropertyValueFactory<>("doanhThu"));
 
+        // Format tỉ lệ lắp đầy với ký hiệu %
+        colTiLe.setCellFactory(column -> new TableCell<ThongKe, Double>() {
+            @Override
+            protected void updateItem(Double item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(String.format("%.2f%%", item));
+                }
+            }
+        });
+
+        // Format doanh thu với dấu phân cách hàng nghìn
+        colDoanhThu.setCellFactory(column -> new TableCell<ThongKe, Long>() {
+            @Override
+            protected void updateItem(Long item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(String.format("%,d VNĐ", item));
+                }
+            }
+        });
+
         loadData();
     }
 

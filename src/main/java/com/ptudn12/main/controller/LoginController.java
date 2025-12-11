@@ -131,9 +131,15 @@
                 }
 
                 Stage stage = (Stage) usernameField.getScene().getWindow();
-                stage.setScene(new Scene(root));
+                Scene scene = new Scene(root);
+                stage.setScene(scene);
                 stage.setTitle(title);
-                stage.setMaximized(true);
+                
+                // Force maximize using Platform.runLater to ensure it happens after scene is rendered
+                javafx.application.Platform.runLater(() -> {
+                    stage.setMaximized(true);
+                });
+                stage.show();
                 
             } catch (IOException e) {
                 e.printStackTrace();

@@ -22,6 +22,8 @@
          <children>
             <Label styleClass="sidebar-title" text="Nhân Viên Bán Vé" />
             
+            <Button fx:id="btnDashboard" text="🏠 Trang chủ" styleClass="menu-item" onAction="#showDashboard" />
+            
             <TitledPane fx:id="menuVeTau" text="Quản lý vé tàu" styleClass="menu-titled-pane">
               <content>
                 <VBox styleClass="menu-vbox">

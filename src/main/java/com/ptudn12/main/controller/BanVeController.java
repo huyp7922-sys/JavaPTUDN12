@@ -42,6 +42,7 @@ public class BanVeController {
     private Step4Controller step4ControllerInstance;
 
     // Menu items
+    @FXML private Button btnDashboard;
     @FXML private TitledPane menuVeTau;
     @FXML private Button btnBanVe;
     @FXML private Button btnDoiVe;
@@ -66,9 +67,8 @@ public class BanVeController {
         clock.setCycleCount(Timeline.INDEFINITE);
         clock.play();
 
-        // Mặc định tải trang Bán vé (Step 1)
-        showBanVe();
-        menuVeTau.setExpanded(true); // Mở sẵn menu vé
+        // Mặc định tải trang Dashboard
+        showDashboard();
     }
 
     public void setUsername(String username) {
@@ -77,9 +77,17 @@ public class BanVeController {
     
     // --- Các hàm xử lý menu ---
     @FXML
+    private void showDashboard() {
+        resetMenuButtons();
+        btnDashboard.getStyleClass().add("menu-item-active");
+        loadContent("employee-dashboard-content.fxml");
+    }
+    
+    @FXML
     private void showBanVe() {
         resetMenuButtons();
         btnBanVe.getStyleClass().add("menu-item-active");
+        menuVeTau.setExpanded(true);
         loadContent("step-1.fxml");
     }
 
@@ -229,6 +237,7 @@ public class BanVeController {
 
     private void resetMenuButtons() {
         String activeClass = "menu-item-active";
+        btnDashboard.getStyleClass().remove(activeClass);
         btnBanVe.getStyleClass().remove(activeClass);
         btnDoiVe.getStyleClass().remove(activeClass);
         btnTraVe.getStyleClass().remove(activeClass);

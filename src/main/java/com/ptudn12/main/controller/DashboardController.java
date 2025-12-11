@@ -149,20 +149,14 @@ public class DashboardController {
 
 	@FXML
 	private void handleAbout() {
-		try {
-			java.awt.Desktop.getDesktop().browse(new java.net.URI("https://yourcompany.com/about"));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		resetMenuButtons();
+		loadView("about.fxml");
 	}
 
 	@FXML
 	private void handleHelp() {
-		try {
-			java.awt.Desktop.getDesktop().browse(new java.net.URI("https://yourcompany.com/help"));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		resetMenuButtons();
+		loadView("help.fxml");
 	}
 
 	@FXML
