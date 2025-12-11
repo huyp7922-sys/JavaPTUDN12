@@ -61,7 +61,7 @@ public class LoginController {
             
             // Kiểm tra mật khẩu
             if (! taiKhoan.getMatKhau().equals(password)) {
-                System.out.println("Tên đăng nhập hoặc mật khẩu không đúng");
+                showAlert(Alert.AlertType.ERROR, "Lỗi", "Tên đăng nhập hoặc mật khẩu không đúng");
                 return false;
             }
 

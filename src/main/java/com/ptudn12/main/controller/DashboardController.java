@@ -166,28 +166,25 @@ public class DashboardController {
 	}
 
 	@FXML
-	private void handleLogout() {
-		Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-		alert.setTitle("Xác nhận đăng xuất");
-		alert.setHeaderText(null);
-		alert.setContentText("Bạn có chắc chắn muốn đăng xuất?");
+    public void handleLogout() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Xác nhận đăng xuất");
+        alert.setHeaderText(null);
+        alert.setContentText("Bạn có chắc chắn muốn đăng xuất?");
 
-		if (alert.showAndWait().get() == ButtonType.OK) {
-			SessionManager.getInstance().logout();
-			
-			try {
-				Parent root = FXMLLoader.load(getClass().getResource("/views/login.fxml"));
-				Stage stage = (Stage) contentPane.getScene().getWindow();
-				stage.setScene(new Scene(root));
-				stage.setTitle("Đăng Nhập Hệ Thống");
-				stage.centerOnScreen();
-			} catch (IOException e) {
-				e.printStackTrace();
-				showError("Lỗi khi đăng xuất: " + e.getMessage());
-			}
-		}
-	}
-
+        if (alert.showAndWait().get() == ButtonType.OK) {
+            try {
+                Parent root = FXMLLoader.load(getClass().getResource("/views/login.fxml"));
+                Stage stage = (Stage) contentPane.getScene().getWindow();
+                stage.setScene(new Scene(root));
+                stage.setTitle("Đăng Nhập Hệ Thống");
+                stage.setMaximized(false); 
+            } catch (IOException e) {
+                e.printStackTrace();
+                showError("Lỗi khi đăng xuất: " + e.getMessage());
+            }
+        }
+    }
 	private void loadView(String fxmlFile) {
 		try {
 			// Check if file exists
