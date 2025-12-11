@@ -21,6 +21,7 @@ import java.util.Locale;
 
 public class DashboardStatisticsController {
 
+    
     @FXML private Label welcomeSubtitle;
     @FXML private Label totalRoutesLabel;
     @FXML private Label todaySchedulesLabel;
