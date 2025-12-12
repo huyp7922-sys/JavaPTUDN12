@@ -15,6 +15,10 @@ import com.ptudn12.main.entity.KhachHang;
 
 public class KhachHangDAO {
     public int findKhachHangByIdentifier(String identifier) {
+        if (identifier != null) {
+            identifier = identifier.trim();
+        }
+        
         if (identifier == null || identifier.isEmpty()) {
             return -1;
         }
@@ -76,6 +80,10 @@ public class KhachHangDAO {
         String identifier = thongTinNguoiMua.get("soGiayToIdentifier"); // Lấy giá trị giấy tờ
         String soCCCD = null;
         String hoChieu = null;
+        
+        if (identifier != null) {
+            identifier = identifier.trim();
+        }
 
         // Phân loại giá trị giấy tờ
         if (identifier != null && !identifier.isEmpty()) {

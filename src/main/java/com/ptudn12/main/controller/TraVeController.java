@@ -52,7 +52,6 @@ public class TraVeController {
     private final ChiTietLichTrinhDAO chiTietLichTrinhDAO = new ChiTietLichTrinhDAO();
     
     private final DecimalFormat moneyFormatter = new DecimalFormat("#,##0 'VNĐ'");
-    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     
     private VeTau selectedVe = null;
     private double calculatedRefundAmount = 0;
@@ -89,10 +88,12 @@ public class TraVeController {
             if (cell.getValue().getChiTietLichTrinh() != null && 
                 cell.getValue().getChiTietLichTrinh().getLichTrinh() != null &&
                 // THÊM DÒNG NÀY: Kiểm tra ngày giờ khởi hành có null không
-                cell.getValue().getChiTietLichTrinh().getLichTrinh().getNgayGioKhoiHanh() != null) {
-
+                cell.getValue().getChiTietLichTrinh().getLichTrinh().getNgayGioKhoiHanhFormatted() != null) {
+                   
+                System.out.println("Ngay gio khoi hanh: " + cell.getValue().getChiTietLichTrinh().getLichTrinh().getNgayGioKhoiHanhFormatted());
+                
                 return new SimpleStringProperty(
-                    cell.getValue().getChiTietLichTrinh().getLichTrinh().getNgayGioKhoiHanh().format(dateTimeFormatter)
+                    cell.getValue().getChiTietLichTrinh().getLichTrinh().getNgayGioKhoiHanhFormatted()
                 );
             }
             return new SimpleStringProperty("-");

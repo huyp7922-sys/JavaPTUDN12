@@ -113,7 +113,7 @@
                         <Button fx:id="btnXacNhanTra" maxWidth="1.7976931348623157E308" mnemonicParsing="false" 
                                 onAction="#handleXacNhanTra" 
                                 style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10;" 
-                                text="XÁC NHẬN TRẢ VÉ" disable="true">
+                                text="Xác nhận trả vé" disable="true">
                             <font>
                                 <Font size="16.0" />
                             </font>

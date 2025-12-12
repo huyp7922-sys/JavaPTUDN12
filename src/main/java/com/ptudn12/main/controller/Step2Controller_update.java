@@ -56,9 +56,6 @@ public class Step2Controller_update {
     private final Map<Integer, VeTamThoi> gioHang_Di = new HashMap<>();
     private final Map<Integer, VeTamThoi> gioHang_Ve = new HashMap<>();
 
-    // --- MỚI: Biến lưu trữ danh sách ghế vừa chọn hàng loạt để Undo ---
-    private final List<Integer> recentBatchSeats_Di = new ArrayList<>();
-    private final List<Integer> recentBatchSeats_Ve = new ArrayList<>();
 
     // Helpers
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -194,8 +191,8 @@ public class Step2Controller_update {
         
         // --- LAYOUT FIX: Set cứng chiều cao cho Grid ---
         // Điều này ngăn giao diện bị co lại (shrink) khi hiển thị 2 sơ đồ
-        gridSeats.setPrefHeight(100); 
-        gridSeats.setMinHeight(100);
+        gridSeats.setPrefHeight(120); 
+        gridSeats.setMinHeight(120);
         
         HBox legendBox = createLegendBox();
 
