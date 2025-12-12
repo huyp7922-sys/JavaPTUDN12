@@ -67,4 +67,22 @@ public class ChiTietLichTrinhDAO {
         }
         return generatedId;
     }
+    
+    /**
+     * Cập nhật trạng thái chỗ ngồi (Dùng khi Trả vé -> set lại thành N'ConTrong')
+     */
+    public boolean updateTrangThaiCho(int maChiTietLichTrinh, String trangThaiMoi) {
+        String sql = "UPDATE ChiTietLichTrinh SET trangThai = ? WHERE maChiTietLichTrinh = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setNString(1, trangThaiMoi); 
+            ps.setInt(2, maChiTietLichTrinh);
+            
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

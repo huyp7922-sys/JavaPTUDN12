@@ -276,42 +276,35 @@ public class KhachHangDAO {
         return new KhachHang(maKHFormatted, tenKhachHang, idGiayTo, laNguoiNuocNgoai, soDienThoai, diemTich);
     }
     
-    /**
-     * MỚI: Tìm đối tượng KhachHang đầy đủ thông tin theo CCCD hoặc Hộ chiếu
-     */
     public KhachHang timKhachHangTheoGiayTo(String identifier) {
         if (identifier == null || identifier.isEmpty()) {
             return null;
         }
 
-        String sql;
-        boolean isLikelyCCCD = identifier.matches("\\d{9}|\\d{12}");
-
-        if (isLikelyCCCD) {
-            sql = "SELECT * FROM KhachHang WHERE soCCCD = ?";
-        } else {
-            sql = "SELECT * FROM KhachHang WHERE hoChieu = ?";
-        }
-
+        String sql = "SELECT * FROM KhachHang WHERE soCCCD = ? OR hoChieu = ?";
         KhachHang kh = null;
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, identifier);
+            ps.setString(2, identifier);
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                // Tái sử dụng hàm map có sẵn để tạo đối tượng
-                kh = mapResultSetToKhachHang(rs);
-                
-                // LƯU Ý: Hàm mapResultSetToKhachHang của bạn hiện tại chưa lấy Email. 
-                // Nếu Model KhachHang của bạn có trường Email, hãy set thêm ở đây.
-                // Ví dụ: kh.setEmail(rs.getString("email"));
+                kh = new KhachHang();
+                // Map dữ liệu từ DB sang Entity
+                // Lưu ý: maKhachHang trong DB là INT, nhưng Entity cũ bạn gửi có thể là String
+                // Mình sẽ set theo kiểu String để khớp với code cũ của bạn, nếu Entity bạn sửa thành int thì đổi lại
+                kh.setMaKH(String.valueOf(rs.getInt("maKhachHang"))); 
+                kh.setTenKhachHang(rs.getString("tenKhachHang"));
+                kh.setSoCCCD(rs.getString("soCCCD"));
+                kh.setHoChieu(rs.getString("hoChieu"));
+                kh.setSoDienThoai(rs.getString("soDienThoai"));
             }
 
         } catch (SQLException e) {
-            System.err.println("Lỗi khi tìm chi tiết khách hàng: " + e.getMessage());
+            System.err.println("Lỗi tìm khách hàng: " + e.getMessage());
             e.printStackTrace();
         }
         return kh;
