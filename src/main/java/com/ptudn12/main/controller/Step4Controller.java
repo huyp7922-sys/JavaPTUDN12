@@ -19,21 +19,13 @@ import com.ptudn12.main.dao.KhachHangDAO;
 import com.ptudn12.main.dao.VeTauDAO;
 
 import javafx.application.Platform;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.text.DecimalFormat;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -441,8 +433,7 @@ public class Step4Controller {
 
             showAlert(Alert.AlertType.INFORMATION, "In vé", "Thanh toán thành công! Đang in vé...");
             
-            clearAllUserData();
-            mainController.loadContent("step-1.fxml");
+            mainController.startNewTransaction();
 
         } catch (Exception ex) {
             System.err.println("Lỗi không xác định khi xác nhận: " + ex.getMessage());

@@ -90,12 +90,17 @@ public class HanhKhachRowController {
         });
         
         txtSoGiayTo.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.ENTER) handleTimKiemHanhKhach();
+            if (event.getCode() == KeyCode.ENTER) {
+                handleTimKiemHanhKhach(); 
+                notifyDataChange(); 
+            }
         });
         
-        // Listener an toàn
-        if (txtHoTen != null) txtHoTen.textProperty().addListener((obs, oldVal, newVal) -> notifyDataChange());
-        if (txtSoGiayTo != null) txtSoGiayTo.textProperty().addListener((obs, oldVal, newVal) -> notifyDataChange());
+        txtHoTen.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                notifyDataChange();
+            }
+        });
         
         hideExtraControls();
     }

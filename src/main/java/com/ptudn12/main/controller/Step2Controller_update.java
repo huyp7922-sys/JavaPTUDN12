@@ -36,13 +36,8 @@ public class Step2Controller_update {
     @FXML private Label labelTenTauVe;
     @FXML private Label labelKhoiHanhVe;
     @FXML private Label labelDenNoiVe;
-    
-    // Container nằm trong ScrollPane của giỏ vé
     @FXML private VBox ticketListContainer;
-    
-    // Label tổng tiền đã có trong FXML
     @FXML private Label labelTongTien;
-    
     @FXML private Button btnMuaVe;
     @FXML private Button btnQuayLai;
 
@@ -85,11 +80,7 @@ public class Step2Controller_update {
     private static class ToaInfo implements Comparable<ToaInfo> {
         private final Integer maToa;
         private final String loaiToa;
-
-        public ToaInfo(Toa toa) {
-            this.maToa = toa.getMaToa();
-            this.loaiToa = toa.getLoaiToa().getDescription();
-        }
+        public ToaInfo(Toa toa) { this.maToa = toa.getMaToa(); this.loaiToa = toa.getLoaiToa().getDescription(); }
         public Integer getMaToa() { return maToa; }
         @Override public String toString() { return String.format("Toa %d - %s", maToa, loaiToa); }
         @Override public int compareTo(ToaInfo o) { return this.maToa.compareTo(o.maToa); }
@@ -103,11 +94,29 @@ public class Step2Controller_update {
     }
 
     public void initData() {
+        // --- FIX VẤN ĐỀ 1: Khôi phục dữ liệu giỏ hàng khi quay lại ---
+        List<VeTamThoi> savedGioHangDi = (List<VeTamThoi>) mainController.getUserData("gioHang_Di");
+        List<VeTamThoi> savedGioHangVe = (List<VeTamThoi>) mainController.getUserData("gioHang_Ve");
+
+        if (savedGioHangDi != null) {
+            for (VeTamThoi v : savedGioHangDi) {
+                gioHang_Di.put(v.getChiTietToa().getCho().getMaCho(), v);
+                danhSachChoDaChon_Di.add(v.getChiTietToa().getCho().getMaCho());
+            }
+        }
+        if (savedGioHangVe != null) {
+            for (VeTamThoi v : savedGioHangVe) {
+                gioHang_Ve.put(v.getChiTietToa().getCho().getMaCho(), v);
+                danhSachChoDaChon_Ve.add(v.getChiTietToa().getCho().getMaCho());
+            }
+        }
+        
+        // -------------------------------------------------------------
         LichTrinh lichTrinhDi = (LichTrinh) mainController.getUserData("lichTrinhChieuDi");
         LichTrinh lichTrinhVe = (LichTrinh) mainController.getUserData("lichTrinhChieuVe");
 
         toaSection.getChildren().clear();
-        updateCartUI();
+        updateCartUI(); // --- FIX VẤN ĐỀ 2: Tính lại tiền ngay khi load ---
 
         if (lichTrinhDi != null) {
             labelTenTauDi.setText("Chiều đi: Tàu " + lichTrinhDi.getTau().getMacTau());
@@ -153,12 +162,9 @@ public class Step2Controller_update {
         blockBox.setPadding(new Insets(10));
         blockBox.getStyleClass().add("seat-selection-section");
         
-        blockBox.setMinHeight(300);
-        
         Label lblTitle = new Label(title);
         lblTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #333;");
 
-        // --- UI Control (Giữ nguyên logic cũ) ---
         ComboBox<ToaInfo> comboToa = new ComboBox<>();
         comboToa.setPrefWidth(200.0);
         comboToa.setPromptText("Chọn toa");
@@ -170,9 +176,9 @@ public class Step2Controller_update {
         Button btnChonNhanh = new Button("Chọn nhanh");
         btnChonNhanh.getStyleClass().add("btn-action-secondary"); 
         
-        Button btnUndo = new Button("Hủy chọn");
-        btnUndo.setStyle("-fx-background-color: #c0392b; -fx-text-fill: white;");
-        btnUndo.setDisable(true);
+        // --- FIX VẤN ĐỀ 3: Nút Hủy chọn hoạt động như Xóa tất cả ---
+        Button btnUndo = new Button("Hủy chọn (Xóa hết)");
+        btnUndo.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white;");
 
         HBox comboContainer = new HBox(10,
                 new Label("Toa:"), comboToa,
@@ -181,27 +187,27 @@ public class Step2Controller_update {
         );
         comboContainer.setAlignment(Pos.CENTER_LEFT);
 
-        // --- GRID SƠ ĐỒ GHẾ ---
         GridPane gridSeats = new GridPane();
         gridSeats.setHgap(6);
         gridSeats.setVgap(6);
         gridSeats.setPadding(new Insets(5));
         
-        // Chú thích màu
+        // --- LAYOUT FIX: Set cứng chiều cao cho Grid ---
+        // Điều này ngăn giao diện bị co lại (shrink) khi hiển thị 2 sơ đồ
+        gridSeats.setPrefHeight(100); 
+        gridSeats.setMinHeight(100);
+        
         HBox legendBox = createLegendBox();
 
-        // Xử lý dữ liệu rỗng
         if (dsChiTiet.isEmpty()) {
             blockBox.getChildren().addAll(lblTitle, new Label("Không có dữ liệu chỗ ngồi cho tàu này."));
             return blockBox;
         }
 
-        // Load dữ liệu ComboBox (Giữ nguyên)
         List<ToaInfo> danhSachToaInfo = dsChiTiet.stream()
                 .map(ChiTietToa::getToa).distinct().map(ToaInfo::new).sorted().collect(Collectors.toList());
         comboToa.setItems(FXCollections.observableArrayList(danhSachToaInfo));
 
-        // Sự kiện chọn toa
         comboToa.setOnAction(e -> {
             ToaInfo selectedToaInfo = comboToa.getValue();
             if (selectedToaInfo == null) {
@@ -213,7 +219,6 @@ public class Step2Controller_update {
             populateGridPane(gridSeats, danhSachChoCuaToa, danhSachChoDaBan, isChieuDi, lichTrinh);
         });
         
-        // Sự kiện Chọn Nhanh (Giữ nguyên logic đã fix limit 10 vé)
         btnChonNhanh.setOnAction(e -> {
             ToaInfo selectedToa = comboToa.getValue();
             if (selectedToa == null) {
@@ -231,27 +236,39 @@ public class Step2Controller_update {
                     .filter(ct -> ct.getToa().getMaToa().equals(selectedToa.getMaToa()))
                     .sorted(Comparator.comparing(ChiTietToa::getSoThuTu))
                     .collect(Collectors.toList());
-            handleBatchSelection(soLuongCanChon, currentToaSeats, lichTrinh, isChieuDi, gridSeats, btnUndo);
+            
+            // Gọi hàm chọn nhanh
+            handleBatchSelection(soLuongCanChon, currentToaSeats, lichTrinh, isChieuDi, gridSeats);
+            
+            // Sau khi chọn xong, refresh lại grid để nút đổi màu xanh
+            ToaInfo currentToa = comboToa.getValue();
+            if (currentToa != null) {
+                 // Trigger lại event populateGridPane
+                 List<ChiTietToa> refreshSeats = dsChiTiet.stream()
+                    .filter(ct -> ct.getToa().getMaToa().equals(currentToa.getMaToa()))
+                    .collect(Collectors.toList());
+                 populateGridPane(gridSeats, refreshSeats, danhSachChoDaBan, isChieuDi, lichTrinh);
+            }
         });
         
-        // Sự kiện Undo (Giữ nguyên)
+        // --- FIX VẤN ĐỀ 3: Nút Undo gọi hàm xóa tất cả của chiều đó ---
         btnUndo.setOnAction(e -> {
-            handleUndoBatchSelection(isChieuDi);
-            btnUndo.setDisable(true);
+            clearAllTickets(isChieuDi);
+            // Refresh lại grid để nút đổi màu trắng
+            ToaInfo currentToa = comboToa.getValue();
+            if (currentToa != null) {
+                 List<ChiTietToa> refreshSeats = dsChiTiet.stream()
+                    .filter(ct -> ct.getToa().getMaToa().equals(currentToa.getMaToa()))
+                    .collect(Collectors.toList());
+                 populateGridPane(gridSeats, refreshSeats, danhSachChoDaBan, isChieuDi, lichTrinh);
+            }
         });
 
-        // --- THAY ĐỔI Ở ĐÂY: Add trực tiếp Grid, KHÔNG BỌC ScrollPane, KHÔNG VGrow ---
-        // Việc này giúp Grid tự chiếm chiều cao nó cần, nút sẽ giữ nguyên kích thước 40x40
         blockBox.getChildren().addAll(lblTitle, comboContainer, legendBox, gridSeats);
-        
         return blockBox;
     }
 
-    /**
-     * Logic chọn ghế hàng loạt và ghi nhớ để Undo
-     */
-    private void handleBatchSelection(int amountNeeded, List<ChiTietToa> allSeatsInToa, LichTrinh lichTrinh, boolean isChieuDi, GridPane gridSeats, Button btnUndo) {
-        // Fix Vấn đề 3: Lấy giỏ hàng tương ứng để check
+    private void handleBatchSelection(int amountNeeded, List<ChiTietToa> allSeatsInToa, LichTrinh lichTrinh, boolean isChieuDi, GridPane gridSeats) {
         Map<Integer, VeTamThoi> currentCart = isChieuDi ? gioHang_Di : gioHang_Ve;
 
         if (currentCart.size() + amountNeeded > 10) {
@@ -264,7 +281,6 @@ public class Step2Controller_update {
         Set<Integer> soldSet = chiTietLichTrinhDAO.getCacChoDaBan(lichTrinh.getMaLichTrinh());
         Set<Integer> currentSelectedSet = isChieuDi ? danhSachChoDaChon_Di : danhSachChoDaChon_Ve;
 
-        // Thuật toán tìm ghế liền kề
         for (int i = 0; i < allSeatsInToa.size(); i++) {
             seatsToSelect.clear();
             for (int j = i; j < allSeatsInToa.size(); j++) {
@@ -288,58 +304,34 @@ public class Step2Controller_update {
             return;
         }
 
-        // --- GHI NHỚ ĐỂ UNDO ---
-        List<Integer> targetRecentList = isChieuDi ? recentBatchSeats_Di : recentBatchSeats_Ve;
-        targetRecentList.clear(); // Xóa lịch sử cũ
-
         for (ChiTietToa seat : seatsToSelect) {
-            // Click chọn
-            for (Node node : gridSeats.getChildren()) {
-                if (node instanceof Button) {
-                    Button btn = (Button) node;
-                    if (btn.getText().equals(String.valueOf(seat.getSoThuTu()))) {
-                        handleChonCho(btn, seat, isChieuDi, lichTrinh);
-                        // Thêm vào danh sách undo
-                        targetRecentList.add(seat.getCho().getMaCho());
-                        break;
-                    }
-                }
-            }
+            // Gọi hàm chọn cho từng ghế -> Nó sẽ tự add vào giỏ và update UI
+            // Lưu ý: Không cần truyền Button vào hàm handleChonCho nữa, ta xử lý logic data trước
+            // rồi updateCartUI, sau đó refreshGridPane sẽ lo việc đổi màu nút.
+            addToCart(seat, isChieuDi, lichTrinh); 
         }
-        
-        // Enable nút Undo
-        btnUndo.setDisable(false);
+        updateCartUI(); // Cập nhật giỏ hàng 1 lần cuối
     }
     
-    /**
-     * MỚI: Logic Undo (Hủy chọn các ghế vừa chọn tự động)
-     */
-    private void handleUndoBatchSelection(boolean isChieuDi) {
-        List<Integer> targetRecentList = isChieuDi ? recentBatchSeats_Di : recentBatchSeats_Ve;
-        Map<Integer, VeTamThoi> currentCart = isChieuDi ? gioHang_Di : gioHang_Ve;
-        
-        if (targetRecentList.isEmpty()) return;
-        
-        // Duyệt qua danh sách các ID vừa chọn để hủy
-        for (Integer seatId : targetRecentList) {
-            if (currentCart.containsKey(seatId)) {
-                handleHuyVe(currentCart.get(seatId));
-            }
-        }
-        
-        // Clear danh sách sau khi đã hủy
-        targetRecentList.clear();
-    }
-    
-    // --- Fix Vấn đề 2: Xóa tất cả trong giỏ ---
     private void clearAllTickets(boolean isChieuDi) {
         Map<Integer, VeTamThoi> targetCart = isChieuDi ? gioHang_Di : gioHang_Ve;
-        if (targetCart.isEmpty()) return;
+        Set<Integer> targetSet = isChieuDi ? danhSachChoDaChon_Di : danhSachChoDaChon_Ve;
         
-        List<VeTamThoi> ticketsToRemove = new ArrayList<>(targetCart.values());
-        for (VeTamThoi ve : ticketsToRemove) {
-            handleHuyVe(ve);
+        // --- BƯỚC 1: Duyệt qua tất cả vé để Reset giao diện (Đổi màu nút về Trắng) ---
+        // Phải thực hiện bước này TRƯỚC KHI xóa dữ liệu trong Map
+        for (VeTamThoi ve : targetCart.values()) {
+            if (ve.getSeatButton() != null) {
+                ve.getSeatButton().setStyle(STYLE_TRONG); // Trả về màu trắng
+                ve.getSeatButton().setDisable(false);     // Enable lại nếu cần
+            }
         }
+        
+        // --- BƯỚC 2: Xóa dữ liệu trong bộ nhớ ---
+        targetCart.clear();
+        targetSet.clear();
+        
+        // --- BƯỚC 3: Cập nhật lại UI giỏ vé ---
+        updateCartUI();
     }
     
     private HBox createLegendBox() {
@@ -361,6 +353,7 @@ public class Step2Controller_update {
             btn.setStyle(STYLE_DABAN);
             btn.setDisable(true);
         } else {
+            // --- FIX VẤN ĐỀ 1: Kiểm tra trạng thái đã chọn khi vẽ lại ---
             if (selectedSet.contains(ct.getCho().getMaCho())) {
                 btn.setStyle(STYLE_DANGCHON);
             } else {
@@ -420,6 +413,23 @@ public class Step2Controller_update {
             return lichTrinh.getTuyenDuong().tinhGiaCoBan() * chiTietToa.getCho().getLoaiCho().getHeSoChoNgoi() + 2000;
         } catch (Exception e) { return 0.0; }
     }
+    
+    // Helper method: Add to Cart (Logic only)
+    private void addToCart(ChiTietToa ct, boolean isChieuDi, LichTrinh lichTrinh) {
+        Map<Integer, VeTamThoi> gioHang = isChieuDi ? gioHang_Di : gioHang_Ve;
+        Set<Integer> selectedSet = isChieuDi ? danhSachChoDaChon_Di : danhSachChoDaChon_Ve;
+        int maCho = ct.getCho().getMaCho();
+        
+        if (!gioHang.containsKey(maCho)) {
+             double giaVe = calculateTicketPrice(lichTrinh, ct);
+             // Lưu ý: Button ở đây tạm để null hoặc tạo fake vì nó sẽ được tạo lại trong updateCartUI
+             // Tuy nhiên VeTamThoi cần button để đổi màu -> Logic cũ phụ thuộc UI.
+             // Giải pháp tốt nhất: VeTamThoi lưu ID, updateCartUI tạo card, populateGridPane tô màu dựa trên ID.
+             VeTamThoi ve = new VeTamThoi(lichTrinh, ct, giaVe, null, isChieuDi);
+             gioHang.put(maCho, ve);
+             selectedSet.add(maCho);
+        }
+    }
 
     private void handleChonCho(Button btn, ChiTietToa ct, boolean isChieuDi, LichTrinh lichTrinh) {
         Map<Integer, VeTamThoi> gioHang = isChieuDi ? gioHang_Di : gioHang_Ve;
@@ -427,9 +437,12 @@ public class Step2Controller_update {
         int maCho = ct.getCho().getMaCho();
 
         if (gioHang.containsKey(maCho)) {
-            handleHuyVe(gioHang.get(maCho));
+            // Bỏ chọn (Hủy)
+            gioHang.remove(maCho);
+            selectedSet.remove(maCho);
+            btn.setStyle(STYLE_TRONG);
         } else {
-            // Fix Vấn đề 3: Check đúng giỏ hàng
+            // Chọn mới
             if (gioHang.size() >= 10) {
                 String chieu = isChieuDi ? "chiều đi" : "chiều về";
                 showAlert(Alert.AlertType.WARNING, "Bạn chỉ được chọn tối đa 10 vé cho " + chieu + ".");
@@ -437,13 +450,12 @@ public class Step2Controller_update {
             }
             double giaVe = calculateTicketPrice(lichTrinh, ct);
             VeTamThoi ve = new VeTamThoi(lichTrinh, ct, giaVe, btn, isChieuDi);
-            Node cardNode = createTicketCard(ve);
-            ve.setCardNode(cardNode);
+            // ve.setSeatButton(btn); // Lưu button để đổi màu khi hủy từ giỏ
             gioHang.put(maCho, ve);
             selectedSet.add(maCho);
             btn.setStyle(STYLE_DANGCHON);
-            updateCartUI();
         }
+        updateCartUI(); // Cập nhật giỏ hàng và tổng tiền
     }
 
     private Node createTicketCard(VeTamThoi ve) {
@@ -467,7 +479,11 @@ public class Step2Controller_update {
         
         Button btnXoa = new Button("X");
         btnXoa.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 10px;");
-        btnXoa.setOnAction(e -> handleHuyVe(ve));
+        btnXoa.setOnAction(e -> {
+            // Khi xóa từ giỏ, cần cập nhật lại cả Grid ghế
+            // Lấy controller hiện tại để refresh
+            handleHuyVeFromCart(ve); 
+        });
 
         priceBox.getChildren().addAll(btnXoa, lblGia);
         HBox.setHgrow(infoBox, Priority.ALWAYS);
@@ -475,18 +491,19 @@ public class Step2Controller_update {
         return card;
     }
 
-    private void handleHuyVe(VeTamThoi ve) {
+    // Hàm riêng để xử lý xóa từ giỏ (cần refresh grid)
+    private void handleHuyVeFromCart(VeTamThoi ve) {
         Map<Integer, VeTamThoi> gioHang = ve.isChieuDi() ? gioHang_Di : gioHang_Ve;
         Set<Integer> selectedSet = ve.isChieuDi() ? danhSachChoDaChon_Di : danhSachChoDaChon_Ve;
-
+        
         gioHang.remove(ve.getMaCho());
         selectedSet.remove(ve.getMaCho());
-
-        if (ve.getCardNode() != null) ticketListContainer.getChildren().remove(ve.getCardNode());
+        
+        // Nếu có button liên kết thì đổi màu (cho trường hợp click tay)
         if (ve.getSeatButton() != null) {
             ve.getSeatButton().setStyle(STYLE_TRONG);
-            ve.getSeatButton().setDisable(false);
         }
+        
         updateCartUI();
     }
 
@@ -501,16 +518,18 @@ public class Step2Controller_update {
             lblChieuDiHeader = new Label("Chiều đi");
             lblChieuDiHeader.setStyle("-fx-font-weight: bold; -fx-padding: 8 0 2 0; -fx-text-fill: #333;");
             
-            // Fix Vấn đề 2: Nút xóa tất cả
             btnClearAllDi = new Button("Xóa tất cả");
-            btnClearAllDi.setStyle("-fx-text-fill: white; -fx-font-size: 12px; -fx-padding: 3px 5px; -fx-background-color: #c0392b");
+            btnClearAllDi.setStyle("-fx-text-fill: white; -fx-font-size: 12px; -fx-padding: 5 10px; -fx-background-color: #c0392b");
             btnClearAllDi.setOnAction(e -> clearAllTickets(true));
             
             HBox headerBox = new HBox(10, lblChieuDiHeader, btnClearAllDi);
             headerBox.setAlignment(Pos.CENTER_LEFT);
             ticketListContainer.getChildren().add(headerBox);
             
-            for (VeTamThoi ve : gioHang_Di.values()) ticketListContainer.getChildren().add(ve.getCardNode());
+            for (VeTamThoi ve : gioHang_Di.values()) {
+                ve.setCardNode(createTicketCard(ve)); // Tạo card mới mỗi lần update
+                ticketListContainer.getChildren().add(ve.getCardNode());
+            }
         }
         
         if (!gioHang_Ve.isEmpty()) {
@@ -518,15 +537,20 @@ public class Step2Controller_update {
             lblChieuVeHeader.setStyle("-fx-font-weight: bold; -fx-padding: 8 0 2 0; -fx-text-fill: #333;");
             
             btnClearAllVe = new Button("Xóa tất cả");
-            btnClearAllVe.setStyle("-fx-text-fill: white; -fx-font-size: 12px; -fx-padding: 3px 5px; -fx-background-color: #c0392b");
+            btnClearAllVe.setStyle("-fx-text-fill: white; -fx-font-size: 12px; -fx-padding: 5 10px; -fx-background-color: #c0392b");
             btnClearAllVe.setOnAction(e -> clearAllTickets(false));
             
             HBox headerBox = new HBox(10, lblChieuVeHeader, btnClearAllVe);
             headerBox.setAlignment(Pos.CENTER_LEFT);
             ticketListContainer.getChildren().add(headerBox);
             
-            for (VeTamThoi ve : gioHang_Ve.values()) ticketListContainer.getChildren().add(ve.getCardNode());
+            for (VeTamThoi ve : gioHang_Ve.values()) {
+                ve.setCardNode(createTicketCard(ve));
+                ticketListContainer.getChildren().add(ve.getCardNode());
+            }
         }
+        
+        // --- FIX VẤN ĐỀ 2: Gọi updateTongTien() cuối cùng ---
         updateTongTien();
     }
 
@@ -540,7 +564,7 @@ public class Step2Controller_update {
     public void cancelTicketBySeatId(int maCho, boolean isChieuDi) {
         Map<Integer, VeTamThoi> gioHang = isChieuDi ? gioHang_Di : gioHang_Ve;
         VeTamThoi ve = gioHang.get(maCho);
-        if (ve != null) handleHuyVe(ve);
+        if (ve != null) handleHuyVeFromCart(ve);
     }
 
     @FXML
@@ -577,8 +601,7 @@ public class Step2Controller_update {
 
     @FXML
     private void initialize() {
-        labelTongTien = new Label("Tổng tiền: 0 VNĐ");
-        labelTongTien.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #333;");
-        labelTongTien.setPadding(new Insets(10, 0, 5, 0)); 
+        // Label tổng tiền đã có trong FXML (bọc trong VBox) nên không cần new Label
+        // Nếu FXML chưa có thì code này sẽ lỗi, hãy đảm bảo FXML step-2 có labelTongTien
     }
 }
