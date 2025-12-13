@@ -2,7 +2,7 @@ package com.ptudn12.main.controller;
 
 import com.ptudn12.main.dao.EmployeeDashboardDAO;
 import com.ptudn12.main.entity.NhanVien;
-import com.ptudn12.main.util.SessionManager;
+import com.ptudn12.main.utils.SessionManager;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.property.*;

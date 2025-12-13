@@ -37,7 +37,7 @@
                 
                 <Button text="Gen Lịch Trình" 
                         styleClass="primary-button" 
-                        style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold;"
+                        style="-fx-background-color: #28a745; -fx-text-fill: white;"
                         onAction="#handleGenerateSchedules"/>
                 
                 <Region HBox.hgrow="ALWAYS"/>

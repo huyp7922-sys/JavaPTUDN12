@@ -27,6 +27,13 @@
             <classifier>win</classifier>
         </dependency>
         
+        <!-- JavaFX Swing -->
+        <dependency>
+    		<groupId>org.openjfx</groupId>
+    		<artifactId>javafx-swing</artifactId>
+   		 	<version>${javafx.version}</version>
+		</dependency>
+        
         <!-- JavaFX FXML -->
         <dependency>
             <groupId>org.openjfx</groupId>
@@ -35,6 +42,14 @@
             <classifier>win</classifier>
         </dependency>
         
+        <!-- JavaFX Web (cần cho WebView) -->
+		<dependency>
+    		<groupId>org.openjfx</groupId>
+    		<artifactId>javafx-web</artifactId>
+    		<version>${javafx.version}</version>
+    		<classifier>win</classifier>
+		</dependency>
+        
         <!-- SQL Server JDBC Driver -->
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
@@ -42,11 +57,35 @@
             <version>12.4.2.jre11</version>
         </dependency>
 
+		<!-- Mail -->
         <dependency>
             <groupId>com.sun.mail</groupId>
             <artifactId>javax.mail</artifactId>
             <version>1.6.2</version>
         </dependency>
+        
+        <!-- Thymeleaf Core Engine -->
+    	<dependency>
+   		    <groupId>org.thymeleaf</groupId>
+    	    <artifactId>thymeleaf</artifactId>
+    	    <version>3.1.2.RELEASE</version> 
+    	</dependency>
+
+   		 <!-- OpenHTMLToPDF: lõi và trình kết xuất PDF (dùng PDFBox) -->
+    	<dependency>
+        	<groupId>com.openhtmltopdf</groupId>
+       	 	<artifactId>openhtmltopdf-pdfbox</artifactId>
+       		<version>1.0.10</version> 
+    	</dependency>
+    	
+    	<!-- 3. Hỗ trợ font chữ cho OpenHTMLToPDF -->
+    	<!--
+		<dependency>
+    		<groupId>com.openhtmltopdf</groupId>
+    		<artifactId>openhtmltopdf-fonts-extra</artifactId>
+    		<version>1.0.10</version>
+		</dependency>
+		-->
     </dependencies>
 
     <build>

@@ -312,12 +312,6 @@ public class NhanVienDAO {
         
         nv.setTinhTrangCV(rs.getString("tinhTrangCV"));
         
-        // DEBUG: In ra để kiểm tra
-        System.out.println("🔍 DAO loaded: " + nv.getMaNhanVien() + 
-                          " | Chức vụ (Boolean): " + nv.getChucVu() + 
-                          " | Text: " + nv.getChucVuText() +
-                          " | Tình trạng: " + nv.getTinhTrangCV());
-        
         return nv;
     }
 }
