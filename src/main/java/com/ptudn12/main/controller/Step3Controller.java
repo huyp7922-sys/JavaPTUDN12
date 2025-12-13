@@ -1,24 +1,16 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.ptudn12.main.controller;
 
-/**
- *
- * @author fo3cp
- */
-
-//import com.ptudn12.main.Controller.VeTamThoi;
+import com.ptudn12.main.dao.KhachHangDAO;
+import com.ptudn12.main.entity.KhachHang;
+import com.ptudn12.main.controller.VeTamThoi;
 import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.VBox;
+import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.*;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -26,10 +18,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javafx.scene.control.Button;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 
 public class Step3Controller {
     @FXML private ScrollPane scrollPaneHanhKhach;
@@ -54,16 +42,14 @@ public class Step3Controller {
     @FXML private Label headerThanhTien;
     
     private BanVeController mainController;
-    private DecimalFormat moneyFormatter = new DecimalFormat("#,##0 'VNĐ'");
+    private final DecimalFormat moneyFormatter = new DecimalFormat("#,##0 'VNĐ'");
+    private final KhachHangDAO khachHangDAO = new KhachHangDAO();
     
     // Danh sách các controller của từng hàng
-    private List<HanhKhachRowController> rowControllers = new ArrayList<>();
-    private List<VeTamThoi> allTickets = new ArrayList<>();
+    private final List<HanhKhachRowController> rowControllers = new ArrayList<>();
     
-    // Listeners cho auto-fill
-    private ChangeListener<String> autoFillHoTenListener;
-    private ChangeListener<String> autoFillGiayToListener;
-    private boolean isAutoFillActive = true; 
+    // Cờ kiểm soát việc auto-fill từ Row 1 xuống Người mua
+    private boolean isSyncFromFirstPassenger = true;
 
     public void setMainController(BanVeController mainController) {
         this.mainController = mainController;
@@ -71,19 +57,30 @@ public class Step3Controller {
     
     @FXML
     public void initialize() {
-        // Thêm listeners để TẮT auto-fill nếu người dùng tự nhập
-        txtNguoiMuaHoTen.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (isAutoFillActive && !newVal.equals(oldVal)) isAutoFillActive = false;
+        // 1. Tính năng tra cứu người mua (Enter)
+        txtNguoiMuaSoGiayTo.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                timThongTinNguoiMua();
+            }
         });
-        txtNguoiMuaSoGiayTo.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (isAutoFillActive && !newVal.equals(oldVal)) isAutoFillActive = false;
-        });
+
+        // 2. Logic ngắt đồng bộ: Nếu nhân viên TỰ SỬA ô người mua -> Ngừng auto-fill từ trên xuống
+        ChangeListener<String> manualEditListener = (obs, oldVal, newVal) -> {
+            // Chỉ ngắt đồng bộ nếu TextField đang được focus (người dùng đang gõ)
+            if (txtNguoiMuaHoTen.isFocused() || txtNguoiMuaSoGiayTo.isFocused()) {
+                isSyncFromFirstPassenger = false;
+            }
+        };
+        
+        txtNguoiMuaHoTen.textProperty().addListener(manualEditListener);
+        txtNguoiMuaSoGiayTo.textProperty().addListener(manualEditListener);
     }
     
     public void initData() {
         // 1. Dọn dẹp
         containerHanhKhach.getChildren().clear();
         rowControllers.clear();
+        isSyncFromFirstPassenger = true; // Reset cờ khi vào lại màn hình
 
         // 2. Lấy dữ liệu giỏ hàng từ Step 2
         List<VeTamThoi> gioHangDi = (List<VeTamThoi>) mainController.getUserData("gioHang_Di");
@@ -94,15 +91,12 @@ public class Step3Controller {
             return;
         }
 
-        // 3. Tạo các hàng hành khách
+        // 3. Kiểm tra số lượng vé khứ hồi
         boolean isRoundTrip = (gioHangVe != null && !gioHangVe.isEmpty());
-        int passengerCount = gioHangDi.size(); // Số hành khách = số vé chiều đi
+        int passengerCount = gioHangDi.size();
 
-        // Kiểm tra số lượng vé khứ hồi (nếu có)
         if (isRoundTrip && gioHangDi.size() != gioHangVe.size()) {
-             showAlert(Alert.AlertType.WARNING, "Cảnh báo: Số lượng vé đi (" + gioHangDi.size() +
-                       ") và vé về (" + gioHangVe.size() + ") không khớp. Mỗi hành khách cần đủ vé đi và về.");
-             // TẠM DỪNG: Không được đi tiếp nếu số vé không khớp
+             showAlert(Alert.AlertType.WARNING, "Cảnh báo: Số lượng vé đi (" + gioHangDi.size() + ") và vé về (" + gioHangVe.size() + ") không khớp.");
              btnTiepTheo.setDisable(true);
              return;
         } else {
@@ -111,28 +105,38 @@ public class Step3Controller {
 
         // 4. Tạo các hàng hành khách
         boolean isFirstRow = true;
-        for (int i = 0; i < passengerCount; i++) { // Lặp theo số hành khách
+        
+        for (int i = 0; i < passengerCount; i++) { 
             VeTamThoi veDi = gioHangDi.get(i);
-            VeTamThoi veVe = null; // Mặc định là null (cho vé 1 chiều)
-
-            // Nếu là khứ hồi, lấy vé về tương ứng
-            if (isRoundTrip) {
-                veVe = gioHangVe.get(i);
-            }
+            VeTamThoi veVe = isRoundTrip ? gioHangVe.get(i) : null;
 
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/hanhkhach-row.fxml"));
                 Node rowNode = loader.load();
                 HanhKhachRowController rowController = loader.getController();
 
-                // Nạp dữ liệu vào hàng (truyền veDi và veVe (có thể null))
+                // Nạp dữ liệu vào hàng
                 rowController.setData(veDi, veVe, this);
+
+                // --- LOGIC AUTO-FILL (QUAN TRỌNG) ---
+                // Nếu đây là hành khách đầu tiên (i == 0)
+                if (i == 0) {
+                    // Lắng nghe sự thay đổi từ hàng này
+                    rowController.setOnDataChange((obs, oldVal, newVal) -> {
+                        if (isSyncFromFirstPassenger) {
+                            syncFirstPassengerToBuyer(rowController);
+                        }
+                    });
+                    
+                    // Đồng bộ lần đầu (nếu có sẵn dữ liệu)
+                    syncFirstPassengerToBuyer(rowController);
+                }
+                // -------------------------------------
 
                 containerHanhKhach.getChildren().add(rowNode);
                 rowControllers.add(rowController);
 
                 if (isFirstRow) {
-                    setupAutoFill(rowController);
                     syncHeaderWidths(rowController);
                     isFirstRow = false;
                 }
@@ -143,100 +147,78 @@ public class Step3Controller {
             }
         }
         
-        // 5. Cập nhật tổng tiền lần đầu
         updateTongThanhTien();
     }
     
-    private void syncHeaderWidths(HanhKhachRowController firstRowController) {
-        if (firstRowController == null || headerRow == null) return;
+    // --- HÀM ĐỒNG BỘ TỪ KHÁCH #1 -> NGƯỜI MUA ---
+    private void syncFirstPassengerToBuyer(HanhKhachRowController firstRow) {
+        if (!isSyncFromFirstPassenger) return;
 
-        // Lấy các cột VBox từ hàng đầu tiên
-        VBox colHanhKhach = firstRowController.getColumnHanhKhach();
-        VBox colChuyenTau = firstRowController.getColumnChuyenTau();
-        VBox colChoNgoi = firstRowController.getColumnChoNgoi();
-        VBox colGiaVe = firstRowController.getColumnGiaVe();
-        VBox colGiamGia = firstRowController.getColumnGiamGia();
-        VBox colBaoHiem = firstRowController.getColumnBaoHiem();
-        VBox colThanhTien = firstRowController.getColumnThanhTien();
+        String hoTen = firstRow.getHoTen();
+        String giayTo = firstRow.getSoGiayTo();
 
-        // Áp dụng độ rộng và HGrow cho header tương ứng
-        applyColumnSizing(headerHanhKhach, colHanhKhach);
-        applyColumnSizing(headerChuyenTau, colChuyenTau);
-        applyColumnSizing(headerChoNgoi, colChoNgoi);
-        applyColumnSizing(headerGiaVe, colGiaVe);
-        applyColumnSizing(headerGiamGia, colGiamGia);
-        applyColumnSizing(headerBaoHiem, colBaoHiem);
-        applyColumnSizing(headerThanhTien, colThanhTien);
-        
-        headerRow.setSpacing(10.0); // Đảm bảo spacing khớp với hàng
-    }
-
-    /**
-     * Hàm trợ giúp để áp dụng sizing
-     */
-     private void applyColumnSizing(Label headerLabel, VBox rowColumn) {
-         if (headerLabel == null || rowColumn == null) return;
-
-         // Lấy HGrow từ cột VBox của hàng
-         Priority hGrow = HBox.getHgrow(rowColumn);
-
-         if (hGrow == Priority.ALWAYS) {
-             // Nếu cột hàng co giãn -> header cũng co giãn
-             HBox.setHgrow(headerLabel, Priority.ALWAYS);
-             headerLabel.setMaxWidth(Double.MAX_VALUE); // Cho phép co giãn tối đa
-             headerLabel.setMinWidth(Region.USE_PREF_SIZE); // Ít nhất bằng nội dung
-             headerLabel.setPrefWidth(Region.USE_COMPUTED_SIZE); // Xóa prefWidth cũ (nếu có)
-
-         } else {
-             // Nếu cột hàng có độ rộng cố định
-             double prefWidth = rowColumn.getPrefWidth();
-             if (prefWidth > 0) { // Chỉ set nếu prefWidth hợp lệ
-                 headerLabel.setPrefWidth(prefWidth);
-                 headerLabel.setMinWidth(prefWidth); // Giữ cố định
-                 headerLabel.setMaxWidth(prefWidth); // Giữ cố định
-             }
-              // Đảm bảo header không co giãn
-             HBox.setHgrow(headerLabel, Priority.NEVER);
-         }
-     }
-
-    // Thiết lập tính năng auto-fill
-    private void setupAutoFill(HanhKhachRowController firstRowController) {
-//        isAutoFillActive = true; 
-//        
-//        // Xóa listener cũ (nếu có)
-//        if (autoFillHoTenListener != null) {
-//            firstRowController.getTxtHoTen().textProperty().removeListener(autoFillHoTenListener);
-//        }
-//        if (autoFillGiayToListener != null) {
-//            firstRowController.getTxtSoGiayTo().textProperty().removeListener(autoFillGiayToListener);
-//        }
-//
-//        // Tạo listener mới
-//        autoFillHoTenListener = (obs, oldVal, newVal) -> {
-//            if (isAutoFillActive) txtNguoiMuaHoTen.setText(newVal);
-//        };
-//        autoFillGiayToListener = (obs, oldVal, newVal) -> {
-//            if (isAutoFillActive) txtNguoiMuaSoGiayTo.setText(newVal);
-//        };
-//
-//        // Gán listener
-//        firstRowController.getTxtHoTen().textProperty().addListener(autoFillHoTenListener);
-//        firstRowController.getTxtSoGiayTo().textProperty().addListener(autoFillGiayToListener);
-    }
-    
-    /**
-    * Được gọi bởi HanhKhachRowController để yêu cầu hủy vé ở Step 2.
-    */
-    public void requestCancelTicket(int maCho, boolean isChieuDi) {
-        if (mainController != null) {
-            // Gọi hàm của BanVeController để chuyển tiếp
-            mainController.requestCancelTicketInCart(maCho, isChieuDi);
-        } else {
-             System.err.println("Step3Controller: mainController bị null, không thể yêu cầu hủy vé.");
+        // Chỉ copy nếu các trường có dữ liệu
+        if (hoTen != null && !hoTen.isEmpty()) {
+            txtNguoiMuaHoTen.setText(hoTen);
+        }
+        if (giayTo != null && !giayTo.isEmpty()) {
+            txtNguoiMuaSoGiayTo.setText(giayTo);
+            // Có thể tự động tìm email/sdt nếu muốn
+            timThongTinNguoiMua(); 
         }
     }
 
+    // --- HÀM TRA CỨU NGƯỜI MUA (Dùng chung cho Sync và Enter) ---
+    private void timThongTinNguoiMua() {
+        String soGiayTo = txtNguoiMuaSoGiayTo.getText().trim();
+        if (soGiayTo.isEmpty()) return;
+
+        // Chỉ tìm và điền SĐT/Email, KHÔNG ghi đè tên nếu đang sync (để tránh xung đột)
+        // Hoặc ghi đè tất cả nếu người dùng nhấn Enter chủ động
+        
+        KhachHang kh = khachHangDAO.timKhachHangTheoGiayTo(soGiayTo);
+        if (kh != null) {
+            // Nếu sync đang tắt (nhập tay) hoặc tên người mua đang trống -> Điền tên từ DB
+            if (!isSyncFromFirstPassenger || txtNguoiMuaHoTen.getText().isEmpty()) {
+                txtNguoiMuaHoTen.setText(kh.getTenKhachHang());
+            }
+            
+            txtNguoiMuaSDT.setText(kh.getSoDienThoai());
+            String email = khachHangDAO.getEmailKhachHang(soGiayTo);
+            txtNguoiMuaEmail.setText(email);
+        }
+    }
+
+    private void syncHeaderWidths(HanhKhachRowController firstRowController) {
+        if (firstRowController == null || headerRow == null) return;
+        
+        applyColumnSizing(headerHanhKhach, firstRowController.getColumnHanhKhach());
+        applyColumnSizing(headerChuyenTau, firstRowController.getColumnChuyenTau());
+        applyColumnSizing(headerChoNgoi, firstRowController.getColumnChoNgoi());
+        applyColumnSizing(headerGiaVe, firstRowController.getColumnGiaVe());
+        applyColumnSizing(headerGiamGia, firstRowController.getColumnGiamGia());
+        applyColumnSizing(headerBaoHiem, firstRowController.getColumnBaoHiem());
+        applyColumnSizing(headerThanhTien, firstRowController.getColumnThanhTien());
+        
+        headerRow.setSpacing(10.0);
+    }
+
+     private void applyColumnSizing(Label headerLabel, VBox rowColumn) {
+         if (headerLabel == null || rowColumn == null) return;
+         Priority hGrow = HBox.getHgrow(rowColumn);
+         if (hGrow == Priority.ALWAYS) {
+             HBox.setHgrow(headerLabel, Priority.ALWAYS);
+             headerLabel.setMaxWidth(Double.MAX_VALUE);
+         } else {
+             double prefWidth = rowColumn.getPrefWidth();
+             if (prefWidth > 0) {
+                 headerLabel.setPrefWidth(prefWidth);
+                 headerLabel.setMinWidth(prefWidth);
+                 headerLabel.setMaxWidth(prefWidth);
+             }
+             HBox.setHgrow(headerLabel, Priority.NEVER);
+         }
+     }
 
     // Hàm này được gọi bởi HanhKhachRowController
     public void updateTongThanhTien() {
@@ -245,6 +227,12 @@ public class Step3Controller {
             tong += row.getThanhTien();
         }
         lblTongThanhTien.setText(moneyFormatter.format(tong));
+    }
+    
+    public void requestCancelTicket(int maCho, boolean isChieuDi) {
+        if (mainController != null) {
+            mainController.requestCancelTicketInCart(maCho, isChieuDi);
+        }
     }
 
     @FXML
@@ -258,27 +246,21 @@ public class Step3Controller {
         }
         
         if (txtNguoiMuaHoTen.getText().isEmpty() || txtNguoiMuaSoGiayTo.getText().isEmpty() ||
-            txtNguoiMuaEmail.getText().isEmpty() || txtNguoiMuaSDT.getText().isEmpty()) {
+            txtNguoiMuaSDT.getText().isEmpty()) { // Email có thể optional tùy quy định
             showAlert(Alert.AlertType.WARNING, "Vui lòng nhập đầy đủ thông tin người mua vé.");
             return;
         }
 
         // 2. Thu thập dữ liệu
         List<Map<String, Object>> danhSachHanhKhach = new ArrayList<>();
-        // Lặp qua từng HÀNG (mỗi hàng là 1 hành khách)
         for (HanhKhachRowController row : rowControllers) {
             Map<String, Object> hanhKhach = new HashMap<>();
-
-            // Lấy thông tin nhập từ UI của hàng đó
             hanhKhach.put("hoTen", row.getHoTen());
             hanhKhach.put("soGiayTo", row.getSoGiayTo());
-            hanhKhach.put("doiTuong", row.getDoiTuong()); // LoaiVe
-            hanhKhach.put("thanhTien", row.getThanhTien()); // Tổng thành tiền của hàng
-
-            // Lấy thông tin vé gốc từ hàng đó
-            hanhKhach.put("veDi", row.getVeDi()); // Vé đi của hành khách này
-            hanhKhach.put("veVe", row.getVeVe()); // Vé về của hành khách này (có thể null)
-
+            hanhKhach.put("doiTuong", row.getDoiTuong()); 
+            hanhKhach.put("thanhTien", row.getThanhTien()); 
+            hanhKhach.put("veDi", row.getVeDi()); 
+            hanhKhach.put("veVe", row.getVeVe()); 
             danhSachHanhKhach.add(hanhKhach);
         }
 
@@ -297,10 +279,7 @@ public class Step3Controller {
         mainController.loadContent("step-4.fxml");
     }
     
-    @FXML 
-    private void handleQuayLai() { 
-        mainController.loadContent("step-2.fxml"); 
-    }
+    @FXML private void handleQuayLai() { mainController.loadContent("step-2.fxml"); }
 
     private void showAlert(Alert.AlertType type, String message) {
         Alert alert = new Alert(type);

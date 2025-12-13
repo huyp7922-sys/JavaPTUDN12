@@ -30,12 +30,13 @@ public class HoaDonDAO {
 
 		try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
-			ps.setString(1, maHoaDon);
-			ps.setInt(2, khachHangId);
-			ps.setString(3, maNhanVien);
-			ps.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now()));
-			ps.setDouble(5, tongThanhToan);
-			ps.setString(6, "Bán vé");
+
+            ps.setString(1, maHoaDon);
+            ps.setInt(2, khachHangId);
+            ps.setString(3, maNhanVien);
+            ps.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now()));
+            ps.setDouble(5, tongThanhToan);
+            ps.setString(6, "BanVe");
 
 			int affectedRows = ps.executeUpdate();
 			return affectedRows > 0;

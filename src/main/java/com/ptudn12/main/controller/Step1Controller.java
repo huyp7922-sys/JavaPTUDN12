@@ -33,6 +33,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.TilePane;
+import javafx.util.Callback;
 
 public class Step1Controller {
     @FXML
@@ -103,18 +104,76 @@ public class Step1Controller {
 
     @FXML
     public void initialize() {
-        // Load danh sách ga vào combobox
-        List<String> danhSachGa = gaDAO.layViTriGa(); // Hàm này trả về List<String>
+        // 1. Load danh sách ga (Giữ nguyên code cũ của bạn)
+        List<String> danhSachGa = gaDAO.layViTriGa();
         ObservableList<String> gaList = FXCollections.observableArrayList(danhSachGa);
-        comboGaDi.setItems(gaList); // Giờ ComboBox chứa String
-        comboGaDen.setItems(gaList); // Giờ ComboBox chứa String
+        comboGaDi.setItems(gaList);
+        comboGaDen.setItems(gaList);
 
-        // Optional: set default date = today
+        // 2. Cấu hình Ngày Khởi Hành: Không cho chọn quá khứ
         datePickerNgayKhoiHanh.setValue(LocalDate.now());
-        
+        datePickerNgayKhoiHanh.setDayCellFactory(picker -> new DateCell() {
+            @Override
+            public void updateItem(LocalDate date, boolean empty) {
+                super.updateItem(date, empty);
+                // Disable các ngày trước ngày hiện tại
+                if (date.isBefore(LocalDate.now())) {
+                    setDisable(true);
+                    setStyle("-fx-background-color: #ffc0cb;"); // (Tuỳ chọn) Đổi màu nền ngày bị khoá
+                }
+            }
+        });
+
+        // 3. Cấu hình Ngày Về
         dateNgayVe.setDisable(true);
+
+        // Khi ngày khởi hành thay đổi -> Reset ngày về nếu nó bị vô lý (trước ngày đi mới)
+        datePickerNgayKhoiHanh.valueProperty().addListener((obs, oldDate, newDate) -> {
+            if (newDate != null && radioKhuHoi.isSelected()) {
+                // Nếu ngày về đang chọn mà bé hơn ngày đi mới -> Xóa hoặc set lại bằng ngày đi
+                if (dateNgayVe.getValue() != null && dateNgayVe.getValue().isBefore(newDate)) {
+                    dateNgayVe.setValue(newDate);
+                }
+            }
+        });
+
+        // Logic chặn ngày về: Phải >= Ngày đi
+        final Callback<DatePicker, DateCell> dayCellFactoryNgayVe = 
+            new Callback<DatePicker, DateCell>() {
+                @Override
+                public DateCell call(final DatePicker datePicker) {
+                    return new DateCell() {
+                        @Override
+                        public void updateItem(LocalDate item, boolean empty) {
+                            super.updateItem(item, empty);
+
+                            LocalDate ngayDi = datePickerNgayKhoiHanh.getValue();
+                            // Nếu chưa chọn ngày đi thì lấy ngày hiện tại
+                            if (ngayDi == null) ngayDi = LocalDate.now();
+
+                            // Disable ngày trước ngày đi
+                            if (item.isBefore(ngayDi)) {
+                                setDisable(true);
+                                setStyle("-fx-background-color: #ffc0cb;");
+                            }
+                        }
+                    };
+                }
+            };
+
+        // Áp dụng Factory cho DatePicker Ngày Về
+        dateNgayVe.setDayCellFactory(dayCellFactoryNgayVe);
+
+        // 4. Xử lý Radio Button (Giữ nguyên logic cũ, thêm refresh DatePicker)
         radioKhuHoi.selectedProperty().addListener((observable, oldValue, newValue) -> {
             dateNgayVe.setDisable(!newValue);
+            if (newValue) {
+                // Khi chọn khứ hồi, nếu ngày về đang trống hoặc sai -> set lại bằng ngày đi
+                if (dateNgayVe.getValue() == null || 
+                    dateNgayVe.getValue().isBefore(datePickerNgayKhoiHanh.getValue())) {
+                    dateNgayVe.setValue(datePickerNgayKhoiHanh.getValue());
+                }
+            }
         });
     }
 
