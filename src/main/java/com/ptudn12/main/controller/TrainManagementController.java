@@ -197,17 +197,64 @@ public class TrainManagementController {
 		}
 	}
 
+//	@FXML
+//	private void handleCreateTrain() {
+//		showAlert(Alert.AlertType.INFORMATION, "Thông báo", "Chức năng 'Lập tàu mới' đang được phát triển.");
+//	}
 	@FXML
 	private void handleCreateTrain() {
-		showAlert(Alert.AlertType.INFORMATION, "Thông báo", "Chức năng 'Lập tàu mới' đang được phát triển.");
+		openModifyTrainDialog(null, ModifyTrainDialogController.Mode.CREATE);
 	}
 
+//	@FXML
+//	private void handleConfigureTrain() {
+//		Tau selected = trainTable.getSelectionModel().getSelectedItem();
+//		if (selected != null) {
+//			showAlert(Alert.AlertType.INFORMATION, "Thông báo",
+//					"Chức năng 'Cấu hình tàu' cho tàu " + selected.getMacTau() + " đang được phát triển.");
+//		}
+//	}
 	@FXML
 	private void handleConfigureTrain() {
 		Tau selected = trainTable.getSelectionModel().getSelectedItem();
-		if (selected != null) {
-			showAlert(Alert.AlertType.INFORMATION, "Thông báo",
-					"Chức năng 'Cấu hình tàu' cho tàu " + selected.getMacTau() + " đang được phát triển.");
+		if (selected == null) {
+			showAlert(Alert.AlertType.WARNING, "Chưa chọn tàu", "Vui lòng chọn một tàu để cấu hình.");
+			return;
+		}
+		openModifyTrainDialog(selected, ModifyTrainDialogController.Mode.CONFIGURE);
+	}
+
+	/**
+	 * Phương thức chung để mở dialog Cấu hình/Tạo mới tàu.
+	 */
+	private void openModifyTrainDialog(Tau tau, ModifyTrainDialogController.Mode mode) {
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/modify-train-dialog.fxml"));
+			Scene scene = new Scene(loader.load());
+
+			// Lấy controller và truyền dữ liệu vào
+			ModifyTrainDialogController controller = loader.getController();
+			controller.initData(tau, mode);
+
+			Stage dialogStage = new Stage();
+			dialogStage.setTitle(mode == ModifyTrainDialogController.Mode.CREATE ? "Lập Tàu Mới" : "Cấu Hình Tàu");
+			dialogStage.initModality(Modality.APPLICATION_MODAL);
+			dialogStage.setScene(scene);
+
+			// Áp dụng CSS
+			URL cssUrl = getClass().getResource("/views/train-management.css");
+			if (cssUrl != null) {
+				scene.getStylesheets().add(cssUrl.toExternalForm());
+			}
+
+			dialogStage.showAndWait();
+
+			// Sau khi dialog đóng, làm mới lại bảng chính
+			handleRefresh();
+
+		} catch (IOException e) {
+			e.printStackTrace();
+			showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể mở cửa sổ Cấu hình tàu.");
 		}
 	}
 

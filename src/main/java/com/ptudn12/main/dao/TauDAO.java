@@ -11,6 +11,7 @@ import java.util.List;
 
 import com.ptudn12.main.database.DatabaseConnection;
 import com.ptudn12.main.entity.Tau;
+import com.ptudn12.main.entity.Toa;
 import com.ptudn12.main.enums.LoaiToa;
 
 public class TauDAO {
@@ -135,34 +136,30 @@ public class TauDAO {
 		}
 		throw new IllegalArgumentException("Không tìm thấy LoaiToa tương ứng cho: " + loaiToaDB);
 	}
-	
-	
+
 	/**
-	 * Lấy tất cả tàu (alias cho layTatCaTau)
-	 * Method này để tương thích với GenerateSchedulesDialogController
+	 * Lấy tất cả tàu (alias cho layTatCaTau) Method này để tương thích với
+	 * GenerateSchedulesDialogController
 	 */
 	public List<Tau> getAllTau() {
 		return layTatCaTau();
 	}
-	
+
 	/**
 	 * Tìm tàu theo mã tàu
 	 */
 	public Tau findById(String maTau) {
-		String sql = "SELECT t.maTau, t.trangThai, " +
-					"ISNULL(COUNT(DISTINCT ctt.maToa), 0) AS SoToa, " +
-					"ISNULL(COUNT(ctt.maCho), 0) AS TongChoNgoi " +
-					"FROM Tau t " +
-					"LEFT JOIN ChiTietToa ctt ON t.maTau = ctt.maTau " +
-					"WHERE t.maTau = ? " +
-					"GROUP BY t.maTau, t.trangThai";
-		
+		String sql = "SELECT t.maTau, t.trangThai, " + "ISNULL(COUNT(DISTINCT ctt.maToa), 0) AS SoToa, "
+				+ "ISNULL(COUNT(ctt.maCho), 0) AS TongChoNgoi " + "FROM Tau t "
+				+ "LEFT JOIN ChiTietToa ctt ON t.maTau = ctt.maTau " + "WHERE t.maTau = ? "
+				+ "GROUP BY t.maTau, t.trangThai";
+
 		try (Connection conn = DatabaseConnection.getConnection();
-			 PreparedStatement stmt = conn.prepareStatement(sql)) {
-			
+				PreparedStatement stmt = conn.prepareStatement(sql)) {
+
 			stmt.setString(1, maTau);
 			ResultSet rs = stmt.executeQuery();
-			
+
 			if (rs.next()) {
 				Tau tau = new Tau(rs.getString("maTau"));
 				tau.setTrangThai(rs.getString("trangThai"));
@@ -170,12 +167,43 @@ public class TauDAO {
 				tau.setTongChoNgoi(rs.getInt("TongChoNgoi"));
 				return tau;
 			}
-			
+
 		} catch (SQLException e) {
 			System.err.println("Lỗi khi tìm tàu: " + e.getMessage());
 			e.printStackTrace();
 		}
-		
+
 		return null;
+	}
+
+	/**
+	 * ✅ THÊM MỚI: Lấy danh sách các toa chưa được gán cho BẤT KỲ tàu nào.
+	 * 
+	 * @return Danh sách các đối tượng Toa khả dụng.
+	 */
+	public List<Toa> layTatCaToaChuaSuDung() {
+		List<Toa> danhSach = new ArrayList<>();
+		// Query này chọn tất cả Toa có maToa KHÔNG NẰM trong bảng ChiTietToa
+		String sql = "SELECT maToa, tenToa, loaiToa				    FROM Toa				    WHERE maToa NOT IN (SELECT DISTINCT maToa FROM ChiTietToa)				    ORDER BY tenToa				";
+
+		try (Connection conn = DatabaseConnection.getConnection();
+				Statement stmt = conn.createStatement();
+				ResultSet rs = stmt.executeQuery(sql)) {
+
+			while (rs.next()) {
+				int maToa = rs.getInt("maToa");
+				String tenToa = rs.getString("tenToa");
+				String loaiToaStr = rs.getString("loaiToa");
+
+				// Sử dụng hàm fromDescription trong Enum để chuyển đổi String -> Enum
+				LoaiToa loaiToaEnum = LoaiToa.fromDescription(loaiToaStr);
+
+				danhSach.add(new Toa(maToa, tenToa, loaiToaEnum));
+			}
+		} catch (SQLException e) {
+			System.err.println("Lỗi khi lấy danh sách toa chưa sử dụng: " + e.getMessage());
+			e.printStackTrace();
+		}
+		return danhSach;
 	}
 }
