@@ -190,8 +190,6 @@ public class LichTrinhDAO {
                 }
             }
             
-            System.out.println("Lấy được " + danhSach.size() + " lịch trình");
-            
         } catch (SQLException e) {
             System.err.println("Lỗi khi lấy danh sách lịch trình: " + e.getMessage());
             e.printStackTrace();
@@ -243,8 +241,6 @@ public class LichTrinhDAO {
                 LichTrinh lt = mapResultSetToLichTrinh(rs);
                 if (lt != null) danhSach.add(lt);
             }
-            
-            System.out.println("Tìm được " + danhSach.size() + " lịch trình");
             
         } catch (SQLException e) {
             System.err.println("Lỗi khi tìm kiếm lịch trình: " + e.getMessage());

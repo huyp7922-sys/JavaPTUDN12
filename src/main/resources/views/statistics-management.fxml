@@ -23,13 +23,16 @@
 
     <center>
         <TableView fx:id="tableStats">
+            <columnResizePolicy>
+                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+            </columnResizePolicy>
             <columns>
-                <TableColumn text="Mã Tuyến" prefWidth="100" fx:id="colMaTuyen"/>
-                <TableColumn text="Tên Tuyến" prefWidth="220" fx:id="colTenTuyen"/>
-                <TableColumn text="Tổng Vé Bán" prefWidth="120" fx:id="colTongVe"/>
-                <TableColumn text="Tỷ Lệ Lấp Đầy" prefWidth="120" fx:id="colTiLe"/>
-                <TableColumn text="Chuyến Khởi Hành" prefWidth="150" fx:id="colSoChuyen"/>
-                <TableColumn text="Doanh Thu Ước Tính" prefWidth="180" fx:id="colDoanhThu"/>
+                <TableColumn text="Mã Tuyến" prefWidth="-1" fx:id="colMaTuyen"/>
+                <TableColumn text="Tên Tuyến" prefWidth="-1" fx:id="colTenTuyen"/>
+                <TableColumn text="Tổng Vé Bán" prefWidth="-1" fx:id="colTongVe"/>
+                <TableColumn text="Tỷ Lệ Lấp Đầy" prefWidth="-1" fx:id="colTiLe"/>
+                <TableColumn text="Chuyến Khởi Hành" prefWidth="-1" fx:id="colSoChuyen"/>
+                <TableColumn text="Doanh Thu Ước Tính" prefWidth="-1" fx:id="colDoanhThu"/>
             </columns>
         </TableView>
     </center>

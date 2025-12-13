@@ -57,6 +57,7 @@ public class BanVeController {
 
     // Menu items
     @FXML private TitledPane menuVeTau;
+    @FXML private Button btnDashboard;
     @FXML private Button btnBanVe;
     @FXML private Button btnDoiVe;
     @FXML private Button btnTraVe;
@@ -90,6 +91,14 @@ public class BanVeController {
     }
     
     // --- Các hàm xử lý menu ---
+
+
+    @FXML
+    private void showDashboard() {
+        resetMenuButtons();
+        btnDashboard.getStyleClass().add("menu-item-active");
+        loadContent("employee-dashboard-content.fxml");
+    }
     @FXML
     private void showBanVe() {
         resetMenuButtons();
@@ -277,7 +286,7 @@ public class BanVeController {
             showPlaceholder("Lỗi khi tải giao diện", "Không thể tải file: " + fxmlFile + "\n\n" + "Chi tiết lỗi: " + e.getMessage());
         }
     }
-    
+   
     // Hàm xóa cache (dùng khi hoàn tất bán vé hoặc logout)
     private void clearAllCache() {
         step1View = null; step1ControllerInstance = null;
