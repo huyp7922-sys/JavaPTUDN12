@@ -189,18 +189,29 @@ public class Step3Controller {
         }
     }
 
+    // --- HÀM BINDING ĐỘ RỘNG MỚI (QUAN TRỌNG) ---
     private void syncHeaderWidths(HanhKhachRowController firstRowController) {
         if (firstRowController == null || headerRow == null) return;
         
-        applyColumnSizing(headerHanhKhach, firstRowController.getColumnHanhKhach());
-        applyColumnSizing(headerChuyenTau, firstRowController.getColumnChuyenTau());
-        applyColumnSizing(headerChoNgoi, firstRowController.getColumnChoNgoi());
-        applyColumnSizing(headerGiaVe, firstRowController.getColumnGiaVe());
-        applyColumnSizing(headerGiamGia, firstRowController.getColumnGiamGia());
-        applyColumnSizing(headerBaoHiem, firstRowController.getColumnBaoHiem());
-        applyColumnSizing(headerThanhTien, firstRowController.getColumnThanhTien());
+        // Bind độ rộng của Header Label theo VBox cột tương ứng của dòng đầu tiên
+        // Khi cửa sổ resize -> VBox resize -> Header Label resize theo
+        bindWidth(headerHanhKhach, firstRowController.getColumnHanhKhach());
+        bindWidth(headerChuyenTau, firstRowController.getColumnChuyenTau());
+        bindWidth(headerChoNgoi, firstRowController.getColumnChoNgoi());
+        bindWidth(headerGiaVe, firstRowController.getColumnGiaVe());
+        bindWidth(headerGiamGia, firstRowController.getColumnGiamGia());
+        bindWidth(headerBaoHiem, firstRowController.getColumnBaoHiem());
+        bindWidth(headerThanhTien, firstRowController.getColumnThanhTien());
         
         headerRow.setSpacing(10.0);
+    }
+    
+    private void bindWidth(Label headerLabel, VBox rowColumn) {
+        if (headerLabel == null || rowColumn == null) return;
+        // Ràng buộc 2 chiều: header theo row
+        headerLabel.prefWidthProperty().bind(rowColumn.widthProperty());
+        headerLabel.minWidthProperty().bind(rowColumn.minWidthProperty());
+        headerLabel.maxWidthProperty().bind(rowColumn.maxWidthProperty());
     }
 
      private void applyColumnSizing(Label headerLabel, VBox rowColumn) {
