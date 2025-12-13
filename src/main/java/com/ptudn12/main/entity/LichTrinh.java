@@ -29,10 +29,26 @@ public class LichTrinh {
     }
 
     // Getters and Setters
+    
+//    Cũ:
+//    public void setNgayGioKhoiHanh(LocalDateTime ngayGioKhoiHanh) {
+//        if (ngayGioKhoiHanh.isAfter(LocalDateTime.now())) {
+//            this.ngayGioKhoiHanh = ngayGioKhoiHanh;
+//            this.ngayGioDen = tinhNgayGioDen();
+//        }
+//    }
+    
     public void setNgayGioKhoiHanh(LocalDateTime ngayGioKhoiHanh) {
-        if (ngayGioKhoiHanh.isAfter(LocalDateTime.now())) {
-            this.ngayGioKhoiHanh = ngayGioKhoiHanh;
-            this.ngayGioDen = tinhNgayGioDen();
+        // BỎ CHECK: if (ngayGioKhoiHanh.isAfter(LocalDateTime.now())) 
+        // Lý do: Khi load dữ liệu lịch sử từ DB, ngày đi có thể ở quá khứ.
+        // Logic kiểm tra ngày phải đặt ở tầng Controller/Service khi tạo mới lịch trình.
+        
+        this.ngayGioKhoiHanh = ngayGioKhoiHanh;
+        
+        // Vẫn có thể giữ logic tính ngày đến tự động nếu muốn, 
+        // nhưng tốt nhất DAO nên set cả NgayGioDen từ DB nếu có.
+        if (this.ngayGioKhoiHanh != null && this.tuyenDuong != null) {
+             this.ngayGioDen = tinhNgayGioDen();
         }
     }
 
@@ -46,7 +62,6 @@ public class LichTrinh {
 
     public void setTau(Tau tau) {
         this.tau = tau;
-
        
     }
 

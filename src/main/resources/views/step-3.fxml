@@ -37,8 +37,8 @@
 
         <HBox alignment="CENTER" spacing="20.0" styleClass="step-indicator-box">
             <children>
-                <Label alignment="CENTER" styleClass="step-button" text="Bước 1: Chọn chuyến tàu" />
-                <Label alignment="CENTER" styleClass="step-button" text="Bước 2: Chọn chỗ ngồi" />
+                <Label alignment="CENTER" styleClass="step-button, step-button-done" text="Bước 1: Chọn chuyến tàu" />
+                <Label alignment="CENTER" styleClass="step-button, step-button-done" text="Bước 2: Chọn chỗ ngồi" />
                 <Label alignment="CENTER" styleClass="step-button, step-button-active" text="Bước 3: Thông tin hành khách" />
                 <Label alignment="CENTER" styleClass="step-button" text="Bước 4: Thanh toán" />
             </children>

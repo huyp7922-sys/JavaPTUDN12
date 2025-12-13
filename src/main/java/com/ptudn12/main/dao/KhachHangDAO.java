@@ -15,6 +15,10 @@ import com.ptudn12.main.entity.KhachHang;
 
 public class KhachHangDAO {
     public int findKhachHangByIdentifier(String identifier) {
+        if (identifier != null) {
+            identifier = identifier.trim();
+        }
+        
         if (identifier == null || identifier.isEmpty()) {
             return -1;
         }
@@ -76,6 +80,10 @@ public class KhachHangDAO {
         String identifier = thongTinNguoiMua.get("soGiayToIdentifier"); // Lấy giá trị giấy tờ
         String soCCCD = null;
         String hoChieu = null;
+        
+        if (identifier != null) {
+            identifier = identifier.trim();
+        }
 
         // Phân loại giá trị giấy tờ
         if (identifier != null && !identifier.isEmpty()) {
@@ -275,4 +283,54 @@ public class KhachHangDAO {
         // Tạo đối tượng KhachHang bằng constructor đã có
         return new KhachHang(maKHFormatted, tenKhachHang, idGiayTo, laNguoiNuocNgoai, soDienThoai, diemTich);
     }
+    
+    public KhachHang timKhachHangTheoGiayTo(String identifier) {
+        if (identifier == null || identifier.isEmpty()) {
+            return null;
+        }
+
+        String sql = "SELECT * FROM KhachHang WHERE soCCCD = ? OR hoChieu = ?";
+        KhachHang kh = null;
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, identifier);
+            ps.setString(2, identifier);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                kh = new KhachHang();
+                // Map dữ liệu từ DB sang Entity
+                // Lưu ý: maKhachHang trong DB là INT, nhưng Entity cũ bạn gửi có thể là String
+                // Mình sẽ set theo kiểu String để khớp với code cũ của bạn, nếu Entity bạn sửa thành int thì đổi lại
+                kh.setMaKH(String.valueOf(rs.getInt("maKhachHang"))); 
+                kh.setTenKhachHang(rs.getString("tenKhachHang"));
+                kh.setSoCCCD(rs.getString("soCCCD"));
+                kh.setHoChieu(rs.getString("hoChieu"));
+                kh.setSoDienThoai(rs.getString("soDienThoai"));
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Lỗi tìm khách hàng: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return kh;
+    }
+    
+    // Hàm hỗ trợ lấy Email riêng
+    public String getEmailKhachHang(String identifier) {
+        String sql = "SELECT email FROM KhachHang WHERE soCCCD = ? OR hoChieu = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, identifier);
+            ps.setString(2, identifier);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getString("email");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
 }
+

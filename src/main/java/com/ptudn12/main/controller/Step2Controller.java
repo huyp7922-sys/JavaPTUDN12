@@ -27,10 +27,13 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Separator;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 
 public class Step2Controller {
@@ -178,17 +181,60 @@ public class Step2Controller {
         Label lblTitle = new Label(title);
         lblTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #333;");
 
+        // --- UI MỚI: ComboBox + Chọn nhanh số lượng ---
         ComboBox<ToaInfo> comboToa = new ComboBox<>();
-        comboToa.setPrefWidth(250.0);
-        comboToa.setPromptText("Chọn toa để xem sơ đồ");
+        comboToa.setPrefWidth(200.0);
+        comboToa.setPromptText("Chọn toa");
 
+        // Thêm ô nhập số lượng
+        TextField txtSoLuong = new TextField();
+        txtSoLuong.setPromptText("SL");
+        txtSoLuong.setPrefWidth(50);
+
+        // Thêm nút chọn nhanh
+        Button btnChonNhanh = new Button("Chọn nhanh");
+        btnChonNhanh.getStyleClass().add("btn-action-secondary"); // Style tùy ý
+
+        HBox comboContainer = new HBox(10, 
+            new Label("Toa:"), comboToa, 
+            new Separator(Orientation.VERTICAL), // Đường gạch dọc ngăn cách
+            new Label("Chọn nhanh:"), txtSoLuong, btnChonNhanh
+        );
+        comboContainer.setAlignment(Pos.CENTER_LEFT);
+        
         GridPane gridSeats = new GridPane();
         gridSeats.setHgap(6);
         gridSeats.setVgap(6);
         gridSeats.setPadding(new Insets(5));
+        
+        // XỬ LÝ SỰ KIỆN NÚT CHỌN NHANH
+        btnChonNhanh.setOnAction(e -> {
+            ToaInfo selectedToa = comboToa.getValue();
+            if (selectedToa == null) {
+                showAlert(Alert.AlertType.WARNING, "Vui lòng chọn toa trước!");
+                return;
+            }
 
-        HBox comboContainer = new HBox(10, new Label("Chọn toa:"), comboToa);
-        comboContainer.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+            String strSL = txtSoLuong.getText();
+            if (strSL == null || strSL.isEmpty() || !strSL.matches("\\d+")) {
+                showAlert(Alert.AlertType.WARNING, "Vui lòng nhập số lượng ghế hợp lệ!");
+                return;
+            }
+
+            int soLuongCanChon = Integer.parseInt(strSL);
+            if (soLuongCanChon <= 0) return;
+
+            // Lọc danh sách ghế của toa hiện tại
+            List<ChiTietToa> currentToaSeats = chiTietToaDAO.getChiTietToaByTau(lichTrinh.getTau().getMacTau())
+                    .stream()
+                    .filter(ct -> ct.getToa().getMaToa().equals(selectedToa.getMaToa()))
+                    .sorted(Comparator.comparing(ChiTietToa::getSoThuTu)) // Quan trọng: Sắp xếp để chọn liền kề
+                    .collect(Collectors.toList());
+
+            // Gọi hàm xử lý logic chọn hàng loạt
+            handleBatchSelection(soLuongCanChon, currentToaSeats, lichTrinh, isChieuDi, gridSeats);
+        });
+        
 
         if (dsChiTiet.isEmpty()) {
             blockBox.getChildren().addAll(lblTitle, new Label("Không có dữ liệu chỗ ngồi cho tàu này."));
@@ -242,6 +288,74 @@ public class Step2Controller {
             btn.setOnAction(ev -> handleChonCho(btn, ct, isChieuDi, lichTrinh));
         }
         return btn;
+    }
+    
+    private void handleBatchSelection(int amountNeeded, List<ChiTietToa> allSeatsInToa, LichTrinh lichTrinh, boolean isChieuDi, GridPane gridSeats) {
+        Set<Integer> soldSet = chiTietLichTrinhDAO.getCacChoDaBan(lichTrinh.getMaLichTrinh());
+        Set<Integer> currentSelectedSet = isChieuDi ? danhSachChoDaChon_Di : danhSachChoDaChon_Ve;
+        Map<Integer, VeTamThoi> currentCart = isChieuDi ? gioHang_Di : gioHang_Ve;
+
+        List<ChiTietToa> seatsToSelect = new ArrayList<>();
+
+        // --- THUẬT TOÁN: Tìm n ghế trống LIỀN KỀ ---
+        // Duyệt qua danh sách ghế đã sort
+        for (int i = 0; i < allSeatsInToa.size(); i++) {
+            seatsToSelect.clear();
+
+            // Thử tạo một chuỗi ghế bắt đầu từ vị trí i
+            for (int j = i; j < allSeatsInToa.size(); j++) {
+                ChiTietToa seat = allSeatsInToa.get(j);
+                int seatId = seat.getCho().getMaCho();
+
+                // Nếu ghế chưa bán VÀ chưa được chọn trong giỏ
+                if (!soldSet.contains(seatId) && !currentSelectedSet.contains(seatId)) {
+                    seatsToSelect.add(seat);
+
+                    // Nếu đã đủ số lượng yêu cầu -> Dừng tìm kiếm
+                    if (seatsToSelect.size() == amountNeeded) {
+                        break; 
+                    }
+                } else {
+                    // Gặp ghế đã bán hoặc đã chọn -> Chuỗi bị đứt -> Reset chuỗi
+                    seatsToSelect.clear();
+                    // Nhảy i đến vị trí j để bỏ qua đoạn hỏng (tối ưu vòng lặp)
+                    i = j; 
+                    break; 
+                }
+            }
+
+            // Nếu tìm đủ chuỗi -> Thoát vòng lặp ngoài
+            if (seatsToSelect.size() == amountNeeded) {
+                break;
+            }
+        }
+
+        // --- KẾT QUẢ ---
+        if (seatsToSelect.size() < amountNeeded) {
+            // Nếu không tìm thấy chuỗi liền kề, thử tìm N ghế bất kỳ còn trống (Optional)
+            // Hoặc báo lỗi
+            showAlert(Alert.AlertType.INFORMATION, "Không tìm thấy " + amountNeeded + " ghế liền kề trong toa này. Vui lòng chọn toa khác hoặc chọn thủ công.");
+            return;
+        }
+
+        // --- THỰC HIỆN CHỌN ---
+        for (ChiTietToa seat : seatsToSelect) {
+            // Tìm button tương ứng trong GridPane để click giả lập
+            // Lưu ý: Cách này hơi thủ công, tốt hơn là gọi trực tiếp logic chọn
+            // Ta sẽ gọi logic add vào giỏ hàng trực tiếp và update UI
+
+            // Tìm button trong GridPane children (dựa vào text là Số thứ tự) - Cách nhanh nhất hiện tại
+            for (Node node : gridSeats.getChildren()) {
+                if (node instanceof Button) {
+                    Button btn = (Button) node;
+                    if (btn.getText().equals(String.valueOf(seat.getSoThuTu()))) {
+                        // Gọi hàm handleChonCho như khi người dùng click
+                        handleChonCho(btn, seat, isChieuDi, lichTrinh);
+                        break;
+                    }
+                }
+            }
+        }
     }
 
 
@@ -522,22 +636,34 @@ public class Step2Controller {
     // --- HÀM CHUYỂN BƯỚC (NÚT MUA VÉ) ---
     @FXML
     private void handleTiepTheo() {
+        // 1. Kiểm tra chiều đi
         if (gioHang_Di.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Vui lòng chọn ít nhất một chỗ cho chiều đi.");
             return;
         }
-        
+
+        // 2. Kiểm tra chiều về (Nếu có vé khứ hồi)
         LichTrinh lichTrinhVe = (LichTrinh) mainController.getUserData("lichTrinhChieuVe");
-        if (lichTrinhVe != null && gioHang_Ve.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Vui lòng chọn ít nhất một chỗ cho chiều về.");
-            return;
+        if (lichTrinhVe != null) {
+            if (gioHang_Ve.isEmpty()) {
+                showAlert(Alert.AlertType.WARNING, "Bạn đang đặt vé KHỨ HỒI.\nVui lòng chọn chỗ cho chiều về.");
+                return;
+            }
+
+            // --- CHECK NGHIỆP VỤ: SỐ LƯỢNG PHẢI KHỚP ---
+            if (gioHang_Di.size() != gioHang_Ve.size()) {
+                String msg = String.format(
+                    "Số lượng vé chiều đi và chiều về không khớp!\n\nChiều đi: %d vé\nChiều về: %d vé\n\nVui lòng điều chỉnh lại số lượng ghế.",
+                    gioHang_Di.size(), gioHang_Ve.size()
+                );
+                showAlert(Alert.AlertType.ERROR, msg);
+                return; // Chặn không cho đi tiếp
+            }
         }
 
-        // --- Lưu dữ liệu giỏ hàng vào MainController ---
+        // --- Lưu dữ liệu và chuyển trang (Code cũ) ---
         mainController.setUserData("gioHang_Di", new ArrayList<>(gioHang_Di.values()));
         mainController.setUserData("gioHang_Ve", new ArrayList<>(gioHang_Ve.values()));
-
-        // Chuyển sang Step 3
         mainController.loadContent("step-3.fxml");
     }
 
