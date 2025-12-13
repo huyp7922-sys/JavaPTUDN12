@@ -17,6 +17,8 @@ import com.ptudn12.main.dao.ChiTietLichTrinhDAO;
 import com.ptudn12.main.dao.HoaDonDAO;
 import com.ptudn12.main.dao.KhachHangDAO;
 import com.ptudn12.main.dao.VeTauDAO;
+import com.ptudn12.main.entity.VeTau;
+import com.ptudn12.main.utils.ReportManager;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -26,6 +28,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import java.text.DecimalFormat;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -395,9 +398,9 @@ public class Step4Controller {
         }
 
         try {
-            String maNhanVien = "NV001"; // TODO: Lấy từ session thực tế
+            String maNhanVien = "NV001"; // TODO: Lấy từ session thực tế (mainController.getCurrentUser())
 
-            // a. Tìm hoặc Tạo Khách Hàng
+            // a. Tìm hoặc Tạo Khách Hàng (Người mua)
             int khachHangId = khachHangDAO.findOrInsertKhachHang(thongTinNguoiMua);
             if (khachHangId == -1) {
                 showAlert(Alert.AlertType.ERROR, "Lỗi khách hàng", "Không thể xử lý thông tin khách hàng.");
@@ -410,7 +413,7 @@ public class Step4Controller {
                  showAlert(Alert.AlertType.ERROR, "Lỗi tạo mã", "Không thể tạo mã hóa đơn.");
                  return;
             }
-            // Lưu tổng tiền (đã làm tròn) vào DB
+            // Lưu tổng tiền vào DB
             boolean hoaDonCreated = hoaDonDAO.createHoaDon(maHoaDon, khachHangId, maNhanVien, tongThanhToanValue);
             if (!hoaDonCreated) {
                 showAlert(Alert.AlertType.ERROR, "Lỗi tạo hóa đơn", "Không thể lưu thông tin hóa đơn.");
@@ -418,21 +421,38 @@ public class Step4Controller {
             }
 
             // c. Tạo Vé và Chi Tiết Hóa Đơn
+            List<String> createdTicketIds = new ArrayList<>(); // Danh sách lưu mã vé để in
+
             for (Map<String, Object> hanhKhach : danhSachHanhKhach) {
                 VeTamThoi veDi = (VeTamThoi) hanhKhach.get("veDi");
                 VeTamThoi veVe = (VeTamThoi) hanhKhach.get("veVe");
                 LoaiVe loaiVe = (LoaiVe) hanhKhach.get("doiTuong");
 
                 if (veDi != null) {
-                    processVe(maHoaDon, khachHangId, veDi, loaiVe);
+                    String maVe = processVe(maHoaDon, khachHangId, veDi, loaiVe);
+                    if (maVe != null) createdTicketIds.add(maVe);
                 }
                 if (veVe != null) {
-                    processVe(maHoaDon, khachHangId, veVe, loaiVe);
+                    String maVe = processVe(maHoaDon, khachHangId, veVe, loaiVe);
+                    if (maVe != null) createdTicketIds.add(maVe);
                 }
             }
 
-            showAlert(Alert.AlertType.INFORMATION, "In vé", "Thanh toán thành công! Đang in vé...");
+            // d. Thông báo và In vé
+            showAlert(Alert.AlertType.INFORMATION, "Thành công", "Thanh toán thành công! Đang tạo vé...");
             
+            // Gọi ReportManager để in từng vé
+            for (String maVe : createdTicketIds) {
+                // Lấy thông tin đầy đủ của vé từ DB (Join các bảng)
+                VeTau fullInfoVe = veTauDAO.getVeTauDetail(maVe);
+                
+                if (fullInfoVe != null) {
+                    // Hiển thị cửa sổ in (JasperViewer)
+                    ReportManager.printVeTau(fullInfoVe);
+                }
+            }
+            
+            // e. Reset giao diện để bắt đầu giao dịch mới
             mainController.startNewTransaction();
 
         } catch (Exception ex) {
@@ -442,26 +462,40 @@ public class Step4Controller {
         }
     }
     
-    // Tách hàm xử lý lưu vé để code gọn hơn
-    private void processVe(String maHoaDon, int khachHangId, VeTamThoi ve, LoaiVe loaiVe) {
+    // Sửa hàm này trả về String (Mã vé) thay vì void
+    private String processVe(String maHoaDon, int khachHangId, VeTamThoi ve, LoaiVe loaiVe) {
         double giaChoNgoi = ve.getGiaVe() - PHI_BAO_HIEM;
+        
+        // 1. Tạo ChiTietLichTrinh (đánh dấu ghế đã bán)
         int chiTietLichTrinhId = chiTietLichTrinhDAO.createChiTietLichTrinh(
                 ve.getLichTrinh().getMaLichTrinh(),
                 ve.getChiTietToa().getCho().getMaCho(),
-                giaChoNgoi, "DaBan");
+                giaChoNgoi, "DaBan"); // Truyền đúng "DaBan" khớp với DB
         
         if (chiTietLichTrinhId != -1) {
+            // 2. Tạo mã vé
             String maVe = veTauDAO.generateUniqueVeId();
             if (maVe != null) {
-                veTauDAO.createVeTau(maVe, khachHangId, chiTietLichTrinhId, loaiVe.getDescription(), ve.isChieuDi() ? false : true, "DaBan");
+                // 3. Tạo Vé Tàu
+                boolean isKhuHoi = !ve.isChieuDi(); // Nếu không phải chiều đi thì là chiều về (trong ngữ cảnh khứ hồi)
+                // Lưu ý: Logic isKhuHoi này tùy thuộc vào cách bạn định nghĩa. 
+                // Nếu vé lẻ chiều về thì sao? Tạm thời để như logic cũ của bạn.
                 
-                double giaGoc = giaChoNgoi;
-                double giamGia = giaGoc * loaiVe.getHeSoGiamGia();
-                double thanhTien = ve.getGiaVe() - giamGia;
+                boolean success = veTauDAO.createVeTau(maVe, khachHangId, chiTietLichTrinhId, loaiVe.getDescription(), isKhuHoi, "DaBan");
                 
-                chiTietHoaDonDAO.createChiTietHoaDon(maHoaDon, maVe, giamGia, thanhTien);
+                if (success) {
+                    // 4. Tạo Chi Tiết Hóa Đơn
+                    double giaGoc = giaChoNgoi;
+                    double giamGia = giaGoc * loaiVe.getHeSoGiamGia();
+                    double thanhTien = ve.getGiaVe() - giamGia; // Giá vé + BH - Giảm giá
+                    
+                    chiTietHoaDonDAO.createChiTietHoaDon(maHoaDon, maVe, giamGia, thanhTien);
+                    
+                    return maVe; // Trả về mã vé thành công
+                }
             }
         }
+        return null; // Thất bại
     }
 
     private void clearAllUserData() {
