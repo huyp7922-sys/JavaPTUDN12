@@ -22,6 +22,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import javax.swing.SwingUtilities;
+
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
@@ -31,8 +33,10 @@ import com.ptudn12.main.dao.ChiTietLichTrinhDAO;
 import com.ptudn12.main.dao.HoaDonDAO;
 import com.ptudn12.main.dao.KhachHangDAO;
 import com.ptudn12.main.dao.VeTauDAO;
+import com.ptudn12.main.entity.VeTau;
 import com.ptudn12.main.enums.LoaiVe;
 import com.ptudn12.main.utils.NumberUtils;
+import com.ptudn12.main.utils.ReportManager;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -47,7 +51,6 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.FlowPane;
@@ -62,11 +65,7 @@ import javafx.stage.Stage;
 public class Step4Controller {
 	// --- FXML Left Section ---
 	@FXML
-	private ScrollPane scrollPaneVe;
-	@FXML
 	private VBox containerVe;
-	@FXML
-	private GridPane gridPaymentDetails;
 	@FXML
 	private Label lblDetailTongTienVe;
 	@FXML
@@ -93,8 +92,6 @@ public class Step4Controller {
 	private FlowPane flowPaneSuggestions;
 	@FXML
 	private Label lblTienThoiLai;
-	@FXML
-	private Button btnXacNhanVaIn;
 
 	// Khai báo @FXML cho các Label header vé
 	@FXML
@@ -112,6 +109,10 @@ public class Step4Controller {
 
 	// --- FXML Footer ---
 	@FXML
+	private Button btnXacNhanVaIn;
+	@FXML
+	private Button btnHoanTat;
+	@FXML
 	private Button btnQuayLai;
 
 	// Helpers
@@ -119,9 +120,6 @@ public class Step4Controller {
 	private DecimalFormat moneyFormatter = new DecimalFormat("#,##0 'VNĐ'");
 	private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 	private final double PHI_BAO_HIEM = 2000;
-	private double giamTuDiem = 0;
-	private TemplateEngine templateEngine;
-	private final double TAX_RATE = 0.08; // 8%
 
 	private List<Map<String, Object>> danhSachHanhKhach;
 	private Map<String, String> thongTinNguoiMua;
@@ -134,6 +132,14 @@ public class Step4Controller {
 	private final KhachHangDAO khachHangDAO = new KhachHangDAO();
 	private final ChiTietLichTrinhDAO chiTietLichTrinhDAO = new ChiTietLichTrinhDAO();
 
+	public void setMainController(BanVeController mainController) {
+		this.mainController = mainController;
+	}
+
+	private double giamTuDiem = 0;
+	private TemplateEngine templateEngine;
+	private final double TAX_RATE = 0.08; // 8%
+
 	public Step4Controller() {
 		// Khởi tạo Thymeleaf
 		ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
@@ -145,10 +151,6 @@ public class Step4Controller {
 		this.templateEngine.setTemplateResolver(resolver);
 	}
 
-	public void setMainController(BanVeController mainController) {
-		this.mainController = mainController;
-	}
-
 	@FXML
 	public void initialize() {
 		// Listener cho ô nhập tiền khách đưa
@@ -158,8 +160,33 @@ public class Step4Controller {
 		txtTienKhachDua.setTextFormatter(
 				new TextFormatter<>(change -> change.getControlNewText().matches("\\d*") ? change : null));
 
-		// Disable nút xác nhận ban đầu
+		// 6. Reset ô tiền khách đưa và tiền thối
+		txtTienKhachDua.clear();
+		lblTienThoiLai.setText("0 VNĐ");
+
+		// Hiện nút In và Ẩn nút Hoàn tất
 		btnXacNhanVaIn.setDisable(true);
+		btnXacNhanVaIn.setVisible(true);
+		btnXacNhanVaIn.setManaged(true);
+
+		if (btnHoanTat != null)
+
+		{
+			btnHoanTat.setVisible(false);
+			btnHoanTat.setManaged(false);
+		}
+
+		if (btnQuayLai != null) {
+			btnQuayLai.setDisable(false);
+			btnQuayLai.setVisible(true);
+		}
+	}
+
+	// --- HÀM LÀM TRÒN 1000đ ---
+	private double roundUpToThousand(double value) {
+		if (value % 1000 == 0)
+			return value;
+		return Math.ceil(value / 1000.0) * 1000;
 	}
 
 	public void initData() {
@@ -206,13 +233,6 @@ public class Step4Controller {
 		txtTienKhachDua.clear();
 		lblTienThoiLai.setText("0 VNĐ");
 		btnXacNhanVaIn.setDisable(true);
-	}
-
-	// --- HÀM LÀM TRÒN 1000đ ---
-	private double roundUpToThousand(double value) {
-		if (value % 1000 == 0)
-			return value;
-		return Math.ceil(value / 1000.0) * 1000;
 	}
 
 	// Hiển thị bảng xác nhận thông tin vé
@@ -402,6 +422,125 @@ public class Step4Controller {
 			});
 			flowPaneSuggestions.getChildren().add(btn);
 		}
+	}
+
+	@FXML
+	private void handleXacNhanVaIn() {
+		if (btnXacNhanVaIn.isDisabled())
+			return;
+
+		try {
+			String maNhanVien = "NV001"; // TODO: Lấy từ session
+
+			// 1. Lưu Khách Hàng
+			int khachHangId = khachHangDAO.findOrInsertKhachHang(thongTinNguoiMua);
+			if (khachHangId == -1) {
+				showAlert(Alert.AlertType.ERROR, "Lỗi", "Lỗi xử lý khách hàng.");
+				return;
+			}
+
+			// 2. Tạo Hóa Đơn
+			String maHoaDon = hoaDonDAO.generateUniqueHoaDonId();
+			if (!hoaDonDAO.createHoaDon(maHoaDon, khachHangId, maNhanVien, tongThanhToanValue)) {
+				showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể tạo hóa đơn.");
+				return;
+			}
+
+			// 3. Tạo Vé & Chi Tiết (Lưu vào DB)
+			List<String> createdTicketIds = new ArrayList<>();
+			for (Map<String, Object> hanhKhach : danhSachHanhKhach) {
+				VeTamThoi veDi = (VeTamThoi) hanhKhach.get("veDi");
+				VeTamThoi veVe = (VeTamThoi) hanhKhach.get("veVe");
+				LoaiVe loaiVe = (LoaiVe) hanhKhach.get("doiTuong");
+
+				if (veDi != null) {
+					String ma = processVe(maHoaDon, khachHangId, veDi, loaiVe);
+					if (ma != null)
+						createdTicketIds.add(ma);
+				}
+				if (veVe != null) {
+					String ma = processVe(maHoaDon, khachHangId, veVe, loaiVe);
+					if (ma != null)
+						createdTicketIds.add(ma);
+				}
+			}
+
+			// 4. HIỆN MODAL PREVIEW (IN VÉ)
+			// Chạy trên luồng Swing để tránh xung đột với JavaFX nếu JasperViewer bị lag
+			SwingUtilities.invokeLater(() -> {
+				for (String maVe : createdTicketIds) {
+					VeTau fullVe = veTauDAO.getVeTauDetail(maVe);
+					if (fullVe != null) {
+						// Hàm này sẽ mở cửa sổ mới
+						ReportManager.printVeTau(fullVe);
+					}
+				}
+			});
+
+			// 5. CẬP NHẬT GIAO DIỆN -> CHỜ HOÀN TẤT
+			showAlert(Alert.AlertType.INFORMATION, "Thành công", "Thanh toán thành công!\nCửa sổ in vé đang được mở.");
+
+			// Ẩn nút In, Ẩn nút Quay lại
+			btnXacNhanVaIn.setVisible(false);
+			btnXacNhanVaIn.setManaged(false);
+
+			if (btnQuayLai != null) {
+				btnQuayLai.setVisible(false); // Ẩn luôn cho gọn
+				btnQuayLai.setManaged(false);
+			}
+
+			// Hiện nút Hoàn tất to đùng
+			if (btnHoanTat != null) {
+				btnHoanTat.setVisible(true);
+				btnHoanTat.setManaged(true);
+				btnHoanTat.requestFocus();
+			}
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			showAlert(Alert.AlertType.ERROR, "Lỗi hệ thống", ex.getMessage());
+		}
+	}
+
+	// Nút Hoàn tất sẽ reset transaction
+	@FXML
+	private void handleHoanTat() {
+		mainController.startNewTransaction();
+	}
+
+	// Sửa hàm này trả về String (Mã vé) thay vì void
+	private String processVe(String maHoaDon, int khachHangId, VeTamThoi ve, LoaiVe loaiVe) {
+		double giaChoNgoi = ve.getGiaVe() - PHI_BAO_HIEM;
+
+		// 1. Tạo ChiTietLichTrinh (đánh dấu ghế đã bán)
+		int chiTietLichTrinhId = chiTietLichTrinhDAO.createChiTietLichTrinh(ve.getLichTrinh().getMaLichTrinh(),
+				ve.getChiTietToa().getCho().getMaCho(), giaChoNgoi, "DaBan"); // Truyền đúng "DaBan" khớp với DB
+
+		if (chiTietLichTrinhId != -1) {
+			// 2. Tạo mã vé
+			String maVe = veTauDAO.generateUniqueVeId();
+			if (maVe != null) {
+				// 3. Tạo Vé Tàu
+				boolean isKhuHoi = !ve.isChieuDi();
+				boolean success = veTauDAO.createVeTau(maVe, khachHangId, chiTietLichTrinhId, loaiVe.getDescription(),
+						isKhuHoi, "DaBan");
+
+				if (success) {
+					// 4. Tạo Chi Tiết Hóa Đơn
+					double giaGoc = giaChoNgoi;
+					double giamGia = giaGoc * loaiVe.getHeSoGiamGia();
+					double thanhTien = ve.getGiaVe() - giamGia; // Giá vé + BH - Giảm giá
+					chiTietHoaDonDAO.createChiTietHoaDon(maHoaDon, maVe, giamGia, thanhTien);
+					return maVe;
+				}
+			}
+		}
+		return null; // Thất bại
+	}
+
+	@FXML
+	private void handleQuayLai() {
+		mainController.loadContent("step-3.fxml");
 	}
 
 	// --- CẬP NHẬT: Thuật toán gợi ý tiền thông minh cho VNĐ (Dựa trên số đã làm
@@ -655,61 +794,6 @@ public class Step4Controller {
 		}
 	}
 
-	@FXML
-	private void handleXacNhanVaIn() {
-		if (btnXacNhanVaIn.isDisabled()) {
-			showAlert(Alert.AlertType.WARNING, "Thanh toán chưa hợp lệ", "Vui lòng kiểm tra lại số tiền khách đưa.");
-			return;
-		}
-
-		try {
-			String maNhanVien = "NV001"; // TODO: Lấy từ session thực tế
-
-			// a. Tìm hoặc Tạo Khách Hàng
-			int khachHangId = khachHangDAO.findOrInsertKhachHang(thongTinNguoiMua);
-			if (khachHangId == -1) {
-				showAlert(Alert.AlertType.ERROR, "Lỗi khách hàng", "Không thể xử lý thông tin khách hàng.");
-				return;
-			}
-
-			// b. Tạo Hóa Đơn
-			String maHoaDon = hoaDonDAO.generateUniqueHoaDonId();
-			if (maHoaDon == null) {
-				showAlert(Alert.AlertType.ERROR, "Lỗi tạo mã", "Không thể tạo mã hóa đơn.");
-				return;
-			}
-			// Lưu tổng tiền (đã làm tròn) vào DB
-			boolean hoaDonCreated = hoaDonDAO.createHoaDon(maHoaDon, khachHangId, maNhanVien, tongThanhToanValue);
-			if (!hoaDonCreated) {
-				showAlert(Alert.AlertType.ERROR, "Lỗi tạo hóa đơn", "Không thể lưu thông tin hóa đơn.");
-				return;
-			}
-
-			// c. Tạo Vé và Chi Tiết Hóa Đơn
-			for (Map<String, Object> hanhKhach : danhSachHanhKhach) {
-				VeTamThoi veDi = (VeTamThoi) hanhKhach.get("veDi");
-				VeTamThoi veVe = (VeTamThoi) hanhKhach.get("veVe");
-				LoaiVe loaiVe = (LoaiVe) hanhKhach.get("doiTuong");
-
-				if (veDi != null) {
-					processVe(maHoaDon, khachHangId, veDi, loaiVe);
-				}
-				if (veVe != null) {
-					processVe(maHoaDon, khachHangId, veVe, loaiVe);
-				}
-			}
-
-			showAlert(Alert.AlertType.INFORMATION, "In vé", "Thanh toán thành công! Đang in vé...");
-
-			mainController.startNewTransaction();
-
-		} catch (Exception ex) {
-			System.err.println("Lỗi không xác định khi xác nhận: " + ex.getMessage());
-			ex.printStackTrace();
-			showAlert(Alert.AlertType.ERROR, "Lỗi hệ thống", "Đã xảy ra lỗi không mong muốn khi xử lý thanh toán.");
-		}
-	}
-
 	private File generateTempPdf() throws Exception {
 		// 1. Chuẩn bị dữ liệu
 		Map<String, Object> data = getTemporaryInvoiceData();
@@ -923,27 +1007,6 @@ public class Step4Controller {
 		return data;
 	}
 
-	// Tách hàm xử lý lưu vé để code gọn hơn
-	private void processVe(String maHoaDon, int khachHangId, VeTamThoi ve, LoaiVe loaiVe) {
-		double giaChoNgoi = ve.getGiaVe() - PHI_BAO_HIEM;
-		int chiTietLichTrinhId = chiTietLichTrinhDAO.createChiTietLichTrinh(ve.getLichTrinh().getMaLichTrinh(),
-				ve.getChiTietToa().getCho().getMaCho(), giaChoNgoi, "DaBan");
-
-		if (chiTietLichTrinhId != -1) {
-			String maVe = veTauDAO.generateUniqueVeId();
-			if (maVe != null) {
-				veTauDAO.createVeTau(maVe, khachHangId, chiTietLichTrinhId, loaiVe.getDescription(),
-						ve.isChieuDi() ? false : true, "DaBan");
-
-				double giaGoc = giaChoNgoi;
-				double giamGia = giaGoc * loaiVe.getHeSoGiamGia();
-				double thanhTien = ve.getGiaVe() - giamGia;
-
-				chiTietHoaDonDAO.createChiTietHoaDon(maHoaDon, maVe, giamGia, thanhTien);
-			}
-		}
-	}
-
 	private void clearAllUserData() {
 		mainController.setUserData("lichTrinhChieuDi", null);
 		mainController.setUserData("lichTrinhChieuVe", null);
@@ -957,11 +1020,6 @@ public class Step4Controller {
 		mainController.setUserData("step1_ngayDi", null);
 		mainController.setUserData("step1_isKhuHoi", null);
 		mainController.setUserData("step1_ngayVe", null);
-	}
-
-	@FXML
-	private void handleQuayLai() {
-		mainController.loadContent("step-3.fxml");
 	}
 
 	private void showAlert(Alert.AlertType type, String title, String message) {

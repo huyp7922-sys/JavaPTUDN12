@@ -90,8 +90,6 @@ public class TraVeController {
                 // THÊM DÒNG NÀY: Kiểm tra ngày giờ khởi hành có null không
                 cell.getValue().getChiTietLichTrinh().getLichTrinh().getNgayGioKhoiHanhFormatted() != null) {
                    
-                System.out.println("Ngay gio khoi hanh: " + cell.getValue().getChiTietLichTrinh().getLichTrinh().getNgayGioKhoiHanhFormatted());
-                
                 return new SimpleStringProperty(
                     cell.getValue().getChiTietLichTrinh().getLichTrinh().getNgayGioKhoiHanhFormatted()
                 );
