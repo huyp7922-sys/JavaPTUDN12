@@ -90,9 +90,6 @@ public class ReportManager {
             // 4. Hiển thị cửa sổ xem trước (Preview)
             // viewReport(..., false) để khi tắt cửa sổ report KHÔNG tắt luôn app chính
             JasperViewer.viewReport(jasperPrint, false); 
-            
-            // Nếu muốn in thẳng ra máy in mặc định không cần xem trước:
-            // JasperPrintManager.printReport(jasperPrint, true);
 
         } catch (JRException e) {
             e.printStackTrace();

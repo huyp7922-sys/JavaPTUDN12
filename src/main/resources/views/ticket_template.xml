@@ -22,14 +22,14 @@
     <detail>
         <band height="580" splitType="Stretch">
             <staticText>
-                <reportElement x="0" y="0" width="206" height="20" uuid="header1"/>
+                <reportElement x="0" y="0" width="206" height="20" uuid="8832126a-9391-49c7-9572-887718956c36"/>
                 <textElement textAlignment="Center">
                     <font fontName="Arial" size="10" isBold="true"/>
                 </textElement>
                 <text><![CDATA[CÔNG TY CỔ PHẦN VẬN TẢI]]></text>
             </staticText>
             <staticText>
-                <reportElement x="0" y="15" width="206" height="20" uuid="header2"/>
+                <reportElement x="0" y="15" width="206" height="20" uuid="16382173-9428-4394-a292-957288771895"/>
                 <textElement textAlignment="Center">
                     <font fontName="Arial" size="10" isBold="true"/>
                 </textElement>
@@ -37,14 +37,14 @@
             </staticText>
             
             <staticText>
-                <reportElement x="0" y="40" width="206" height="25" uuid="title"/>
+                <reportElement x="0" y="40" width="206" height="25" uuid="2a568212-3213-4394-a292-887718956c36"/>
                 <textElement textAlignment="Center">
                     <font fontName="Arial" size="16" isBold="true"/>
                 </textElement>
                 <text><![CDATA[THẺ LÊN TÀU HỎA]]></text>
             </staticText>
             <staticText>
-                <reportElement x="0" y="65" width="206" height="15" uuid="subtitle"/>
+                <reportElement x="0" y="65" width="206" height="15" uuid="3b123456-9391-49c7-9572-887718956c36"/>
                 <textElement textAlignment="Center">
                     <font fontName="Arial" size="8"/>
                 </textElement>
@@ -52,7 +52,7 @@
             </staticText>
 
             <componentElement>
-                <reportElement x="53" y="85" width="100" height="100" uuid="qrCode"/>
+                <reportElement x="53" y="85" width="100" height="100" uuid="4c987654-9391-49c7-9572-887718956c36"/>
                 <jr:QRCode xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" 
                            xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
                     <jr:codeExpression><![CDATA[$P{qrCodeData}]]></jr:codeExpression>
@@ -60,7 +60,7 @@
             </componentElement>
 
             <textField>
-                <reportElement x="0" y="190" width="206" height="15" uuid="txtMaVe"/>
+                <reportElement x="0" y="190" width="206" height="15" uuid="5d112233-9391-49c7-9572-887718956c36"/>
                 <textElement textAlignment="Center">
                     <font fontName="Arial" size="9"/>
                 </textElement>
@@ -68,99 +68,100 @@
             </textField>
 
             <staticText>
-                <reportElement x="10" y="210" width="80" height="15"/>
+                <reportElement x="10" y="210" width="80" height="15" uuid="6e445566-9391-49c7-9572-887718956c36"/>
                 <textElement textAlignment="Left"><font fontName="Arial" size="8"/></textElement>
                 <text><![CDATA[Ga đi/From]]></text>
             </staticText>
             <staticText>
-                <reportElement x="110" y="210" width="80" height="15"/>
+                <reportElement x="110" y="210" width="80" height="15" uuid="7f778899-9391-49c7-9572-887718956c36"/>
                 <textElement textAlignment="Right"><font fontName="Arial" size="8"/></textElement>
                 <text><![CDATA[Ga đến/To]]></text>
             </staticText>
             <textField>
-                <reportElement x="10" y="225" width="90" height="20"/>
+                <reportElement x="10" y="225" width="90" height="20" uuid="8a001122-9391-49c7-9572-887718956c36"/>
                 <textElement><font fontName="Arial" size="12" isBold="true"/></textElement>
                 <textFieldExpression><![CDATA[$P{gaDi}]]></textFieldExpression>
             </textField>
             <textField>
-                <reportElement x="106" y="225" width="90" height="20"/>
+                <reportElement x="106" y="225" width="90" height="20" uuid="9b334455-9391-49c7-9572-887718956c36"/>
                 <textElement textAlignment="Right"><font fontName="Arial" size="12" isBold="true"/></textElement>
                 <textFieldExpression><![CDATA[$P{gaDen}]]></textFieldExpression>
             </textField>
 
             <textField>
-                <reportElement x="10" y="255" width="186" height="15"/>
+                <reportElement x="10" y="255" width="186" height="15" uuid="0c667788-9391-49c7-9572-887718956c36"/>
                 <textElement><font fontName="Arial" size="9"/></textElement>
                 <textFieldExpression><![CDATA["Tàu/Train: " + $P{macTau}]]></textFieldExpression>
             </textField>
             
             <textField>
-                <reportElement x="10" y="275" width="186" height="15"/>
+                <reportElement x="10" y="275" width="186" height="15" uuid="1d9900aa-9391-49c7-9572-887718956c36"/>
                 <textElement><font fontName="Arial" size="9"/></textElement>
                 <textFieldExpression><![CDATA["Ngày đi/Date: " + $P{ngayDi}]]></textFieldExpression>
             </textField>
             
             <textField>
-                <reportElement x="10" y="295" width="186" height="15"/>
+                <reportElement x="10" y="295" width="186" height="15" uuid="2e1122bb-9391-49c7-9572-887718956c36"/>
                 <textElement><font fontName="Arial" size="9"/></textElement>
                 <textFieldExpression><![CDATA["Giờ đi/Time: " + $P{gioDi}]]></textFieldExpression>
             </textField>
 
             <textField>
-                <reportElement x="10" y="315" width="90" height="15"/>
+                <reportElement x="10" y="315" width="90" height="15" uuid="3f3344cc-9391-49c7-9572-887718956c36"/>
                 <textElement><font fontName="Arial" size="9" isBold="true"/></textElement>
                 <textFieldExpression><![CDATA["Toa/Coach: " + $P{toa}]]></textFieldExpression>
             </textField>
             <textField>
-                <reportElement x="110" y="315" width="90" height="15"/>
+                <reportElement x="110" y="315" width="90" height="15" uuid="405566dd-9391-49c7-9572-887718956c36"/>
                 <textElement><font fontName="Arial" size="9" isBold="true"/></textElement>
                 <textFieldExpression><![CDATA["Chỗ/Seat: " + $P{cho}]]></textFieldExpression>
             </textField>
 
             <textField>
-                <reportElement x="10" y="335" width="196" height="15"/>
+                <reportElement x="10" y="335" width="196" height="15" uuid="507788ee-9391-49c7-9572-887718956c36"/>
                 <textElement><font fontName="Arial" size="9"/></textElement>
                 <textFieldExpression><![CDATA["Loại chỗ/Class: " + $P{loaiCho}]]></textFieldExpression>
             </textField>
 
             <textField>
-                <reportElement x="10" y="355" width="196" height="15"/>
+                <reportElement x="10" y="355" width="196" height="15" uuid="609900ff-9391-49c7-9572-887718956c36"/>
                 <textElement><font fontName="Arial" size="9"/></textElement>
                 <textFieldExpression><![CDATA["Loại vé/Type: " + $P{loaiVe}]]></textFieldExpression>
             </textField>
 
             <textField>
-                <reportElement x="10" y="375" width="196" height="15"/>
+                <reportElement x="10" y="375" width="196" height="15" uuid="701122aa-9391-49c7-9572-887718956c36"/>
                 <textElement><font fontName="Arial" size="9" isBold="true"/></textElement>
                 <textFieldExpression><![CDATA["Họ tên/Name: " + $P{hoTen}]]></textFieldExpression>
             </textField>
 
             <textField>
-                <reportElement x="10" y="395" width="196" height="15"/>
+                <reportElement x="10" y="395" width="196" height="15" uuid="803344bb-9391-49c7-9572-887718956c36"/>
                 <textElement><font fontName="Arial" size="9"/></textElement>
                 <textFieldExpression><![CDATA["Giấy tờ/Passport: " + $P{giayTo}]]></textFieldExpression>
             </textField>
 
             <line>
-                <reportElement x="10" y="415" width="186" height="1"/>
+                <reportElement x="10" y="415" width="186" height="1" uuid="905566cc-9391-49c7-9572-887718956c36"/>
                 <graphicElement><pen lineStyle="Dashed"/></graphicElement>
             </line>
 
             <textField>
-                <reportElement x="10" y="425" width="196" height="20"/>
+                <reportElement x="10" y="425" width="196" height="20" uuid="007788dd-9391-49c7-9572-887718956c36"/>
                 <textElement><font fontName="Arial" size="12" isBold="true"/></textElement>
                 <textFieldExpression><![CDATA["Giá/Price: " + $P{giaVe}]]></textFieldExpression>
             </textField>
 
             <staticText>
-                <reportElement x="10" y="455" width="186" height="40"/>
+                <reportElement x="10" y="455" width="186" height="40" uuid="109900ee-9391-49c7-9572-887718956c36"/>
                 <textElement textAlignment="Left">
                     <font fontName="Arial" size="8" isItalic="true"/>
                 </textElement>
                 <text><![CDATA[Ghi chú: Thẻ lên tàu này là hóa đơn điện tử. Vui lòng mang theo giấy tờ tùy thân khi lên tàu.]]></text>
             </staticText>
-             <staticText>
-                <reportElement x="10" y="500" width="186" height="20"/>
+            
+            <staticText>
+                <reportElement x="10" y="500" width="186" height="20" uuid="201122ff-9391-49c7-9572-887718956c36"/>
                 <textElement textAlignment="Center">
                     <font fontName="Arial" size="8"/>
                 </textElement>

@@ -11,7 +11,7 @@ public class VeTau {
 	private LoaiVe loaiVe;
 	private boolean khuHoi;
 	private String trangThai;
-	private QRCode maQR;
+	private String maQR;
 	
 	public VeTau() {
 		super();
@@ -23,7 +23,7 @@ public class VeTau {
 	}
 
 	public VeTau(String maVe, KhachHang khachHang, ChiTietLichTrinh chiTietLichTrinh, LoaiVe loaiVe, boolean khuHoi,
-			String trangThai, QRCode maQR) {
+			String trangThai, String maQR) {
 		super();
 		this.maVe = maVe;
 		this.khachHang = khachHang;
@@ -82,11 +82,11 @@ public class VeTau {
 		this.trangThai = trangThai;
 	}
 
-	public QRCode getMaQR() {
+	public String getMaQR() {
 		return maQR;
 	}
 
-	public void setMaQR(QRCode maQR) {
+	public void setMaQR(String maQR) {
 		this.maQR = maQR;
 	}
 	

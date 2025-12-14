@@ -13,6 +13,7 @@ package com.ptudn12.main.dao;
 import com.ptudn12.main.database.DatabaseConnection;
 import com.ptudn12.main.entity.*;
 import com.ptudn12.main.enums.LoaiCho;
+import com.ptudn12.main.enums.LoaiVe;
 
 import java.sql.*;
 import java.time.LocalDate;
@@ -171,26 +172,27 @@ public class VeTauDAO {
     public VeTau getVeTauDetail(String maVe) {
         VeTau ve = null;
         
-        // Query "khủng" để lấy tất cả thông tin cần thiết
-        String sql = "SELECT v.maVe, v.loaiVe, v.trangThai, v.maQR, " +
-                     "k.tenKhachHang, k.soCCCD, k.hoChieu, " +
-                     "lt.ngayKhoiHanh, lt.gioKhoiHanh, " +
-                     "t.macTau, " +
-                     "gDi.viTriGa AS tenGaDi, gDen.viTriGa AS tenGaDen, " +
-                     "toa.tenToa, toa.maToa, " +
-                     "c.soThuTu AS soGhe, c.loaiCho, " +
-                     "ctlt.giaChoNgoi " +
-                     "FROM VeTau v " +
-                     "JOIN KhachHang k ON v.khachHangId = k.maKhachHang " +
-                     "JOIN ChiTietLichTrinh ctlt ON v.chiTietLichTrinhId = ctlt.maChiTietLichTrinh " +
-                     "JOIN LichTrinh lt ON ctlt.maLichTrinh = lt.maLichTrinh " +
-                     "JOIN Tau t ON lt.maTau = t.maTau " +
-                     "JOIN TuyenDuong td ON lt.maTuyenDuong = td.maTuyen " +
-                     "JOIN Ga gDi ON td.diemDi = gDi.maGa " +
-                     "JOIN Ga gDen ON td.diemDen = gDen.maGa " +
-                     "JOIN Cho c ON ctlt.maChoNgoi = c.maCho " +
-                     "JOIN Toa toa ON c.maToa = toa.maToa " +
-                     "WHERE v.maVe = ?";
+        // SQL JOIN đã được điều chỉnh theo đúng schema DB mới
+        String sql = "SELECT VT.maVe, VT.loaiVe, VT.trangThai, VT.maQR, " +
+                     "       KH.tenKhachHang, KH.soCCCD, KH.hoChieu, " +
+                     "       L.ngayKhoiHanh, L.gioKhoiHanh, " +
+                     "       T.maTau, " + // Bảng Tau cột maTau
+                     "       G1.viTriGa AS tenGaDi, " +
+                     "       G2.viTriGa AS tenGaDen, " +
+                     "       TOA.tenToa, TOA.maToa, " +
+                     "       C.soThuTu AS soGhe, C.loaiCho AS tenLoaiCho, " +
+                     "       CTLT.giaChoNgoi " +
+                     "FROM VeTau VT " +
+                     "JOIN KhachHang KH ON VT.khachHangId = KH.maKhachHang " +
+                     "JOIN ChiTietLichTrinh CTLT ON VT.chiTietLichTrinhId = CTLT.maChiTietLichTrinh " +
+                     "JOIN LichTrinh L ON CTLT.maLichTrinh = L.maLichTrinh " +
+                     "JOIN Tau T ON L.maTau = T.maTau " +
+                     "JOIN TuyenDuong TD ON L.maTuyenDuong = TD.maTuyen " +
+                     "JOIN Ga G1 ON TD.diemDi = G1.maGa " +
+                     "JOIN Ga G2 ON TD.diemDen = G2.maGa " +
+                     "JOIN Cho C ON CTLT.maChoNgoi = C.maCho " +
+                     "JOIN Toa TOA ON C.maToa = TOA.maToa " + // JOIN qua bảng Cho để lấy Toa chính xác
+                     "WHERE VT.maVe = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -201,21 +203,16 @@ public class VeTauDAO {
             if (rs.next()) {
                 ve = new VeTau();
                 ve.setMaVe(rs.getString("maVe"));
-                ve.setMaQR(new QRCode(rs.getString("maQR"))); // Giả sử bạn có class QRCode wrapper
-                // Hoặc nếu maQR là String trong VeTau thì: ve.setMaQR(rs.getString("maQR"));
+                ve.setMaQR(rs.getString("maQR")); 
                 
-                // Map Khách Hàng
+                // 1. Khách Hàng
                 KhachHang kh = new KhachHang();
                 kh.setTenKhachHang(rs.getString("tenKhachHang"));
                 kh.setSoCCCD(rs.getString("soCCCD"));
                 kh.setHoChieu(rs.getString("hoChieu"));
                 ve.setKhachHang(kh);
                 
-                // Map Loại Vé (String -> Enum nếu cần, hoặc để String để hiển thị)
-                // Ở đây mình set tạm vào thuộc tính loaiVe (nếu entity hỗ trợ setter String hoặc Enum)
-                // ve.setLoaiVe(LoaiVe.valueOf(rs.getString("loaiVe"))); // Cẩn thận nếu DB lưu tiếng Việt có dấu
-                
-                // Map Lịch Trình & Tàu & Ga
+                // 2. Lịch Trình (Ngày giờ, Tàu, Ga)
                 LichTrinh lt = new LichTrinh();
                 
                 java.sql.Date ngayDi = rs.getDate("ngayKhoiHanh");
@@ -227,7 +224,8 @@ public class VeTauDAO {
                     lt.setNgayGioKhoiHanh(dt);
                 }
                 
-                Tau tau = new Tau(rs.getString("macTau"));
+                Tau tau = new Tau(rs.getString("maTau"));
+                tau.setMacTau(rs.getString("maTau"));
                 lt.setTau(tau);
                 
                 TuyenDuong td = new TuyenDuong();
@@ -237,7 +235,7 @@ public class VeTauDAO {
                 td.setDiemDen(gaDen);
                 lt.setTuyenDuong(td);
                 
-                // Map Chi Tiết Lịch Trình & Chỗ & Toa & Giá
+                // 3. Chi Tiết (Chỗ, Toa, Giá)
                 ChiTietLichTrinh ctlt = new ChiTietLichTrinh();
                 ctlt.setLichTrinh(lt);
                 ctlt.setGiaChoNgoi(rs.getDouble("giaChoNgoi"));
@@ -245,18 +243,18 @@ public class VeTauDAO {
                 Cho cho = new Cho();
                 cho.setSoThuTu(rs.getInt("soGhe"));
                 
-                // Map Loại Chỗ (String -> Enum)
-                String loaiChoStr = rs.getString("loaiCho");
+                // Map loại chỗ từ chuỗi DB (Ví dụ: "Ghế ngồi mềm")
+                String tenLoaiChoDB = rs.getString("tenLoaiCho");
                 try {
-                    cho.setLoaiCho(LoaiCho.fromDescription(loaiChoStr));
+                    // Gọi hàm map từ String sang Enum mà mình đã fix cho bạn ở LoaiCho.java
+                    cho.setLoaiCho(LoaiCho.fromDescription(tenLoaiChoDB));
                 } catch (Exception e) {
-                    // Fallback nếu không map được enum
-                    System.err.println("Warning: Không map được loại chỗ " + loaiChoStr);
+                    System.err.println("Warning: Không map được loại chỗ '" + tenLoaiChoDB + "' sang Enum.");
                 }
                 
                 Toa t = new Toa();
                 t.setTenToa(rs.getString("tenToa"));
-                t.setMaToa(rs.getInt("maToa")); // Cần thiết cho in ấn (Toa số mấy)
+                t.setMaToa(rs.getInt("maToa")); 
                 cho.setToa(t);
                 
                 ctlt.setCho(cho);
@@ -264,7 +262,7 @@ public class VeTauDAO {
             }
 
         } catch (SQLException e) {
-            System.err.println("Lỗi khi lấy chi tiết vé tàu để in: " + e.getMessage());
+            System.err.println("Lỗi lấy chi tiết vé (SQL): " + e.getMessage());
             e.printStackTrace();
         }
         
