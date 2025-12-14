@@ -22,21 +22,6 @@
     <detail>
         <band height="580" splitType="Stretch">
             <staticText>
-                <reportElement x="0" y="0" width="206" height="20" uuid="8832126a-9391-49c7-9572-887718956c36"/>
-                <textElement textAlignment="Center">
-                    <font fontName="Arial" size="10" isBold="true"/>
-                </textElement>
-                <text><![CDATA[CÔNG TY CỔ PHẦN VẬN TẢI]]></text>
-            </staticText>
-            <staticText>
-                <reportElement x="0" y="15" width="206" height="20" uuid="16382173-9428-4394-a292-957288771895"/>
-                <textElement textAlignment="Center">
-                    <font fontName="Arial" size="10" isBold="true"/>
-                </textElement>
-                <text><![CDATA[ĐƯỜNG SẮT VIỆT NAM]]></text>
-            </staticText>
-            
-            <staticText>
                 <reportElement x="0" y="40" width="206" height="25" uuid="2a568212-3213-4394-a292-887718956c36"/>
                 <textElement textAlignment="Center">
                     <font fontName="Arial" size="16" isBold="true"/>

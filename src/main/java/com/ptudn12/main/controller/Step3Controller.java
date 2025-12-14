@@ -105,7 +105,7 @@ public class Step3Controller {
 
         // 4. Tạo các hàng hành khách
         boolean isFirstRow = true;
-        
+    
         for (int i = 0; i < passengerCount; i++) { 
             VeTamThoi veDi = gioHangDi.get(i);
             VeTamThoi veVe = isRoundTrip ? gioHangVe.get(i) : null;
@@ -115,23 +115,45 @@ public class Step3Controller {
                 Node rowNode = loader.load();
                 HanhKhachRowController rowController = loader.getController();
 
-                // Nạp dữ liệu vào hàng
                 rowController.setData(veDi, veVe, this);
 
-                // --- LOGIC AUTO-FILL (QUAN TRỌNG) ---
-                // Nếu đây là hành khách đầu tiên (i == 0)
+                // --- LOGIC AUTO-FILL CẢI TIẾN (FINAL VERSION) ---
                 if (i == 0) {
-                    // Lắng nghe sự thay đổi từ hàng này
-                    rowController.setOnDataChange((obs, oldVal, newVal) -> {
+                    // 1. Listener cho HỌ TÊN: Gõ đến đâu, dưới nhảy đến đó (An toàn vì không query DB)
+                    rowController.getTxtHoTen().textProperty().addListener((obs, oldVal, newVal) -> {
                         if (isSyncFromFirstPassenger) {
-                            syncFirstPassengerToBuyer(rowController);
+                            txtNguoiMuaHoTen.setText(newVal);
+                        }
+                    });
+
+                    // 2. Listener cho SỐ GIẤY TỜ (CCCD): CHỈ COPY CHỮ, KHÔNG TRA CỨU
+                    rowController.getTxtSoGiayTo().textProperty().addListener((obs, oldVal, newVal) -> {
+                        if (isSyncFromFirstPassenger) {
+                            txtNguoiMuaSoGiayTo.setText(newVal);
+                        }
+                    });
+
+                    // 3. Sự kiện ENTER: Lúc này mới tra cứu DB và điền SĐT/Email
+                    rowController.getTxtSoGiayTo().setOnKeyPressed(event -> {
+                        if (event.getCode() == KeyCode.ENTER) {
+                            String currentId = rowController.getTxtSoGiayTo().getText().trim();
+                            KhachHang kh = khachHangDAO.timKhachHangTheoGiayTo(currentId);
+                            if (kh != null) {
+                                // Điền tên khách tìm được vào ô Họ tên của dòng 1
+                                rowController.getTxtHoTen().setText(kh.getTenKhachHang());
+                            }
+
+                            if (isSyncFromFirstPassenger) {
+                                // Tìm kiếm chủ đích cho người mua
+                                timThongTinNguoiMua(false); 
+                            }
                         }
                     });
                     
-                    // Đồng bộ lần đầu (nếu có sẵn dữ liệu)
+
+                    // Đồng bộ lần đầu (nếu có sẵn dữ liệu từ vé đã chọn)
                     syncFirstPassengerToBuyer(rowController);
                 }
-                // -------------------------------------
 
                 containerHanhKhach.getChildren().add(rowNode);
                 rowControllers.add(rowController);
@@ -143,10 +165,10 @@ public class Step3Controller {
 
             } catch (IOException e) {
                 e.printStackTrace();
-                showAlert(Alert.AlertType.ERROR, "Lỗi khi tải giao diện hàng hành khách:\n" + e.getMessage());
+                showAlert(Alert.AlertType.ERROR, "Lỗi tải giao diện hàng hành khách: " + e.getMessage());
             }
         }
-        
+
         updateTongThanhTien();
     }
     
@@ -168,28 +190,45 @@ public class Step3Controller {
         }
     }
 
-    // --- HÀM TRA CỨU NGƯỜI MUA (Dùng chung cho Sync và Enter) ---
-    private void timThongTinNguoiMua() {
+    private void timThongTinNguoiMua(boolean isSilent) {
         String soGiayTo = txtNguoiMuaSoGiayTo.getText().trim();
         if (soGiayTo.isEmpty()) return;
 
-        // Chỉ tìm và điền SĐT/Email, KHÔNG ghi đè tên nếu đang sync (để tránh xung đột)
-        // Hoặc ghi đè tất cả nếu người dùng nhấn Enter chủ động
-        
         KhachHang kh = khachHangDAO.timKhachHangTheoGiayTo(soGiayTo);
+        
         if (kh != null) {
-            // Nếu sync đang tắt (nhập tay) hoặc tên người mua đang trống -> Điền tên từ DB
-            if (!isSyncFromFirstPassenger || txtNguoiMuaHoTen.getText().isEmpty()) {
+            // Tìm thấy: Luôn điền thông tin
+            // Nếu đang sync, điền tên từ DB (ưu tiên DB nếu khớp số giấy tờ)
+            if (isSyncFromFirstPassenger || txtNguoiMuaHoTen.getText().isEmpty()) {
                 txtNguoiMuaHoTen.setText(kh.getTenKhachHang());
             }
             
             txtNguoiMuaSDT.setText(kh.getSoDienThoai());
             String email = khachHangDAO.getEmailKhachHang(soGiayTo);
             txtNguoiMuaEmail.setText(email);
+        } else {
+            // Không tìm thấy:
+            if (!isSilent) {
+                // Nếu người dùng chủ động ấn Enter (không phải silent), có thể báo lỗi hoặc clear
+                // Nhưng UX tốt nhất là KHÔNG làm gì cả để họ tự nhập tiếp
+            }
+            
+            // QUAN TRỌNG: Nếu là khách mới (kh == null), TUYỆT ĐỐI KHÔNG XÓA 
+            // những gì người dùng đang gõ ở ô Tên.
+            // Chỉ clear SĐT/Email để họ nhập mới
+            if (!isSilent) { // Chỉ clear khi tìm kiếm chủ đích, còn đang gõ thì cứ để yên
+                 txtNguoiMuaSDT.clear();
+                 txtNguoiMuaEmail.clear();
+            }
         }
     }
 
-    // --- HÀM BINDING ĐỘ RỘNG MỚI (QUAN TRỌNG) ---
+    // Nạp chồng (Overload) hàm cũ để tương thích với các lệnh gọi cũ (như sự kiện Enter)
+    private void timThongTinNguoiMua() {
+        timThongTinNguoiMua(false); // Mặc định là không silent (tìm kiếm chủ đích)
+    }
+
+    // --- HÀM BINDING ĐỘ RỘNG MỚI ---
     private void syncHeaderWidths(HanhKhachRowController firstRowController) {
         if (firstRowController == null || headerRow == null) return;
         

@@ -18,6 +18,7 @@ import com.ptudn12.main.dao.KhachHangDAO;
 import com.ptudn12.main.dao.VeTauDAO;
 import com.ptudn12.main.entity.VeTau;
 import com.ptudn12.main.utils.ReportManager;
+import javafx.stage.Modality;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -32,6 +33,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 import javax.swing.SwingUtilities;
 
 public class Step4Controller {
@@ -161,6 +166,10 @@ public class Step4Controller {
         if (btnQuayLai != null) {
             btnQuayLai.setDisable(false);
             btnQuayLai.setVisible(true);
+        }
+        
+        if (btnXuatHoaDon != null) {
+            btnXuatHoaDon.setDisable(true);
         }
     }
     
@@ -412,7 +421,13 @@ public class Step4Controller {
         if (btnXacNhanVaIn.isDisabled()) return;
 
         try {
-            String maNhanVien = "NV001"; // TODO: Lấy từ session
+            String maNhanVien = "NV001"; // Giá trị default đề phòng lỗi
+            
+            if (mainController.getNhanVien() != null) {
+                maNhanVien = mainController.getNhanVien().getMaNhanVien();
+            } else {
+                System.err.println("Warning: Chưa có thông tin nhân viên đăng nhập. Đang dùng NV001.");
+            }
 
             // 1. Lưu Khách Hàng
             int khachHangId = khachHangDAO.findOrInsertKhachHang(thongTinNguoiMua);
@@ -428,7 +443,7 @@ public class Step4Controller {
                 return;
             }
 
-            // 3. Tạo Vé & Chi Tiết (Lưu vào DB)
+            // 3. Tạo Vé & Chi Tiết (Lưu DB)
             List<String> createdTicketIds = new ArrayList<>();
             for (Map<String, Object> hanhKhach : danhSachHanhKhach) {
                 VeTamThoi veDi = (VeTamThoi) hanhKhach.get("veDi");
@@ -445,40 +460,56 @@ public class Step4Controller {
                 }
             }
 
-            // 4. HIỆN MODAL PREVIEW (IN VÉ)
-            // Chạy trên luồng Swing để tránh xung đột với JavaFX nếu JasperViewer bị lag
-            SwingUtilities.invokeLater(() -> {
-                for (String maVe : createdTicketIds) {
-                    VeTau fullVe = veTauDAO.getVeTauDetail(maVe);
-                    if (fullVe != null) {
-                        // Hàm này sẽ mở cửa sổ mới
-                        ReportManager.printVeTau(fullVe); 
-                    }
-                }
-            });
-
-            // 5. CẬP NHẬT GIAO DIỆN -> CHỜ HOÀN TẤT
-            showAlert(Alert.AlertType.INFORMATION, "Thành công", "Thanh toán thành công!\nCửa sổ in vé đang được mở.");
-            
-            // Ẩn nút In, Ẩn nút Quay lại
-            btnXacNhanVaIn.setVisible(false);
-            btnXacNhanVaIn.setManaged(false);
-            
-            if (btnQuayLai != null) {
-                btnQuayLai.setVisible(false); // Ẩn luôn cho gọn
-                btnQuayLai.setManaged(false);
+            // 4. Hiện modal danh sách vé
+            if (!createdTicketIds.isEmpty()) {
+                showPrintListDialog(createdTicketIds);
             }
 
-            // Hiện nút Hoàn tất to đùng
+            // 5. Cập nhật giao diện Step 4
+            showAlert(Alert.AlertType.INFORMATION, "Thành công", "Thanh toán thành công!");
+            
+            btnXacNhanVaIn.setVisible(false);
+
             if (btnHoanTat != null) {
                 btnHoanTat.setVisible(true);
+                btnQuayLai.setVisible(false);
                 btnHoanTat.setManaged(true);
                 btnHoanTat.requestFocus();
+            }
+            
+            if (btnXuatHoaDon != null) {
+                btnXuatHoaDon.setDisable(false); 
             }
 
         } catch (Exception ex) {
             ex.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Lỗi hệ thống", ex.getMessage());
+        }
+    }
+
+    // HÀM MỚI ĐỂ MỞ MODAL LIST
+    private void showPrintListDialog(List<String> ticketIds) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/print-list-view.fxml"));
+            Parent root = loader.load();
+
+            PrintListController controller = loader.getController();
+            
+            // Tạo Stage mới cho modal
+            Stage stage = new Stage();
+            stage.setTitle("Danh sách vé đã xuất");
+            stage.initModality(Modality.APPLICATION_MODAL); // Chặn tương tác cửa sổ chính
+            stage.setScene(new Scene(root));
+            
+            // Truyền dữ liệu vào Controller
+            controller.setDialogStage(stage);
+            controller.setTicketIds(ticketIds);
+
+            stage.showAndWait(); // Chờ đóng modal rồi mới chạy tiếp (hoặc show() nếu muốn chạy song song)
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Lỗi hiển thị", "Không thể mở danh sách in vé: " + e.getMessage());
         }
     }
     

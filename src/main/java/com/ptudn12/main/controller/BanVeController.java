@@ -9,6 +9,7 @@ package com.ptudn12.main.controller;
  * @author fo3cp
  */
 
+import com.ptudn12.main.entity.NhanVien;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -45,15 +46,15 @@ public class BanVeController {
     // --- CACHE: Lưu trữ Controller và View của từng Step ---
     private Step1Controller step1ControllerInstance;
     private Node step1View;
-    
     private Step2Controller_update step2ControllerInstance;
     private Node step2View;
-    
     private Step3Controller step3ControllerInstance;
     private Node step3View;
-    
     private Step4Controller step4ControllerInstance;
     private Node step4View;
+    
+    // Lưu thông tin nhân viên trong phiên đăng nhập
+    private NhanVien nhanVienHienTai;
 
     // Menu items
     @FXML private TitledPane menuVeTau;
@@ -66,6 +67,16 @@ public class BanVeController {
     @FXML private Button btnLogout;
     
     private String currentUser;
+    
+    // Hàm để set nhân viên (Gọi từ LoginController khi đăng nhập thành công)
+    public void setNhanVien(NhanVien nhanVien) {
+        this.nhanVienHienTai = nhanVien;
+    }
+
+    // Hàm để các Step con lấy nhân viên
+    public NhanVien getNhanVien() {
+        return nhanVienHienTai;
+    }
 
     // BẮT BUỘC CÓ: Map để lưu data giữa các step
     private Map<String, Object> userData = new HashMap<>();

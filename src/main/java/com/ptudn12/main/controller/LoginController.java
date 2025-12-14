@@ -122,12 +122,19 @@
                 }
                 
                 Parent root = loader.load();
+                // Truyền object nhân viên để lấy thông tin NV đang đăng nhập hệ thống
+                NhanVien nhanVienHienTai = SessionManager.getInstance().getCurrentNhanVien();
+                    
                 if (isAdmin) {
                     DashboardController controller = loader.getController();
                     controller.setUsername(displayName);
                 } else {
                     BanVeController controller = loader.getController();
                     controller.setUsername(displayName);
+                    
+                    if (nhanVienHienTai != null) {
+                        controller.setNhanVien(nhanVienHienTai);
+                    }
                 }
 
                 Stage stage = (Stage) usernameField.getScene().getWindow();
