@@ -267,6 +267,8 @@ public class KhachHangDAO {
 		String hoChieu = rs.getString("hoChieu");
 		String soDienThoai = rs.getString("soDienThoai");
 
+		int diemTich = rs.getInt("diemTich");
+
 		// Định dạng lại mã khách hàng theo yêu cầu của GUI
 		String maKHFormatted = String.format("KH%09d", maKhachHangInt);
 
@@ -282,11 +284,7 @@ public class KhachHangDAO {
 			laNguoiNuocNgoai = false;
 		}
 
-		// Lưu ý: Cột 'diemTich' không có trong DB.
-		// Cung cấp một giá trị mặc định để GUI có thể hiển thị.
-		int diemTich = 0; // Giá trị mặc định
-
-		// Tạo đối tượng KhachHang bằng constructor đã có
+		// Tạo đối tượng KhachHang bằng constructor đã có, truyền vào điểm tích thật
 		return new KhachHang(maKHFormatted, tenKhachHang, idGiayTo, laNguoiNuocNgoai, soDienThoai, diemTich);
 	}
 

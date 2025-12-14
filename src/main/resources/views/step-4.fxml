@@ -115,8 +115,8 @@
                           <HBox spacing="10.0" alignment="CENTER_LEFT">
                               <children>
                                   <Button fx:id="btnXuatHoaDon" text="Xuất hoá đơn VAT" onAction="#handleXuatHoaDon" styleClass="action-button"/>
-                                  <Button fx:id="btnDoiDiem" text="Đổi điểm tích lũy" onAction="#handleDoiDiem" styleClass="action-button" disable="true"/> <!-- Tạm disable -->
-                                  <Button fx:id="btnTichDiem" text="Tích điểm khách hàng" onAction="#handleTichDiem" styleClass="action-button" disable="true"/> <!-- Tạm disable -->
+                                  <Button fx:id="btnDoiDiem" text="Đổi điểm tích lũy" onAction="#handleDoiDiem" styleClass="action-button"/> <!-- Tạm disable -->
+                                  <Button fx:id="btnTichDiem" text="Tích điểm khách hàng" onAction="#handleTichDiem" styleClass="action-button"/> <!-- Tạm disable -->
                               </children>
                               <VBox.margin>
                                   <Insets top="10.0"/>
