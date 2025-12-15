@@ -9,6 +9,9 @@ public class Tau {
 	private int soToa;
 	private int tongChoNgoi;
 	private String cauTrucTau;
+        
+        public Tau() {
+        }
 
 	public Tau(String macTau) {
 		this.macTau = macTau;

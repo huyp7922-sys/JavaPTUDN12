@@ -332,5 +332,39 @@ public class KhachHangDAO {
         }
         return "";
     }
+    
+    /**
+     * Tìm thông tin Người Mua (Chủ hóa đơn) dựa trên Mã Vé
+     * (Dùng cho trường hợp Đổi vé: Lấy lại thông tin người đã mua vé cũ)
+     */
+    public KhachHang getNguoiMuaByMaVe(String maVe) {
+        String sql = "SELECT KH.* " +
+                     "FROM KhachHang KH " +
+                     "JOIN HoaDon HD ON KH.maKhachHang = HD.khachHangId " +
+                     "JOIN ChiTietHoaDon CTHD ON HD.maHoaDon = CTHD.maHoaDon " +
+                     "WHERE CTHD.maVe = ? " +
+                     // Lấy hóa đơn mua (BanVe) hoặc đổi (DoiVe), tránh lấy hóa đơn hoàn tiền nếu có
+                     "AND (HD.loaiHoaDon = 'BanVe' OR HD.loaiHoaDon = 'DoiVe')";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, maVe);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                KhachHang kh = new KhachHang();
+                kh.setMaKH(rs.getInt("maKhachHang") + "");
+                kh.setTenKhachHang(rs.getString("tenKhachHang"));
+                kh.setSoCCCD(rs.getString("soCCCD"));
+                kh.setHoChieu(rs.getString("hoChieu"));
+                kh.setSoDienThoai(rs.getString("soDienThoai"));
+                return kh;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
 

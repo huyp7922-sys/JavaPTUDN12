@@ -13,6 +13,7 @@ package com.ptudn12.main.dao;
 import com.ptudn12.main.database.DatabaseConnection;
 import com.ptudn12.main.entity.*;
 import com.ptudn12.main.enums.LoaiCho;
+import com.ptudn12.main.enums.LoaiToa;
 import com.ptudn12.main.enums.LoaiVe;
 
 import java.sql.*;
@@ -55,7 +56,6 @@ public class VeTauDAO {
      */
     public List<VeTau> getLichSuVeCuaKhachHang(int maKhachHang) {
         List<VeTau> listVe = new ArrayList<>();
-        // Gọi SP: sp_XemVeKhachHang @maKhachHang
         String sql = "{call sp_XemVeKhachHang(?)}";
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -67,7 +67,6 @@ public class VeTauDAO {
             while (rs.next()) {
                 VeTau ve = new VeTau();
                 ve.setMaVe(rs.getString("maVe"));
-                // ve.setLoaiVe(...); // Cần convert String sang Enum nếu cần
                 ve.setKhuHoi(rs.getBoolean("khuHoi"));
                 ve.setTrangThai(rs.getString("trangThai"));
                 
@@ -96,10 +95,8 @@ public class VeTauDAO {
                 td.setDiemDen(gDen);
                 lt.setTuyenDuong(td);
                 
-                // Tàu (SP trả về tenToa nhưng không trả về macTau, 
-                // nhưng UI cần hiển thị Tàu. Ta tạm dùng tenToa hoặc sửa SP để lấy thêm macTau.
-                // Ở đây mình new Tau giả để tránh NullPointer khi hiển thị)
-                Tau tau = new Tau("Unknown"); 
+                Tau tau = new Tau();
+                tau.setMacTau(rs.getString("maTau"));
                 lt.setTau(tau);
                 
                 ve.setChiTietLichTrinh(new ChiTietLichTrinh()); // Init trước
@@ -116,13 +113,19 @@ public class VeTauDAO {
                 
                 Cho cho = new Cho();
                 cho.setSoThuTu(rs.getInt("ViTriCho"));
-                // Convert String db "loaiCho" -> Enum LoaiCho
                 String strLoaiCho = rs.getString("loaiCho");
-                // Tìm enum tương ứng (Cần hàm tìm trong Enum, ở đây mình ví dụ)
-                // cho.setLoaiCho(...); 
                 
                 Toa t = new Toa();
                 t.setTenToa(rs.getString("tenToa"));
+                if (strLoaiCho != null) {
+                    try {
+                        LoaiToa loaiToaEnum = LoaiToa.fromDescription(strLoaiCho); 
+                        t.setLoaiToa(loaiToaEnum);
+                    } catch (IllegalArgumentException e) {
+                        System.err.println("Không map được loại toa: " + strLoaiCho);
+                    }
+                }
+
                 cho.setToa(t);
                 
                 ctlt.setCho(cho);

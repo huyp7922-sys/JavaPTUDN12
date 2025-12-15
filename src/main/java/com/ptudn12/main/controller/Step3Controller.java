@@ -3,6 +3,7 @@ package com.ptudn12.main.controller;
 import com.ptudn12.main.dao.KhachHangDAO;
 import com.ptudn12.main.entity.KhachHang;
 import com.ptudn12.main.controller.VeTamThoi;
+import com.ptudn12.main.entity.VeTau;
 import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -105,7 +106,6 @@ public class Step3Controller {
 
         // 4. Tạo các hàng hành khách
         boolean isFirstRow = true;
-    
         for (int i = 0; i < passengerCount; i++) { 
             VeTamThoi veDi = gioHangDi.get(i);
             VeTamThoi veVe = isRoundTrip ? gioHangVe.get(i) : null;
@@ -167,6 +167,70 @@ public class Step3Controller {
                 e.printStackTrace();
                 showAlert(Alert.AlertType.ERROR, "Lỗi tải giao diện hàng hành khách: " + e.getMessage());
             }
+        }
+        
+        // --- LOGIC ĐỔI VÉ: FILL VÀ KHÓA THÔNG TIN ---
+        String mode = (String) mainController.getUserData("transactionType");
+        
+        if (BanVeController.MODE_DOI_VE.equals(mode)) {
+            VeTau veCu = (VeTau) mainController.getUserData("veCuCanDoi");
+            
+            // A. XỬ LÝ THÔNG TIN HÀNH KHÁCH (Người C)
+            // Chỉ xử lý dòng đầu tiên (vì đổi vé làm từng cái)
+            if (!rowControllers.isEmpty() && veCu != null) {
+                HanhKhachRowController row = rowControllers.get(0);
+                KhachHang khachDi = veCu.getKhachHang(); // Đây là người C (Người đi tàu)
+
+                if (khachDi != null) {
+                    // Fill thông tin người đi
+                    row.getTxtHoTen().setText(khachDi.getTenKhachHang());
+                    String giayTo = (khachDi.getSoCCCD() != null && !khachDi.getSoCCCD().isEmpty()) ? khachDi.getSoCCCD() : khachDi.getHoChieu();
+                    row.getTxtSoGiayTo().setText(giayTo);
+                    
+                    // --- KHÓA INPUT HÀNH KHÁCH ---
+                    row.getTxtHoTen().setDisable(true);
+                    row.getTxtSoGiayTo().setDisable(true);
+                    // row.getComboDoiTuong().setDisable(true); // Nếu muốn khóa luôn loại đối tượng
+                }
+            }
+
+            // B. XỬ LÝ THÔNG TIN NGƯỜI MUA (Người A)
+            if (veCu != null) {
+                // Gọi DAO để tìm người A (Chủ hóa đơn gốc)
+                KhachHang nguoiMua = khachHangDAO.getNguoiMuaByMaVe(veCu.getMaVe());
+                
+                // Fallback: Nếu không tìm thấy người mua (do dữ liệu cũ lỗi), thì lấy tạm người đi
+                if (nguoiMua == null) nguoiMua = veCu.getKhachHang();
+                
+                String giayToDinhDanh = (nguoiMua.getSoCCCD() != null && !nguoiMua.getSoCCCD().isEmpty()) 
+                        ? nguoiMua.getSoCCCD() 
+                        : nguoiMua.getHoChieu();
+                String emailDB = khachHangDAO.getEmailKhachHang(giayToDinhDanh);
+                
+                if (nguoiMua != null) {
+                    txtNguoiMuaHoTen.setText(nguoiMua.getTenKhachHang());
+                    String giayToMua = (nguoiMua.getSoCCCD() != null && !nguoiMua.getSoCCCD().isEmpty()) ? nguoiMua.getSoCCCD() : nguoiMua.getHoChieu();
+                    txtNguoiMuaSoGiayTo.setText(giayToMua);
+                    String idToSearch = (giayToMua != null) ? giayToMua : "";
+                    txtNguoiMuaEmail.setText(khachHangDAO.getEmailKhachHang(idToSearch));
+                    txtNguoiMuaSDT.setText(nguoiMua.getSoDienThoai());
+                }
+
+                // --- KHÓA INPUT NGƯỜI MUA ---
+                // Disable toàn bộ để không cho sửa thông tin người đại diện cũ
+                txtNguoiMuaHoTen.setDisable(true);
+                txtNguoiMuaSoGiayTo.setDisable(true);
+                txtNguoiMuaEmail.setDisable(true);
+                txtNguoiMuaSDT.setDisable(true);
+            }
+        } 
+        else {
+            // --- LOGIC BÁN VÉ THƯỜNG ---
+            // Mở khóa input phòng trường hợp trước đó bị disable
+            txtNguoiMuaHoTen.setDisable(false);
+            txtNguoiMuaSoGiayTo.setDisable(false);
+            txtNguoiMuaEmail.setDisable(false);
+            txtNguoiMuaSDT.setDisable(false);
         }
 
         updateTongThanhTien();

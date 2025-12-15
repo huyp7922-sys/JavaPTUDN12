@@ -11,15 +11,11 @@ package com.ptudn12.main.controller;
 
 import com.ptudn12.main.controller.VeTamThoi;
 import com.ptudn12.main.enums.LoaiVe;
-import com.ptudn12.main.dao.ChiTietHoaDonDAO;
-import com.ptudn12.main.dao.ChiTietLichTrinhDAO;
-import com.ptudn12.main.dao.HoaDonDAO;
-import com.ptudn12.main.dao.KhachHangDAO;
-import com.ptudn12.main.dao.VeTauDAO;
+import com.ptudn12.main.dao.*;
 import com.ptudn12.main.entity.VeTau;
-import com.ptudn12.main.utils.ReportManager;
-import javafx.stage.Modality;
+import com.ptudn12.main.utils.*;
 
+import javafx.stage.Modality;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -28,11 +24,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import java.text.DecimalFormat;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -115,41 +107,77 @@ public class Step4Controller {
         thongTinNguoiMua = (Map<String, String>) mainController.getUserData("thongTinNguoiMua");
         String tongThanhToanStr = (String) mainController.getUserData("tongThanhTien");
 
-        // Chuyển đổi và LÀM TRÒN tổng thành toán ngay lập tức
-        double rawTotal = 0;
+        // Chuyển đổi giá tiền từ chuỗi
+        double rawNewPrice = 0;
         try {
             if (tongThanhToanStr != null) {
                 String numericString = tongThanhToanStr.replaceAll("[^\\d]", "");
-                rawTotal = Double.parseDouble(numericString);
+                rawNewPrice = Double.parseDouble(numericString);
             }
         } catch (Exception e) {
             System.err.println("Lỗi chuyển đổi tổng thành tiền: " + e.getMessage());
-            rawTotal = 0;
         }
         
-        // QUAN TRỌNG: Làm tròn lên 1.000đ ngay tại đây
-        // Ví dụ: 8.293.400 -> 8.294.000
-        tongThanhToanValue = roundUpToThousand(rawTotal);
+        String mode = (String) mainController.getUserData("transactionType");
+        
+        // --- XỬ LÝ LOGIC TÍNH TOÁN THEO MODE ---
+        if (BanVeController.MODE_DOI_VE.equals(mode)) {
+            // === CHẾ ĐỘ ĐỔI VÉ ===
+            VeTau veCu = (VeTau) mainController.getUserData("veCuCanDoi");
+            
+            // a. Lấy giá thực tế của vé cũ (Giá đã thanh toán trong hóa đơn cũ)
+            // Lưu ý: Cần hàm lấy giá trị thực từ ChiTietHoaDon, tạm thời lấy giá hiện tại
+            double giaVeCu = veCu.getChiTietLichTrinh().getGiaChoNgoi(); 
+            
+            double phiDoiVe = 20000;
+            double chenhLech = rawNewPrice - giaVeCu;
+            if (chenhLech < 0) chenhLech = 0; // Không hoàn tiền thừa
+            
+            // b. Tính tổng tiền phải thu thêm
+            double tongPhaiThu = chenhLech + phiDoiVe;
+            this.tongThanhToanValue = roundUpToThousand(tongPhaiThu);
 
+            // c. Cập nhật giao diện hiển thị riêng cho Đổi Vé
+            lblDetailTongTienVe.setText("Giá vé mới: " + moneyFormatter.format(rawNewPrice));
+            
+            // Tận dụng label giảm giá để hiện giá vé cũ
+            lblDetailGiamDoiTuong.setText("Trừ vé cũ: -" + moneyFormatter.format(giaVeCu));
+            lblDetailGiamDoiTuong.setStyle("-fx-text-fill: #e74c3c;"); // Màu đỏ
+            
+            // Tận dụng label bảo hiểm để hiện phí đổi
+            lblDetailBaoHiem.setText("Phí đổi vé: +" + moneyFormatter.format(phiDoiVe));
+            lblDetailGiamDiem.setText(""); // Ẩn giảm điểm nếu không dùng
+
+            btnXacNhanVaIn.setText("XÁC NHẬN ĐỔI VÉ");
+
+        } else {
+            // === CHẾ ĐỘ BÁN VÉ THƯỜNG ===
+            this.tongThanhToanValue = roundUpToThousand(rawNewPrice);
+            
+            // Hiển thị chi tiết thanh toán chuẩn (Gọi hàm helper)
+            displayPaymentDetailsStandard();
+            btnXacNhanVaIn.setText("THANH TOÁN & IN VÉ");
+        }
+        
+
+        // --- CÁC BƯỚC CHUNG ---
         if (danhSachHanhKhach == null || danhSachHanhKhach.isEmpty() || thongTinNguoiMua == null) {
             showAlert(Alert.AlertType.ERROR, "Lỗi dữ liệu", "Không thể tải thông tin từ bước trước.");
             btnXacNhanVaIn.setDisable(true);
             return;
         }
 
-        // 2. Hiển thị bảng xác nhận vé
+        // 2. Hiển thị bảng xác nhận vé (Danh sách vé mới)
         populateTicketTable();
 
-        // 3. Hiển thị chi tiết thanh toán
-        displayPaymentDetails();
-
-        // 4. Hiển thị tổng thanh toán (Đã làm tròn) bên phải
+        // 3. Hiển thị tổng thanh toán (Đã làm tròn) bên phải
+        lblDetailTongThanhToan.setText(moneyFormatter.format(tongThanhToanValue));
         lblDisplayTongThanhToan.setText(moneyFormatter.format(tongThanhToanValue));
 
-        // 5. Tạo các nút gợi ý mệnh giá
+        // 4. Tạo các nút gợi ý mệnh giá
         generateSuggestionButtons();
 
-        // 6. Reset ô tiền khách đưa và tiền thối
+        // 5. Reset ô tiền khách đưa và tiền thối
         txtTienKhachDua.clear();
         lblTienThoiLai.setText("0 VNĐ");
         
@@ -284,7 +312,7 @@ public class Step4Controller {
      }
     
     // Hiển thị chi tiết thanh toán (Bảng bên trái)
-    private void displayPaymentDetails() {
+    private void displayPaymentDetailsStandard() {
         double tongTienVeGoc = 0;
         double tongGiamDoiTuong = 0;
         double tongBaoHiem = 0;
@@ -422,13 +450,48 @@ public class Step4Controller {
 
         try {
             String maNhanVien = "NV001"; // Giá trị default đề phòng lỗi
-            
             if (mainController.getNhanVien() != null) {
                 maNhanVien = mainController.getNhanVien().getMaNhanVien();
-            } else {
-                System.err.println("Warning: Chưa có thông tin nhân viên đăng nhập. Đang dùng NV001.");
             }
 
+            String mode = (String) mainController.getUserData("transactionType");
+
+            // --- TRƯỜNG HỢP 1: ĐỔI VÉ ---
+            if (BanVeController.MODE_DOI_VE.equals(mode)) {
+                
+                VeTau veCu = (VeTau) mainController.getUserData("veCuCanDoi");
+                
+                // Lấy thông tin vé mới (nằm trong list - index 0)
+                Map<String, Object> hanhKhachInfo = danhSachHanhKhach.get(0);
+                // Vé mới có thể là chiều đi hoặc chiều về tùy người dùng chọn lúc nãy
+                VeTamThoi veMoiData = (VeTamThoi) hanhKhachInfo.get("veDi");
+                if (veMoiData == null) veMoiData = (VeTamThoi) hanhKhachInfo.get("veVe");
+                
+                // Gọi Service
+                DoiVeService service = new DoiVeService();
+                String maVeMoi = service.thucHienDoiVe(veCu, veMoiData, maNhanVien, tongThanhToanValue);
+                
+                if (maVeMoi != null) {
+                    showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đổi vé thành công!");
+                    List<String> ids = new ArrayList<>();
+                    ids.add(maVeMoi);
+                    showPrintListDialog(ids);
+                    
+                    btnXacNhanVaIn.setVisible(false);
+                    if (btnHoanTat != null) {
+                        btnHoanTat.setVisible(true);
+                        btnQuayLai.setVisible(false);
+                        btnHoanTat.setManaged(true);
+                    }
+                    if (btnXuatHoaDon != null) btnXuatHoaDon.setDisable(false);
+                } else {
+                    showAlert(Alert.AlertType.ERROR, "Lỗi", "Giao dịch đổi vé thất bại.");
+                }
+                return;
+            }
+
+            // --- TRƯỜNG HỢP 2: BÁN VÉ MỚI (Logic cũ) ---
+            
             // 1. Lưu Khách Hàng
             int khachHangId = khachHangDAO.findOrInsertKhachHang(thongTinNguoiMua);
             if (khachHangId == -1) {
@@ -487,7 +550,6 @@ public class Step4Controller {
         }
     }
 
-    // HÀM MỚI ĐỂ MỞ MODAL LIST
     private void showPrintListDialog(List<String> ticketIds) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/print-list-view.fxml"));
@@ -569,8 +631,6 @@ public class Step4Controller {
          mainController.setUserData("step1_isKhuHoi", null);
          mainController.setUserData("step1_ngayVe", null);
     }
-
-    
 
     private void showAlert(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);

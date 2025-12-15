@@ -62,7 +62,6 @@ public class LichTrinh {
 
     public void setTau(Tau tau) {
         this.tau = tau;
-       
     }
 
     public void setTuyenDuong(TuyenDuong tuyenDuong) {
