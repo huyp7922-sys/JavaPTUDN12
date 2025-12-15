@@ -288,6 +288,66 @@ public class KhachHangDAO {
 		return new KhachHang(maKHFormatted, tenKhachHang, idGiayTo, laNguoiNuocNgoai, soDienThoai, diemTich);
 	}
 
+	/**
+	 * Tìm kiếm khách hàng thông minh. Nếu chuỗi tìm kiếm có dạng "KH...", nó sẽ chỉ
+	 * tìm theo mã khách hàng. Ngược lại, nó sẽ tìm trên nhiều cột.
+	 * 
+	 * @param searchTerm Chuỗi tìm kiếm.
+	 * @return Danh sách khách hàng khớp điều kiện.
+	 */
+	public List<KhachHang> timKiemKhachHang(String searchTerm) {
+		List<KhachHang> danhSach = new ArrayList<>();
+		String sql;
+
+		// Kiểm tra xem chuỗi có đúng định dạng "KH" + số hay không
+		if (searchTerm.matches("(?i)^KH\\d+$")) {
+			// --- Chế độ tìm kiếm CHÍNH XÁC theo MÃ KHÁCH HÀNG ---
+			sql = "SELECT * FROM KhachHang WHERE maKhachHang = ?";
+			try (Connection conn = DatabaseConnection.getConnection();
+					PreparedStatement ps = conn.prepareStatement(sql)) {
+
+				// Trích xuất phần số từ chuỗi "KH..."
+				int customerId = Integer.parseInt(searchTerm.substring(2));
+				ps.setInt(1, customerId);
+
+				ResultSet rs = ps.executeQuery();
+				if (rs.next()) {
+					danhSach.add(mapResultSetToKhachHang(rs));
+				}
+
+			} catch (SQLException | NumberFormatException e) {
+				System.err.println("Lỗi khi tìm kiếm khách hàng theo mã: " + e.getMessage());
+				e.printStackTrace();
+			}
+		} else {
+			// --- Chế độ tìm kiếm ĐA NĂNG trên nhiều cột ---
+			sql = "SELECT * FROM KhachHang WHERE " + "tenKhachHang LIKE ? OR " + "soCCCD LIKE ? OR "
+					+ "hoChieu LIKE ? OR " + "soDienThoai LIKE ? OR " + "CAST(diemTich AS VARCHAR(20)) LIKE ?";
+
+			String searchPattern = "%" + searchTerm + "%";
+
+			try (Connection conn = DatabaseConnection.getConnection();
+					PreparedStatement ps = conn.prepareStatement(sql)) {
+
+				ps.setString(1, searchPattern);
+				ps.setString(2, searchPattern);
+				ps.setString(3, searchPattern);
+				ps.setString(4, searchPattern);
+				ps.setString(5, searchPattern);
+
+				ResultSet rs = ps.executeQuery();
+				while (rs.next()) {
+					danhSach.add(mapResultSetToKhachHang(rs));
+				}
+
+			} catch (SQLException e) {
+				System.err.println("Lỗi khi tìm kiếm khách hàng đa năng: " + e.getMessage());
+				e.printStackTrace();
+			}
+		}
+		return danhSach;
+	}
+
 	public KhachHang timKhachHangTheoGiayTo(String identifier) {
 		if (identifier == null || identifier.isEmpty()) {
 			return null;

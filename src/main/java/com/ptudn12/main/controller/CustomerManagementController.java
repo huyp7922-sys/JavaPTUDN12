@@ -15,8 +15,10 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -37,6 +39,10 @@ public class CustomerManagementController {
 	private TableColumn<KhachHang, String> phoneColumn;
 	@FXML
 	private TableColumn<KhachHang, Integer> pointsColumn;
+	@FXML
+	private TextField searchField;
+	@FXML
+	private Label customerCountLabel;
 
 	private final KhachHangDAO khachHangDAO = new KhachHangDAO();
 
@@ -71,6 +77,7 @@ public class CustomerManagementController {
 		// Dòng này không bắt buộc nếu bạn đã set một lần trong initialize()
 		// nhưng để đây để đảm bảo bảng luôn được cập nhật.
 		customerTable.setItems(customerData);
+		updateCustomerCountLabel();
 	}
 
 	@FXML
@@ -137,10 +144,42 @@ public class CustomerManagementController {
 	}
 
 	@FXML
+	private void handleSearch() {
+		String searchTerm = searchField.getText().trim();
+		if (searchTerm.isEmpty()) {
+			showAlert(Alert.AlertType.WARNING, "Thông tin trống", "Vui lòng nhập thông tin cần tìm kiếm.");
+			return;
+		}
+
+		// Gọi DAO để tìm kiếm
+		List<KhachHang> searchResult = khachHangDAO.timKiemKhachHang(searchTerm);
+
+		// Cập nhật lại bảng
+		customerData.clear();
+		customerData.addAll(searchResult);
+		updateCustomerCountLabel(); // Cập nhật lại số lượng sau khi tìm
+	}
+
+	@FXML
+	private void handleShowAll() {
+		searchField.clear(); // Xóa nội dung ô tìm kiếm
+		loadDataFromDatabase(); // Tải lại toàn bộ danh sách
+	}
+
+	private void updateCustomerCountLabel() {
+		int count = customerData.size();
+		customerCountLabel.setText("Có tất cả " + count + " khách hàng");
+	}
+
+	@FXML
 	private void handleRefresh() {
-		loadDataFromDatabase();
-		customerTable.refresh();
-		showAlert(Alert.AlertType.INFORMATION, "Thông báo", "Đã tải lại danh sách khách hàng!");
+		String currentSearch = searchField.getText().trim();
+		if (!currentSearch.isEmpty()) {
+			handleSearch();
+		} else {
+			loadDataFromDatabase();
+		}
+		showAlert(Alert.AlertType.INFORMATION, "Thông báo", "Dữ liệu đã được làm mới!");
 	}
 
 	@FXML

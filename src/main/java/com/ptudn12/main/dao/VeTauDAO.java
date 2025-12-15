@@ -323,29 +323,33 @@ public class VeTauDAO {
 			stmt.setInt(1, maKhachHang);
 			ResultSet rs = stmt.executeQuery();
 
+			// ... code khai báo formatter giữ nguyên ...
 			int sttCounter = 1;
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
 			Locale vietnameseLocale = new Locale("vi", "VN");
 			NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(vietnameseLocale);
 
 			while (rs.next()) {
-				// --- 1. TÍNH TOÁN THỜI GIAN ĐI - ĐẾN (PHIÊN BẢN CHUẨN) ---
-
-				// Lấy đúng kiểu java.sql.Date và java.sql.Time
+				// ... code tính toán thời gian đi - đến giữ nguyên ...
 				Date ngayKhoiHanhSQL = rs.getDate("ngayKhoiHanh");
 				Time gioKhoiHanhSQL = rs.getTime("gioKhoiHanh");
 				int thoiGianDuKienGio = rs.getInt("thoiGianDuKien");
-
-				// Chuyển đổi sang các kiểu java.time một cách an toàn, không bị ảnh hưởng bởi
-				// múi giờ
 				LocalDateTime thoiGianDi = ngayKhoiHanhSQL.toLocalDate().atTime(gioKhoiHanhSQL.toLocalTime());
-
 				LocalDateTime thoiGianDen = thoiGianDi.plusHours(thoiGianDuKienGio);
-
 				String thoiGianDiDenFormatted = thoiGianDi.format(formatter) + " - " + thoiGianDen.format(formatter);
 
-				// --- CÁC PHẦN CÒN LẠI GIỮ NGUYÊN ---
+				// ==========================================================
+				// === CẬP NHẬT LOGIC HIỂN THỊ "TOA - LOẠI CHỖ" TẠI ĐÂY ===
+				// ==========================================================
+				int soThuTuToa = rs.getInt("soThuTuToa");
 				String loaiCho = rs.getString("loaiCho");
+
+				// Nếu tìm thấy số thứ tự toa (khác 0), hiển thị nó. Ngược lại, chỉ hiển thị
+				// loại chỗ.
+				String toaLoaiChoFormatted = (soThuTuToa > 0) ? soThuTuToa + " - " + loaiCho : loaiCho;
+				// ==========================================================
+
+				// ... code lấy các thông tin còn lại giữ nguyên ...
 				String macTau = rs.getString("maTau");
 				Date ngayMuaSQL = rs.getDate("NgayMua");
 				String ngayMuaFormatted = new SimpleDateFormat("dd/MM/yyyy").format(ngayMuaSQL);
@@ -354,7 +358,8 @@ public class VeTauDAO {
 				double thanhTien = rs.getDouble("thanhTien");
 
 				VeDaMua ve = new VeDaMua(sttCounter++, ngayMuaFormatted, rs.getString("maVe"), macTau, hanhTrinh,
-						thoiGianDiDenFormatted, loaiCho, soCho, currencyFormatter.format(thanhTien));
+						thoiGianDiDenFormatted, toaLoaiChoFormatted, // <-- Sử dụng chuỗi đã được định dạng mới
+						soCho, currencyFormatter.format(thanhTien));
 				danhSach.add(ve);
 			}
 
