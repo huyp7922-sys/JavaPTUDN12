@@ -9,6 +9,7 @@ import com.ptudn12.main.entity.Tau;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -95,12 +96,43 @@ public class TrainManagementController {
 	 */
 	@FXML
 	private void handleRefresh() {
-		loadDataFromDatabase();
-		trainTable.refresh();
-		// Không cần showAlert mỗi lần làm mới, chỉ cần tải lại là đủ.
-		// Nếu muốn có thể uncomment dòng dưới:
-		// showAlert(Alert.AlertType.INFORMATION, "Thông báo", "Đã cập nhật dữ liệu mới
-		// nhất.");
+		// Bước 1: Hiển thị thông báo "Đang tải" ngay lập tức
+		Label loadingLabel = new Label("Đang cập nhật danh sách tàu...");
+		loadingLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: grey;");
+		trainTable.setPlaceholder(loadingLabel);
+		trainData.clear(); // Xóa dữ liệu cũ để placeholder hiện ra
+
+		// Bước 2: Tạo một Task để chạy tác vụ nặng (query DB) trên luồng nền
+		Task<List<Tau>> loadDataTask = new Task<>() {
+			@Override
+			protected List<Tau> call() throws Exception {
+				// Đây là nơi chạy trên luồng nền, không làm lag UI
+				return tauDAO.layTatCaTau();
+			}
+		};
+
+		// Bước 3: Xử lý khi Task thành công (đã lấy được dữ liệu)
+		loadDataTask.setOnSucceeded(event -> {
+			// Lấy kết quả từ luồng nền
+			List<Tau> result = loadDataTask.getValue();
+
+			// Cập nhật UI trên luồng chính JavaFX
+			trainData.setAll(result);
+			updateTrainCountLabel();
+
+			// Set lại placeholder cho trường hợp không có dữ liệu
+			Label emptyLabel = new Label("Không có dữ liệu tàu.");
+			trainTable.setPlaceholder(emptyLabel);
+		});
+
+		// Bước 4: Xử lý khi Task thất bại
+		loadDataTask.setOnFailed(event -> {
+			loadDataTask.getException().printStackTrace();
+			showAlert(Alert.AlertType.ERROR, "Lỗi Tải Dữ Liệu", "Không thể tải dữ liệu. Vui lòng xem console.");
+		});
+
+		// Bước 5: Khởi động Task trên một luồng mới
+		new Thread(loadDataTask).start();
 	}
 
 	// ... (setupSelectionListener và setupStatusColumnCellFactory GIỮ NGUYÊN)
@@ -250,7 +282,9 @@ public class TrainManagementController {
 			dialogStage.showAndWait();
 
 			// Sau khi dialog đóng, làm mới lại bảng chính
-			handleRefresh();
+			if (controller.isSaveChanges()) {
+				handleRefresh();
+			}
 
 		} catch (IOException e) {
 			e.printStackTrace();

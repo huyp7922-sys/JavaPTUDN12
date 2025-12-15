@@ -3,9 +3,14 @@ package com.ptudn12.main.controller;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import com.ptudn12.main.dao.TauDAO;
 import com.ptudn12.main.entity.Tau;
 import com.ptudn12.main.entity.Toa;
 import com.ptudn12.main.enums.LoaiToa;
@@ -66,9 +71,20 @@ public class ModifyTrainDialogController {
 	private Button saveButton;
 
 	// --- Data Model ---
-	private List<CarriageWrapper> currentCarriages;
+	private List<CarriageWrapper> currentCarriages; // Toa trên tàu
+	private List<Toa> availableCarriages; // Toa còn trống
 	private int selectedCarriageIndex = -1;
 	private boolean hasUnsavedChanges = false;
+
+	private TauDAO tauDAO;
+	private boolean saveChanges = false;
+
+	/**
+	 * ✅ THÊM MỚI: Phương thức để controller cha kiểm tra trạng thái
+	 */
+	public boolean isSaveChanges() {
+		return this.saveChanges;
+	}
 
 	@FXML
 	public void initialize() {
@@ -76,6 +92,9 @@ public class ModifyTrainDialogController {
 		removeCarriageButton.setVisible(false);
 		navLeftButton.setVisible(false);
 		navRightButton.setVisible(false);
+
+		this.tauDAO = new TauDAO();
+		this.availableCarriages = new ArrayList<>();
 	}
 
 	/**
@@ -91,14 +110,27 @@ public class ModifyTrainDialogController {
 		if (mode == Mode.CREATE) {
 			trainIdTextField.setDisable(false);
 			trainIdTextField.setText("");
-			// Tạo dữ liệu giả cho tàu mới
-			createMockCarriages();
+			// Bắt đầu với tàu trống, tải tất cả toa chưa sử dụng
+			this.availableCarriages = tauDAO.layTatCaToaChuaSuDung();
 		} else if (mode == Mode.CONFIGURE && tau != null) {
 			trainIdTextField.setDisable(true);
 			trainIdTextField.setText(tau.getMacTau());
-			// TODO: Lấy danh sách toa thật của tàu từ DAO
-			// Tạm thời, dùng dữ liệu giả
-			createMockCarriages();
+
+			// 1. Tải cấu trúc toa THẬT của tàu đang sửa
+			Map<Integer, Toa> cauTrucThat = tauDAO.layCauTrucToaCuaTau(tau.getMacTau());
+
+			// 2. Chuyển đổi Map thành List<CarriageWrapper>
+			for (Map.Entry<Integer, Toa> entry : cauTrucThat.entrySet()) {
+				currentCarriages.add(new CarriageWrapper(entry.getValue(), entry.getKey()));
+			}
+			// Sắp xếp lại danh sách theo đúng số thứ tự (mặc dù map đã sort, nhưng list thì
+			// chưa)
+			currentCarriages.sort(Comparator.comparingInt(cw -> cw.sequenceNumber));
+
+			Collections.reverse(currentCarriages);
+
+			// 3. Tải danh sách toa trống (toa chưa gán cho BẤT KỲ tàu nào)
+			this.availableCarriages = tauDAO.layTatCaToaChuaSuDung();
 		}
 
 		redrawTrainTrack();
@@ -108,23 +140,47 @@ public class ModifyTrainDialogController {
 	/**
 	 * Vẽ lại toàn bộ thanh track tàu ở trên cùng.
 	 */
+//	private void redrawTrainTrack() {
+//		trainTrackContainer.setAlignment(Pos.BOTTOM_LEFT);
+//		trainTrackContainer.getChildren().clear();
+//		trainTrackContainer.getChildren().add(createAddButton(-1));
+//
+//		for (int i = 0; i < currentCarriages.size(); i++) {
+//			CarriageWrapper wrapper = currentCarriages.get(i);
+//			int carriageNumberToDisplay;
+//
+//			// LOGIC QUAN TRỌNG:
+//			// - Lập tàu mới: Tính lại số thứ tự từ 1 đến N
+//			// - Cấu hình tàu: Giữ nguyên số thứ tự ban đầu của toa
+//			if (currentMode == Mode.CREATE) {
+//				carriageNumberToDisplay = currentCarriages.size() - i;
+//			} else { // Mode.CONFIGURE
+//				carriageNumberToDisplay = wrapper.sequenceNumber;
+//			}
+//
+//			Node carriageNode = createCarriageNode(wrapper.toa, carriageNumberToDisplay, i);
+//			trainTrackContainer.getChildren().add(carriageNode);
+//			trainTrackContainer.getChildren().add(createAddButton(i));
+//		}
+//
+//		trainTrackContainer.getChildren().add(createEngineNode());
+//	}
 	private void redrawTrainTrack() {
 		trainTrackContainer.setAlignment(Pos.BOTTOM_LEFT);
 		trainTrackContainer.getChildren().clear();
-		trainTrackContainer.getChildren().add(createAddButton(-1));
 
+		// LOGIC TÍNH TOÁN LẠI SỐ THỨ TỰ CHO CHẾ ĐỘ CREATE
+		if (currentMode == Mode.CREATE) {
+			for (int i = 0; i < currentCarriages.size(); i++) {
+				// Tính lại số thứ tự từ phải qua trái (gần đầu tàu là 1)
+				currentCarriages.get(i).sequenceNumber = currentCarriages.size() - i;
+			}
+		}
+
+		trainTrackContainer.getChildren().add(createAddButton(-1));
 		for (int i = 0; i < currentCarriages.size(); i++) {
 			CarriageWrapper wrapper = currentCarriages.get(i);
-			int carriageNumberToDisplay;
-
-			// LOGIC QUAN TRỌNG:
-			// - Lập tàu mới: Tính lại số thứ tự từ 1 đến N
-			// - Cấu hình tàu: Giữ nguyên số thứ tự ban đầu của toa
-			if (currentMode == Mode.CREATE) {
-				carriageNumberToDisplay = currentCarriages.size() - i;
-			} else { // Mode.CONFIGURE
-				carriageNumberToDisplay = wrapper.sequenceNumber;
-			}
+			int carriageNumberToDisplay = wrapper.sequenceNumber;
 
 			Node carriageNode = createCarriageNode(wrapper.toa, carriageNumberToDisplay, i);
 			trainTrackContainer.getChildren().add(carriageNode);
@@ -213,21 +269,18 @@ public class ModifyTrainDialogController {
 	 */
 	@FXML
 	private void handleRemoveCarriage() {
-		if (selectedCarriageIndex < 0 || selectedCarriageIndex >= currentCarriages.size()) {
-			return; // Không có toa nào được chọn, không làm gì cả
-		}
+		if (selectedCarriageIndex < 0 || selectedCarriageIndex >= currentCarriages.size())
+			return;
 
-		// 1. Xóa toa khỏi danh sách dữ liệu ảo
+		// 1. Xóa toa khỏi đoàn tàu
 		CarriageWrapper removedWrapper = currentCarriages.remove(selectedCarriageIndex);
-		System.out.println("Đã bỏ toa: " + removedWrapper.toa.getLoaiToa().getDescription());
+		System.out.println("Đã bỏ toa: " + removedWrapper.toa.getTenToa());
 
-		// 2. Đánh dấu có thay đổi chưa lưu
+		// 2. TRẢ LẠI toa đó vào danh sách toa trống (visual only)
+		availableCarriages.add(removedWrapper.toa);
+
 		hasUnsavedChanges = true;
-
-		// 3. Vẽ lại thanh track tàu
 		redrawTrainTrack();
-
-		// 4. Reset vùng hiển thị chi tiết về trạng thái ban đầu
 		resetDetailView();
 	}
 
@@ -338,7 +391,8 @@ public class ModifyTrainDialogController {
 				scene.getStylesheets().add(cssUrl.toExternalForm());
 
 			AddCarriageSelectionDialogController controller = loader.getController();
-			// TODO: controller.initData(...); // Sẽ làm khi có DAO
+
+			controller.initData(this.availableCarriages);
 
 			Stage dialogStage = new Stage();
 			dialogStage.setTitle("Chọn Toa Để Thêm Vào Tàu");
@@ -349,16 +403,14 @@ public class ModifyTrainDialogController {
 			// Lấy kết quả sau khi dialog đóng
 			Toa selectedToa = controller.getSelectedToa();
 			if (selectedToa != null) {
-				// Thêm toa vào đúng vị trí
-				// `index + 1` vì nút "+" ở vị trí `i` có nghĩa là chèn vào sau toa `i`.
-				int newSequenceNumber = 0; // Hoặc logic tính số thứ tự mới
+				// 1. Thêm toa vào đoàn tàu
+				currentCarriages.add(insertIndex + 1, new CarriageWrapper(selectedToa, 0));
 
-				// ✅ SỬA LỖI: Bọc 'selectedToa' trong một 'CarriageWrapper' trước khi thêm vào
-				// danh sách
-				currentCarriages.add(insertIndex + 1, new CarriageWrapper(selectedToa, newSequenceNumber));
+				// 2. XÓA toa đó khỏi danh sách toa trống (visual only)
+				availableCarriages.remove(selectedToa);
 
-				hasUnsavedChanges = true; // Đánh dấu có thay đổi chưa lưu
-				redrawTrainTrack(); // Vẽ lại đoàn tàu
+				hasUnsavedChanges = true;
+				redrawTrainTrack();
 			}
 
 		} catch (IOException e) {
@@ -483,13 +535,51 @@ public class ModifyTrainDialogController {
 		// TODO: Kiểm tra mác tàu trùng lặp trong DB (nếu ở chế độ CREATE)
 
 		// --- BƯỚC 2: THỰC HIỆN LƯU ---
-		// TODO: Viết logic gọi DAO để lưu thông tin tàu và cấu trúc toa vào DB
+		// TODO: Viết logic gọi DAO để lưu
+		String macTau = trainIdTextField.getText().trim();
+		boolean isSuccess = false;
+		if (currentMode == Mode.CREATE) {
+			// ✅ THÊM MỚI: Kiểm tra mác tàu trùng lặp trước khi lưu
+			if (tauDAO.kiemTraMacTauTonTai(macTau)) {
+				showAlert(AlertType.ERROR, "Lỗi Lưu",
+						"Mác tàu '" + macTau + "' đã tồn tại. Vui lòng chọn mác tàu khác.");
+				return false;
+			}
 
-		System.out.println("Lưu thành công tàu: " + trainIdTextField.getText());
-		showAlert(AlertType.INFORMATION, "Thành Công", "Đã lưu cấu trúc tàu thành công!");
+			List<Toa> toasToAdd = currentCarriages.stream().map(w -> w.toa).collect(Collectors.toList());
+			Tau newTau = new Tau(macTau);
+			isSuccess = tauDAO.lapTauMoi(newTau, toasToAdd);
+		} else if (currentMode == Mode.CONFIGURE) {
+			// TODO: Viết logic gọi DAO để CẬP NHẬT cấu trúc tàu (xóa các toa cũ, thêm các
+			// toa mới)
+			System.out.println("Chức năng lưu cho Cấu hình tàu chưa được cài đặt.");
+			isSuccess = true; // Tạm thời coi là thành công để đóng dialog
+		}
 
-		hasUnsavedChanges = false; // Reset trạng thái sau khi đã lưu
-		return true;
+		if (isSuccess) {
+			hasUnsavedChanges = false;
+			this.saveChanges = true;
+
+			if (currentMode == Mode.CREATE) {
+				// Hiển thị dialog xác nhận buộc click
+				Alert confirmationAlert = new Alert(AlertType.INFORMATION);
+				confirmationAlert.setTitle("Thành Công");
+				confirmationAlert.setHeaderText("Đã lập tàu '" + trainIdTextField.getText().trim() + "' thành công.");
+				confirmationAlert.setContentText("Danh sách tàu sẽ được cập nhật.");
+				confirmationAlert.showAndWait(); // Chờ người dùng nhấn OK
+
+				// Đóng cửa sổ sau khi người dùng xác nhận
+				closeStage();
+			} else {
+				// Với chế độ Cấu hình, chỉ cần báo thành công là đủ
+				showAlert(AlertType.INFORMATION, "Thành Công", "Đã lưu cấu trúc tàu thành công!");
+			}
+
+			return true;
+		} else {
+			showAlert(AlertType.ERROR, "Lỗi", "Lưu thất bại. Vui lòng xem console.");
+			return false;
+		}
 	}
 
 	private void closeStage() {

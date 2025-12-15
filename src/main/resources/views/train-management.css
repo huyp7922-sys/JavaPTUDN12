@@ -146,3 +146,32 @@
 .seat-left {
     -fx-border-width: 2px 6px 2px 2px; /* Viền phải dày hơn */
 }
+
+
+
+
+
+
+
+
+.add-carriage-button {
+    -fx-background-radius: 5em; /* Làm cho nền thành hình tròn */
+    -fx-min-width: 30px;
+    -fx-min-height: 30px;
+    -fx-max-width: 30px;
+    -fx-max-height: 30px;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 0; /* Bỏ padding để dấu cộng căn giữa */
+    -fx-alignment: center; /* Căn giữa text */
+}
+
+/* Thêm hiệu ứng khi hover */
+.add-carriage-button:hover {
+    -fx-background-color: #d0d0d0;
+}
+
+.edge-to-edge-scrollpane {
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}

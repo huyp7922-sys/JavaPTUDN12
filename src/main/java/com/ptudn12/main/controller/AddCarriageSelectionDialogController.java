@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.ptudn12.main.dao.TauDAO;
 import com.ptudn12.main.entity.Toa;
@@ -74,23 +75,26 @@ public class AddCarriageSelectionDialogController {
 
 		// --- Trạng thái ban đầu ---
 		selectButton.setDisable(true);
-		loadMockData(); // Tạm thời dùng dữ liệu giả
-		availableCarriagesTable.setItems(displayList);
 	}
 
-	public void initData(TauDAO tauDAO) {
-		this.tauDAO = tauDAO;
-		loadDataFromDatabase();
-	}
-
-	private void loadDataFromDatabase() {
-		masterList = tauDAO.layTatCaToaChuaSuDung();
+	public void initData(List<Toa> availableCarriages) {
+		this.masterList = availableCarriages;
 		displayList.setAll(masterList);
 		availableCarriagesTable.setItems(displayList);
 	}
 
+	/**
+	 * ✅ THAY ĐỔI: Hoàn thiện logic lọc trên dữ liệu thật.
+	 */
 	private void applyFilter() {
-		// TODO: Viết logic lọc
+		String filterValue = filterComboBox.getValue();
+		if (filterValue == null || filterValue.equals("Tất cả toa")) {
+			displayList.setAll(masterList);
+		} else {
+			List<Toa> filteredList = masterList.stream()
+					.filter(toa -> toa.getLoaiToa().getDescription().equals(filterValue)).collect(Collectors.toList());
+			displayList.setAll(filteredList);
+		}
 	}
 
 	private void displayCarriageDetails(Toa toa) {
