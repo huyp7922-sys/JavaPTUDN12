@@ -150,7 +150,13 @@ public class DashboardController {
 	@FXML
 	private void handleAbout() {
 		try {
-			java.awt.Desktop.getDesktop().browse(new java.net.URI("https://yourcompany.com/about"));
+			Parent root = FXMLLoader.load(getClass().getResource("/views/about-dialog.fxml"));
+			Stage stage = new Stage();
+			stage.setScene(new Scene(root));
+			stage.setTitle("Về Chúng Tôi");
+			stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+			stage.setResizable(false);
+			stage.show();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -159,7 +165,13 @@ public class DashboardController {
 	@FXML
 	private void handleHelp() {
 		try {
-			java.awt.Desktop.getDesktop().browse(new java.net.URI("https://yourcompany.com/help"));
+			Parent root = FXMLLoader.load(getClass().getResource("/views/help-dialog.fxml"));
+			Stage stage = new Stage();
+			stage.setScene(new Scene(root));
+			stage.setTitle("Trợ Giúp");
+			stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+			stage.setResizable(false);
+			stage.show();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

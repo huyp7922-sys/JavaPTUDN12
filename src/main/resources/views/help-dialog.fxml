@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.ptudn12.main.controller.DialogController"
+      spacing="15" alignment="TOP_CENTER"
+      prefWidth="600" prefHeight="500"
+      style="-fx-background-color: white; -fx-padding: 30;">
+
+    <Label text="❓ Trợ Giúp Sử Dụng Hệ Thống" 
+           style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+    
+    <Separator prefWidth="500"/>
+    
+    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" 
+                style="-fx-background-color: transparent; -fx-border-color: transparent;">
+        <VBox spacing="15" style="-fx-padding: 10;">
+            
+            <!-- Quản lý bán vé -->
+            <VBox spacing="5">
+                <Label text="🎫 Quản Lý Bán Vé" 
+                       style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2980b9;"/>
+                <Label text="• Chọn tuyến đường và ngày khởi hành để tìm chuyến tàu phù hợp" 
+                       wrapText="true" style="-fx-font-size: 13px; -fx-text-fill: #7f8c8d;"/>
+                <Label text="• Chọn loại vé (một chiều/khứ hồi) và chỗ ngồi trống" 
+                       wrapText="true" style="-fx-font-size: 13px; -fx-text-fill: #7f8c8d;"/>
+                <Label text="• Nhập thông tin hành khách và xác nhận đặt vé" 
+                       wrapText="true" style="-fx-font-size: 13px; -fx-text-fill: #7f8c8d;"/>
+            </VBox>
+            
+            <!-- Quản lý hóa đơn -->
+            <VBox spacing="5">
+                <Label text="🧾 Quản Lý Hóa Đơn" 
+                       style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #27ae60;"/>
+                <Label text="• Xem danh sách tất cả hóa đơn đã tạo" 
+                       wrapText="true" style="-fx-font-size: 13px; -fx-text-fill: #7f8c8d;"/>
+                <Label text="• Tìm kiếm hóa đơn theo mã hóa đơn hoặc tên khách hàng" 
+                       wrapText="true" style="-fx-font-size: 13px; -fx-text-fill: #7f8c8d;"/>
+                <Label text="• In hóa đơn hoặc xuất file PDF" 
+                       wrapText="true" style="-fx-font-size: 13px; -fx-text-fill: #7f8c8d;"/>
+            </VBox>
+            
+            <!-- Quản lý lịch trình -->
+            <VBox spacing="5">
+                <Label text="🚆 Quản Lý Lịch Trình" 
+                       style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #e67e22;"/>
+                <Label text="• Thêm mới lịch trình tàu với tuyến đường và thời gian" 
+                       wrapText="true" style="-fx-font-size: 13px; -fx-text-fill: #7f8c8d;"/>
+                <Label text="• Cập nhật hoặc xóa lịch trình hiện có" 
+                       wrapText="true" style="-fx-font-size: 13px; -fx-text-fill: #7f8c8d;"/>
+                <Label text="• Kiểm tra trạng thái lịch trình (chưa khởi hành/đã hoàn thành)" 
+                       wrapText="true" style="-fx-font-size: 13px; -fx-text-fill: #7f8c8d;"/>
+            </VBox>
+            
+            <!-- Quản lý thống kê -->
+            <VBox spacing="5">
+                <Label text="📊 Quản Lý Thống Kê" 
+                       style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #8e44ad;"/>
+                <Label text="• Xem thống kê doanh thu theo tuyến đường" 
+                       wrapText="true" style="-fx-font-size: 13px; -fx-text-fill: #7f8c8d;"/>
+                <Label text="• Tỷ lệ lấp đầy chỗ ngồi trên từng chuyến" 
+                       wrapText="true" style="-fx-font-size: 13px; -fx-text-fill: #7f8c8d;"/>
+                <Label text="• Lọc thống kê theo thời gian hoặc tên tuyến" 
+                       wrapText="true" style="-fx-font-size: 13px; -fx-text-fill: #7f8c8d;"/>
+            </VBox>
+            
+            <!-- Liên hệ hỗ trợ -->
+            <VBox spacing="5">
+                <Label text="📞 Liên Hệ Hỗ Trợ" 
+                       style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #c0392b;"/>
+                <Label text="• Email: support@trainticket.vn" 
+                       wrapText="true" style="-fx-font-size: 13px; -fx-text-fill: #7f8c8d;"/>
+                <Label text="• Hotline: 1900-xxxx (24/7)" 
+                       wrapText="true" style="-fx-font-size: 13px; -fx-text-fill: #7f8c8d;"/>
+                <Label text="• Website: www.trainticket.vn" 
+                       wrapText="true" style="-fx-font-size: 13px; -fx-text-fill: #7f8c8d;"/>
+            </VBox>
+            
+        </VBox>
+    </ScrollPane>
+    
+    <Button text="Đóng" onAction="#closeDialog"
+            style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10 40; -fx-background-radius: 5; -fx-cursor: hand;"
+            onMouseEntered="#handleButtonHover" onMouseExited="#handleButtonExit"/>
+</VBox>

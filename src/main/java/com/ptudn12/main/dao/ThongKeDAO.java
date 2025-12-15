@@ -12,7 +12,7 @@ public class ThongKeDAO {
         String sql =
                 "SELECT " +
                 "  td.maTuyen, " +
-                "  CONCAT(g1.viTriGa, ' → ', g2.viTriGa) AS tenTuyen, " +
+                "  CONCAT(g1.viTriGa, ' Đến ', g2.viTriGa) AS tenTuyen, " +
                 "  COUNT(ctlt.maChiTietLichTrinh) AS tongVe, " +
                 "  ISNULL(CAST(100.0 * COUNT(CASE WHEN vt.trangThai IN ('DaBan', 'DaSuDung') THEN 1 END) / " +
                 "           NULLIF(COUNT(ctlt.maChiTietLichTrinh), 0) AS FLOAT), 0) AS tyLe, " +
