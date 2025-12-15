@@ -12,6 +12,8 @@ package com.ptudn12.main.dao;
 
 import com.ptudn12.main.database.DatabaseConnection;
 import com.ptudn12.main.entity.*;
+import com.ptudn12.main.enums.LoaiCho;
+import com.ptudn12.main.enums.LoaiVe;
 
 import java.sql.*;
 import java.time.LocalDate;
@@ -133,7 +135,20 @@ public class VeTauDAO {
         }
         return listVe;
     }
-
+    // Thêm method này vào VeTauDAO. java
+    public void updateQRCode(String maVe, String base64QR) {
+    String sql = "UPDATE VeTau SET maQR = ? WHERE maVe = ?";
+    
+    try (Connection conn = DatabaseConnection.getConnection();
+         PreparedStatement pstmt = conn. prepareStatement(sql)) {
+        pstmt.setString(1, base64QR);
+        pstmt.setString(2, maVe);
+        int rowsAffected = pstmt.executeUpdate();
+    
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
     /**
      * Cập nhật trạng thái vé (DaHuy)
      */
@@ -165,6 +180,106 @@ public class VeTauDAO {
             e.printStackTrace();
         }
         return -1;
+    }
+    
+    public VeTau getVeTauDetail(String maVe) {
+        VeTau ve = null;
+        
+        // SQL JOIN đã được điều chỉnh theo đúng schema DB mới
+        String sql = "SELECT VT.maVe, VT.loaiVe, VT.trangThai, VT.maQR, " +
+                     "       KH.tenKhachHang, KH.soCCCD, KH.hoChieu, " +
+                     "       L.ngayKhoiHanh, L.gioKhoiHanh, " +
+                     "       T.maTau, " + // Bảng Tau cột maTau
+                     "       G1.viTriGa AS tenGaDi, " +
+                     "       G2.viTriGa AS tenGaDen, " +
+                     "       TOA.tenToa, TOA.maToa, " +
+                     "       C.soThuTu AS soGhe, C.loaiCho AS tenLoaiCho, " +
+                     "       CTLT.giaChoNgoi " +
+                     "FROM VeTau VT " +
+                     "JOIN KhachHang KH ON VT.khachHangId = KH.maKhachHang " +
+                     "JOIN ChiTietLichTrinh CTLT ON VT.chiTietLichTrinhId = CTLT.maChiTietLichTrinh " +
+                     "JOIN LichTrinh L ON CTLT.maLichTrinh = L.maLichTrinh " +
+                     "JOIN Tau T ON L.maTau = T.maTau " +
+                     "JOIN TuyenDuong TD ON L.maTuyenDuong = TD.maTuyen " +
+                     "JOIN Ga G1 ON TD.diemDi = G1.maGa " +
+                     "JOIN Ga G2 ON TD.diemDen = G2.maGa " +
+                     "JOIN Cho C ON CTLT.maChoNgoi = C.maCho " +
+                     "JOIN Toa TOA ON C.maToa = TOA.maToa " + // JOIN qua bảng Cho để lấy Toa chính xác
+                     "WHERE VT.maVe = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, maVe);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                ve = new VeTau();
+                ve.setMaVe(rs.getString("maVe"));
+                ve.setMaQR(rs.getString("maQR")); 
+                
+                // 1. Khách Hàng
+                KhachHang kh = new KhachHang();
+                kh.setTenKhachHang(rs.getString("tenKhachHang"));
+                kh.setSoCCCD(rs.getString("soCCCD"));
+                kh.setHoChieu(rs.getString("hoChieu"));
+                ve.setKhachHang(kh);
+                
+                // 2. Lịch Trình (Ngày giờ, Tàu, Ga)
+                LichTrinh lt = new LichTrinh();
+                
+                java.sql.Date ngayDi = rs.getDate("ngayKhoiHanh");
+                java.sql.Time gioDi = rs.getTime("gioKhoiHanh");
+                if (ngayDi != null) {
+                    LocalDateTime dt = (gioDi != null) 
+                        ? LocalDateTime.of(ngayDi.toLocalDate(), gioDi.toLocalTime()) 
+                        : ngayDi.toLocalDate().atStartOfDay();
+                    lt.setNgayGioKhoiHanh(dt);
+                }
+                
+                Tau tau = new Tau(rs.getString("maTau"));
+                tau.setMacTau(rs.getString("maTau"));
+                lt.setTau(tau);
+                
+                TuyenDuong td = new TuyenDuong();
+                Ga gaDi = new Ga(); gaDi.setViTriGa(rs.getString("tenGaDi"));
+                Ga gaDen = new Ga(); gaDen.setViTriGa(rs.getString("tenGaDen"));
+                td.setDiemDi(gaDi);
+                td.setDiemDen(gaDen);
+                lt.setTuyenDuong(td);
+                
+                // 3. Chi Tiết (Chỗ, Toa, Giá)
+                ChiTietLichTrinh ctlt = new ChiTietLichTrinh();
+                ctlt.setLichTrinh(lt);
+                ctlt.setGiaChoNgoi(rs.getDouble("giaChoNgoi"));
+                
+                Cho cho = new Cho();
+                cho.setSoThuTu(rs.getInt("soGhe"));
+                
+                // Map loại chỗ từ chuỗi DB (Ví dụ: "Ghế ngồi mềm")
+                String tenLoaiChoDB = rs.getString("tenLoaiCho");
+                try {
+                    // Gọi hàm map từ String sang Enum mà mình đã fix cho bạn ở LoaiCho.java
+                    cho.setLoaiCho(LoaiCho.fromDescription(tenLoaiChoDB));
+                } catch (Exception e) {
+                    System.err.println("Warning: Không map được loại chỗ '" + tenLoaiChoDB + "' sang Enum.");
+                }
+                
+                Toa t = new Toa();
+                t.setTenToa(rs.getString("tenToa"));
+                t.setMaToa(rs.getInt("maToa")); 
+                cho.setToa(t);
+                
+                ctlt.setCho(cho);
+                ve.setChiTietLichTrinh(ctlt);
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Lỗi lấy chi tiết vé (SQL): " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return ve;
     }
     
     /**

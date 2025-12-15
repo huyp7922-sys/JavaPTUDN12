@@ -30,7 +30,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-
+import com.ptudn12.main.entity.NhanVien;
 public class BanVeController {
     @FXML private StackPane contentPane;
     @FXML private Label dateTimeLabel;
@@ -42,6 +42,7 @@ public class BanVeController {
 //    private Step3Controller step3ControllerInstance;
 //    private Step4Controller step4ControllerInstance;
     
+    private NhanVien nhanVien;
     // --- CACHE: Lưu trữ Controller và View của từng Step ---
     private Step1Controller step1ControllerInstance;
     private Node step1View;
@@ -308,6 +309,13 @@ public class BanVeController {
         
         // 4. Load lại Step 1
         loadContent("step-1.fxml");
+    }
+    public void setNhanVien(NhanVien nhanVien) {
+        this.nhanVien = nhanVien;
+    }   
+
+    public NhanVien getNhanVien() {
+        return nhanVien;
     }
 
     @FXML

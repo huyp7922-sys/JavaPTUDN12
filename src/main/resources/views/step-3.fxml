@@ -19,7 +19,7 @@
 
 <VBox spacing="20.0" style="-fx-background-color: #ffffff;"
       styleClass="banve-content-wrapper" stylesheets="@ban-ve.css"
-      xmlns="http://javafx.com/javafx/25"
+      xmlns="http://javafx.com/javafx/21"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.ptudn12.main.controller.Step3Controller">
 
@@ -47,15 +47,16 @@
         <VBox styleClass="box-section" VBox.vgrow="ALWAYS">
              <children>
                 <Label text="Thông tin hành khách" styleClass="box-title-bold" />
+                
                 <HBox fx:id="headerRow" alignment="CENTER_LEFT" spacing="10.0" style="-fx-padding: 10px; -fx-border-color: #ccc; -fx-border-width: 0 0 2px 0;" maxWidth="Infinity">
                      <children>
-                        <Label text="Họ tên" fx:id="headerHanhKhach" minWidth="100.0" maxWidth="Infinity" HBox.hgrow="ALWAYS" />
-                        <Label text="Thông tin chuyến tàu" fx:id="headerChuyenTau" minWidth="150.0" maxWidth="Infinity" HBox.hgrow="ALWAYS" />
-                        <Label text="Thông tin chỗ ngồi" fx:id="headerChoNgoi" minWidth="120.0" maxWidth="Infinity" HBox.hgrow="ALWAYS" />
-                        <Label text="Giá vé" fx:id="headerGiaVe" minWidth="80.0" maxWidth="Infinity" HBox.hgrow="ALWAYS" />
-                        <Label text="Giảm đối tượng" fx:id="headerGiamGia" minWidth="100.0" maxWidth="Infinity" HBox.hgrow="ALWAYS" />
-                        <Label text="Bảo hiểm" fx:id="headerBaoHiem" minWidth="80.0" maxWidth="Infinity" HBox.hgrow="ALWAYS" />
-                        <Label text="Thành tiền" fx:id="headerThanhTien" minWidth="100.0" maxWidth="Infinity" HBox.hgrow="ALWAYS" />
+                        <Label text="Họ tên" fx:id="headerHanhKhach" prefWidth="250.0" HBox.hgrow="ALWAYS" />
+                        <Label text="Thông tin chuyến tàu" fx:id="headerChuyenTau" prefWidth="180.0" HBox.hgrow="ALWAYS" />
+                        <Label text="Thông tin chỗ ngồi" fx:id="headerChoNgoi" prefWidth="120.0" HBox.hgrow="SOMETIMES" />
+                        <Label text="Giá vé" fx:id="headerGiaVe" prefWidth="100.0" HBox.hgrow="SOMETIMES" />
+                        <Label text="Giảm đối tượng" fx:id="headerGiamGia" prefWidth="100.0" HBox.hgrow="SOMETIMES" />
+                        <Label text="Bảo hiểm" fx:id="headerBaoHiem" prefWidth="100.0" HBox.hgrow="SOMETIMES" />
+                        <Label text="Thành tiền" fx:id="headerThanhTien" prefWidth="120.0" HBox.hgrow="ALWAYS" />
                      </children>
                 </HBox>
 
@@ -78,7 +79,7 @@
              </children>
         </VBox>
 
-        <VBox styleClass="box-section" spacing="15.0">
+        <VBox styleClass="box-section" spacing="15.0" minHeight="180.0" VBox.vgrow="NEVER">
              <children>
                 <Label text="Thông tin người mua vé" styleClass="box-title-bold" />
                 <GridPane hgap="10.0" vgap="10.0">

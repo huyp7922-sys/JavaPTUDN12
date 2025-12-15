@@ -47,9 +47,6 @@ public class ChiTietLichTrinhDAO {
         String sql = "SELECT maChoNgoi FROM ChiTietLichTrinh " +
                      "WHERE maLichTrinh = ? " +
                      "AND trangThai IN (N'DaBan', N'DaDat')"; 
-        
-        // Lưu ý: DB của bạn dùng NVARCHAR có dấu (N'DaBan'), nên Java chuỗi cũng phải khớp.
-        // Tốt nhất là dùng N'' trong SQL hoặc đảm bảo chuỗi Java gửi xuống đúng encoding.
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {

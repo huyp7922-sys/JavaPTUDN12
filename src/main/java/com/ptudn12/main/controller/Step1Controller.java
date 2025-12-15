@@ -361,13 +361,11 @@ public class Step1Controller {
     
     private Node createTrainCard(LichTrinh lt, int gheDat, int gheTrong, boolean isChieuDi) {
         GridPane card = new GridPane();
-        // ... (Giữ nguyên code setHgap, setVgap, setPadding, getStyleClass)
         card.setHgap(10);
         card.setVgap(8);
         card.setPadding(new Insets(10));
         card.getStyleClass().add("train-card"); 
 
-        // ... (Giữ nguyên code tạo các Label: lblTenTau, lblGheDat, lblGheTrong, etc.)
         Label lblTenTau = new Label(lt.getTau().getMacTau());
         lblTenTau.getStyleClass().add("train-card-title");
         card.add(lblTenTau, 0, 0, 4, 1); 
@@ -442,9 +440,6 @@ public class Step1Controller {
 
         mainController.setUserData("lichTrinhChieuDi", lichTrinhChieuDi);
         mainController.setUserData("lichTrinhChieuVe", lichTrinhChieuVe); // Sẽ là null nếu không khứ hồi
-
-        // mainController.setUserData("gioHang_Di", new ArrayList<>());
-        // mainController.setUserData("gioHang_Ve", new ArrayList<>());
         
         mainController.loadContent("step-2.fxml");
     }
