@@ -2,7 +2,9 @@ package com.ptudn12.main.controller;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.ptudn12.main.dao.TauDAO; // Import DAO mới
 import com.ptudn12.main.entity.Tau;
@@ -19,6 +21,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -42,11 +45,18 @@ public class TrainManagementController {
 	private Button configureTrainButton;
 	@FXML
 	private Label totalTrainsLabel;
+	@FXML
+	private TextField searchTextField;
+	@FXML
+	private Button searchButton;
+	@FXML
+	private Button showAllButton;
 
 	// --- Data Models ---
 	private ObservableList<Tau> trainData = FXCollections.observableArrayList();
 	// Map lưu trữ danh sách toa của từng tàu: Key là mã tàu (VD: "SE1"), Value là
 	// danh sách Toa
+	private List<Tau> masterTrainData = new ArrayList<>();
 
 	// --- DAO ---
 	private TauDAO tauDAO;
@@ -77,11 +87,15 @@ public class TrainManagementController {
 	 */
 	private void loadDataFromDatabase() {
 		try {
-			trainData.clear();
-			List<Tau> allTrains = tauDAO.layTatCaTau(); // Chỉ cần gọi 1 hàm duy nhất
+			masterTrainData.clear();
+			List<Tau> allTrains = tauDAO.layTatCaTau();
 			if (allTrains != null) {
-				trainData.addAll(allTrains);
+				masterTrainData.addAll(allTrains);
 			}
+
+			// Hiển thị tất cả dữ liệu lên bảng
+			trainData.setAll(masterTrainData);
+
 			trainTable.setItems(trainData);
 			updateTrainCountLabel();
 		} catch (Exception e) {
@@ -89,6 +103,35 @@ public class TrainManagementController {
 			showAlert(Alert.AlertType.ERROR, "Lỗi Tải Dữ Liệu",
 					"Không thể tải danh sách tàu từ cơ sở dữ liệu.\nChi tiết: " + e.getMessage());
 		}
+	}
+
+	/**
+	 * ✅ THÊM MỚI: Xử lý sự kiện nút "Tìm kiếm".
+	 */
+	@FXML
+	private void handleSearch() {
+		String searchText = searchTextField.getText().trim().toLowerCase();
+		if (searchText.isEmpty()) {
+			// Nếu ô tìm kiếm trống, hiển thị tất cả
+			trainData.setAll(masterTrainData);
+			return;
+		}
+
+		// Lọc danh sách gốc
+		List<Tau> filteredList = masterTrainData.stream()
+				.filter(tau -> tau.getMacTau().toLowerCase().contains(searchText)).collect(Collectors.toList());
+
+		// Cập nhật bảng với kết quả đã lọc
+		trainData.setAll(filteredList);
+	}
+
+	/**
+	 * ✅ THÊM MỚI: Xử lý sự kiện nút "Hiển thị tất cả".
+	 */
+	@FXML
+	private void handleShowAll() {
+		searchTextField.clear(); // Xóa nội dung ô tìm kiếm
+		trainData.setAll(masterTrainData); // Hiển thị lại tất cả dữ liệu
 	}
 
 	/**
@@ -156,7 +199,6 @@ public class TrainManagementController {
 			@Override
 			protected void updateItem(String status, boolean empty) {
 				super.updateItem(status, empty);
-				// Reset style cũ
 				getStyleClass().removeAll("status-label", "status-ready", "status-inactive", "status-paused",
 						"status-running");
 
@@ -164,28 +206,31 @@ public class TrainManagementController {
 					setText(null);
 					setGraphic(null);
 				} else {
-					Label label = new Label(status);
-					label.getStyleClass().add("status-label");
+					String displayText = status; // Mặc định
+					String styleClass = "status-inactive"; // Mặc định
 
-					// Ánh xạ trạng thái từ DB sang CSS class
-					// Bạn có thể điều chỉnh các case này tùy theo giá trị thực tế trong DB của bạn
-					switch (status) {
-					case "SanSang":
-						label.getStyleClass().add("status-ready");
+					// ✅ THÊM LOGIC CHUYỂN ĐỔI
+					switch (status.toLowerCase()) {
+					case "dangchay":
+						displayText = "Đang chạy";
+						styleClass = "status-running";
 						break;
-					case "DangChay":
-						label.getStyleClass().add("status-running");
-						break; // Cần thêm class này vào CSS nếu muốn màu riêng
-					case "TamNgung":
-						label.getStyleClass().add("status-paused");
-						break; // Cần thêm class này vào CSS nếu muốn màu riêng
-					case "ChuaKhoiHanh":
-						label.getStyleClass().add("status-inactive");
+					case "dungchay":
+						displayText = "Dừng chạy";
+						styleClass = "status-inactive";
 						break;
-					default:
-						label.getStyleClass().add("status-inactive");
+					case "sansang":
+						displayText = "Sẵn sàng";
+						styleClass = "status-ready";
+						break;
+					case "tamngung":
+						displayText = "Tạm ngưng";
+						styleClass = "status-paused";
 						break;
 					}
+
+					Label label = new Label(displayText);
+					label.getStyleClass().addAll("status-label", styleClass);
 
 					setGraphic(label);
 					setText(null);

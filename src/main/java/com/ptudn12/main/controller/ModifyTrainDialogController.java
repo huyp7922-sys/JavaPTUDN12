@@ -5,6 +5,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -169,12 +170,11 @@ public class ModifyTrainDialogController {
 		trainTrackContainer.setAlignment(Pos.BOTTOM_LEFT);
 		trainTrackContainer.getChildren().clear();
 
-		// LOGIC TÍNH TOÁN LẠI SỐ THỨ TỰ CHO CHẾ ĐỘ CREATE
-		if (currentMode == Mode.CREATE) {
-			for (int i = 0; i < currentCarriages.size(); i++) {
-				// Tính lại số thứ tự từ phải qua trái (gần đầu tàu là 1)
-				currentCarriages.get(i).sequenceNumber = currentCarriages.size() - i;
-			}
+		// --- LOGIC TÍNH TOÁN LẠI SỐ THỨ TỰ (ÁP DỤNG CHO CẢ 2 CHẾ ĐỘ) ---
+		for (int i = 0; i < currentCarriages.size(); i++) {
+			// Toa ngoài cùng bên trái (index 0) sẽ có số thứ tự lớn nhất.
+			// Toa trong cùng bên phải (index cuối) sẽ có số thứ tự là 1.
+			currentCarriages.get(i).sequenceNumber = currentCarriages.size() - i;
 		}
 
 		trainTrackContainer.getChildren().add(createAddButton(-1));
@@ -550,10 +550,13 @@ public class ModifyTrainDialogController {
 			Tau newTau = new Tau(macTau);
 			isSuccess = tauDAO.lapTauMoi(newTau, toasToAdd);
 		} else if (currentMode == Mode.CONFIGURE) {
-			// TODO: Viết logic gọi DAO để CẬP NHẬT cấu trúc tàu (xóa các toa cũ, thêm các
-			// toa mới)
-			System.out.println("Chức năng lưu cho Cấu hình tàu chưa được cài đặt.");
-			isSuccess = true; // Tạm thời coi là thành công để đóng dialog
+			Map<Integer, Toa> cauTrucMoi = new LinkedHashMap<>();
+			for (CarriageWrapper wrapper : currentCarriages) {
+				cauTrucMoi.put(wrapper.sequenceNumber, wrapper.toa);
+			}
+
+			// 2. Gọi DAO để thực hiện transaction cập nhật
+			isSuccess = tauDAO.capNhatCauTrucTau(macTau, cauTrucMoi);
 		}
 
 		if (isSuccess) {

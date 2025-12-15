@@ -20,7 +20,27 @@ public class TauDAO {
 
 	public List<Tau> layTatCaTau() {
 		List<Tau> danhSach = new ArrayList<>();
-		String sql = "WITH CarriageCounts AS ( SELECT ctt.maTau, t.loaiToa, COUNT(DISTINCT ctt.maToa) AS SoLuongToa FROM ChiTietToa ctt JOIN Toa t ON ctt.maToa = t.maToa GROUP BY ctt.maTau, t.loaiToa ), ToaStructure AS ( SELECT maTau, STRING_AGG(CAST(SoLuongToa AS NVARCHAR(MAX)) + 'x ' + loaiToa, ', ') WITHIN GROUP (ORDER BY loaiToa) AS CauTruc FROM CarriageCounts GROUP BY maTau )  SELECT t.maTau, t.trangThai, ISNULL(COUNT(DISTINCT ctt.maToa), 0) AS SoToa, ISNULL(COUNT(ctt.maCho), 0) AS TongChoNgoi, ISNULL(ts.CauTruc, N'Chưa có cấu hình') AS CauTrucTau FROM Tau t LEFT JOIN ChiTietToa ctt ON t.maTau = ctt.maTau LEFT JOIN ToaStructure ts ON t.maTau = ts.maTau GROUP BY t.maTau, t.trangThai, ts.CauTruc ORDER BY t.maTau;";
+//		String sql = "WITH CarriageCounts AS ( SELECT ctt.maTau, t.loaiToa, COUNT(DISTINCT ctt.maToa) AS SoLuongToa FROM ChiTietToa ctt JOIN Toa t ON ctt.maToa = t.maToa GROUP BY ctt.maTau, t.loaiToa ), ToaStructure AS ( SELECT maTau, STRING_AGG(CAST(SoLuongToa AS NVARCHAR(MAX)) + 'x ' + loaiToa, ', ') WITHIN GROUP (ORDER BY loaiToa) AS CauTruc FROM CarriageCounts GROUP BY maTau )  SELECT t.maTau, t.trangThai, ISNULL(COUNT(DISTINCT ctt.maToa), 0) AS SoToa, ISNULL(COUNT(ctt.maCho), 0) AS TongChoNgoi, ISNULL(ts.CauTruc, N'Chưa có cấu hình') AS CauTrucTau FROM Tau t LEFT JOIN ChiTietToa ctt ON t.maTau = ctt.maTau LEFT JOIN ToaStructure ts ON t.maTau = ts.maTau GROUP BY t.maTau, t.trangThai, ts.CauTruc ORDER BY t.maTau;";
+		String sql = "WITH CarriageCounts AS (\r\n" + "                SELECT\r\n"
+				+ "                    ctt.maTau,\r\n" + "                    t.loaiToa,\r\n"
+				+ "                    COUNT(DISTINCT ctt.maToa) AS SoLuongToa\r\n"
+				+ "                FROM ChiTietToa ctt\r\n" + "                JOIN Toa t ON ctt.maToa = t.maToa\r\n"
+				+ "                GROUP BY ctt.maTau, t.loaiToa\r\n" + "            ),\r\n"
+				+ "            ToaStructure AS (\r\n" + "                SELECT\r\n" + "                    maTau,\r\n"
+				+ "                    STRING_AGG(CAST(SoLuongToa AS NVARCHAR(MAX)) + 'x ' + loaiToa, ', ') \r\n"
+				+ "                    WITHIN GROUP (ORDER BY loaiToa) AS CauTruc\r\n"
+				+ "                FROM CarriageCounts\r\n" + "                GROUP BY maTau\r\n"
+				+ "            ),\r\n" + "            TrainAggregates AS (\r\n" + "                SELECT\r\n"
+				+ "                    maTau,\r\n" + "                    COUNT(DISTINCT maToa) AS SoToa,\r\n"
+				+ "                    COUNT(maCho) AS TongChoNgoi\r\n" + "                FROM ChiTietToa\r\n"
+				+ "                GROUP BY maTau\r\n" + "            )\r\n" + "            SELECT\r\n"
+				+ "                t.maTau,\r\n" + "                t.trangThai,\r\n"
+				+ "                ISNULL(ta.SoToa, 0) AS SoToa,\r\n"
+				+ "                ISNULL(ta.TongChoNgoi, 0) AS TongChoNgoi,\r\n"
+				+ "                ISNULL(ts.CauTruc, N'Chưa có cấu hình') AS CauTrucTau\r\n" + "            FROM \r\n"
+				+ "                Tau t\r\n" + "                LEFT JOIN TrainAggregates ta ON t.maTau = ta.maTau\r\n"
+				+ "                LEFT JOIN ToaStructure ts ON t.maTau = ts.maTau\r\n" + "            ORDER BY \r\n"
+				+ "                t.maTau;";
 
 		try (Connection conn = DatabaseConnection.getConnection();
 				Statement stmt = conn.createStatement();
@@ -324,5 +344,67 @@ public class TauDAO {
 			e.printStackTrace();
 		}
 		return false; // Mặc định là không tồn tại nếu có lỗi
+	}
+
+	/**
+	 * ✅ THÊM MỚI: Cập nhật lại toàn bộ cấu trúc toa cho một tàu đã tồn tại. Thực
+	 * hiện trong một transaction: Xóa tất cả các toa cũ và thêm lại danh sách toa
+	 * mới.
+	 * 
+	 * @param maTau      Mã của tàu cần cập nhật.
+	 * @param cauTrucMoi Một Map chứa cấu trúc mới, với Key là số thứ tự và Value là
+	 *                   đối tượng Toa.
+	 * @return true nếu cập nhật thành công.
+	 */
+	public boolean capNhatCauTrucTau(String maTau, Map<Integer, Toa> cauTrucMoi) {
+		Connection conn = null;
+		try {
+			conn = DatabaseConnection.getConnection();
+			conn.setAutoCommit(false); // Bắt đầu Transaction
+
+			// Bước 1: Xóa toàn bộ cấu trúc toa cũ của tàu này trong bảng ChiTietToa
+			String sqlDelete = "DELETE FROM ChiTietToa WHERE maTau = ?";
+			try (PreparedStatement stmt = conn.prepareStatement(sqlDelete)) {
+				stmt.setString(1, maTau);
+				stmt.executeUpdate();
+			}
+
+			// Bước 2: Thêm lại từng toa trong cấu trúc mới bằng Stored Procedure
+			String sqlCallSP = "{CALL sp_ThemToaVaoTau(?, ?, ?)}";
+			try (CallableStatement cstmt = conn.prepareCall(sqlCallSP)) {
+				for (Map.Entry<Integer, Toa> entry : cauTrucMoi.entrySet()) {
+					int soThuTuToa = entry.getKey();
+					Toa toa = entry.getValue();
+
+					cstmt.setString(1, maTau);
+					cstmt.setInt(2, toa.getMaToa());
+					cstmt.setInt(3, soThuTuToa);
+					cstmt.execute();
+				}
+			}
+
+			conn.commit(); // Hoàn tất Transaction thành công
+			return true;
+
+		} catch (SQLException e) {
+			System.err.println("Lỗi khi cập nhật cấu trúc tàu " + maTau + ": " + e.getMessage());
+			e.printStackTrace();
+			if (conn != null) {
+				try {
+					conn.rollback();
+				} catch (SQLException ex) {
+					ex.printStackTrace();
+				}
+			}
+			return false;
+		} finally {
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 }
