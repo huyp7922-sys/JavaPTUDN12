@@ -260,8 +260,8 @@ public class LoginController {
             Stage stage = (Stage) usernameField.getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.setTitle(title);
-            stage.setMaximized(true);
-            
+            stage.setResizable(true);   // cho phép chỉnh kích thước
+            stage.setMaximized(true);   // mở ra ở trạng thái to nhất
         } catch (IOException e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể tải giao diện: " + e.getMessage());

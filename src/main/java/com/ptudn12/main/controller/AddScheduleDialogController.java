@@ -1,9 +1,5 @@
 package com.ptudn12.main.controller;
 
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 import com.ptudn12.main.dao.LichTrinhDAO;
 import com.ptudn12.main.dao.TauDAO;
 import com.ptudn12.main.dao.TuyenDuongDAO;
@@ -22,7 +18,6 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
-
 
 public class AddScheduleDialogController {
 
@@ -46,10 +41,10 @@ public class AddScheduleDialogController {
 
     @FXML
     public void initialize() {
-        // Load routes from database
+        // Load routes
         loadRoutes();
         
-        // Load trains from database
+        // Load trains
         loadTrains();
         
         // Setup time combos
@@ -66,22 +61,18 @@ public class AddScheduleDialogController {
         
         // Setup status combo
         var statuses = FXCollections.observableArrayList(
-            "Nhap", "ChuaKhoiHanh", "DangChay", "TamHoan", "DaKetThuc", "TamNgung"
+            "Nhap", "SanSang", "ChuaKhoiHanh", "DangChay", "TamHoan", "DaKetThuc", "TamNgung"
         );
         statusCombo.setItems(statuses);
-        statusCombo.setValue("Nhap");
+        statusCombo.setValue("Nhap"); // Mặc định là Nháp
         
         // Set default date
         departureDatePicker.setValue(LocalDate.now().plusDays(1));
     }
 
-    /**
-     * Load danh sách tuyến đường
-     */
     private void loadRoutes() {
         try {
             List<TuyenDuong> danhSach = tuyenDuongDAO.layTatCaTuyenDuong();
-
             ObservableList<String> routeNames = FXCollections.observableArrayList();
 
             for (TuyenDuong tuyen : danhSach) {
@@ -91,42 +82,47 @@ public class AddScheduleDialogController {
             }
 
             routeCombo.setItems(routeNames);
-            if (!routeNames.isEmpty()) {
-                routeCombo.setValue(routeNames.get(0));
-            }
+            if (!routeNames.isEmpty()) routeCombo.setValue(routeNames.get(0));
 
         } catch (Exception e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể tải danh sách tuyến:\n" + e.getMessage());
         }
     }
-    /**
-     * Load danh sách tàu
-     */
+
     private void loadTrains() {
-    try {
-        List<Tau> danhSach = tauDAO.layTatCaTau();
-        
-        ObservableList<String> trainNames = FXCollections.observableArrayList();
-        
-        for (Tau tau : danhSach) {
-            trainNames.add(tau.getMacTau());
-            tauMap.put(tau.getMacTau(), tau);
+        try {
+            List<Tau> danhSach = tauDAO.layTatCaTau();
+            ObservableList<String> trainNames = FXCollections.observableArrayList();
+            
+            for (Tau tau : danhSach) {
+                trainNames.add(tau.getMacTau());
+                tauMap.put(tau.getMacTau(), tau);
+            }
+            
+            trainCombo.setItems(trainNames);
+            if (!trainNames.isEmpty()) trainCombo.setValue(trainNames.get(0));
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể tải danh sách tàu:\n" + e.getMessage());
         }
-        
-        trainCombo.setItems(trainNames);
-        if (!trainNames.isEmpty()) {
-            trainCombo.setValue(trainNames.get(0));
-        }
-        
-    } catch (Exception e) {
-        e.printStackTrace();
-        showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể tải danh sách tàu:\n" + e.getMessage());
     }
-}
 
     public void setParentController(ScheduleManagementController parentController) {
         this.parentController = parentController;
+    }
+
+    /**
+     * Cấu hình cho chế độ Thêm mới:
+     * - Khóa trạng thái ở mức "Nhap"
+     * - Không cho người dùng chọn trạng thái khác lúc tạo
+     */
+    public void setAddMode() {
+        if (statusCombo != null) {
+            statusCombo.setValue("Nhap"); 
+            statusCombo.setDisable(true); // Disable để người dùng không đổi được
+        }
     }
 
     public void setEditMode(LichTrinh lichTrinh) {
@@ -135,12 +131,15 @@ public class AddScheduleDialogController {
         
         // Fill data
         String routeName = lichTrinh.getTuyenDuong().getTenDiemDi() + " → " + 
-                          lichTrinh.getTuyenDuong().getTenDiemDen();
+                           lichTrinh.getTuyenDuong().getTenDiemDen();
         routeCombo.setValue(routeName);
         trainCombo.setValue(lichTrinh.getTau().getMacTau());
         departureDatePicker.setValue(lichTrinh.getNgayGioKhoiHanh().toLocalDate());
         hourCombo.setValue(String.format("%02d", lichTrinh.getNgayGioKhoiHanh().getHour()));
         minuteCombo.setValue(String.format("%02d", lichTrinh.getNgayGioKhoiHanh().getMinute()));
+        
+        // Khi sửa, ta cho phép đổi trạng thái (ví dụ từ Nháp -> Sẵn Sàng)
+        // nên không disable statusCombo ở đây.
         statusCombo.setValue(lichTrinh.getTrangThai().getTenTrangThai());
     }
 
@@ -153,7 +152,6 @@ public class AddScheduleDialogController {
         String minute = minuteCombo.getValue();
         String status = statusCombo.getValue();
 
-        // Validation
         if (route == null || train == null || date == null || 
             hour == null || minute == null || status == null) {
             showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Vui lòng điền đầy đủ thông tin!");
@@ -161,18 +159,15 @@ public class AddScheduleDialogController {
         }
 
         try {
-            // Tạo datetime
             LocalTime time = LocalTime.of(Integer.parseInt(hour), Integer.parseInt(minute));
             LocalDateTime ngayGioKhoiHanh = LocalDateTime.of(date, time);
 
-            // Kiểm tra ngày giờ phải sau hiện tại
             if (ngayGioKhoiHanh.isBefore(LocalDateTime.now().plusDays(1))) {
                 showAlert(Alert.AlertType.WARNING, "Cảnh báo", 
-                         "Ngày giờ khởi hành phải sau ngày hiện tại ít nhất 1 ngày!");
+                          "Ngày giờ khởi hành phải sau ngày hiện tại ít nhất 1 ngày!");
                 return;
             }
 
-            // Lấy tuyến và tàu
             TuyenDuong tuyenDuong = tuyenMap.get(route);
             Tau tau = tauMap.get(train);
 
@@ -181,36 +176,29 @@ public class AddScheduleDialogController {
                 return;
             }
 
-            // Tạo lịch trình
             LichTrinh lichTrinh = new LichTrinh(tuyenDuong, tau, ngayGioKhoiHanh);
+            // Lưu ý: TrangThai.valueOf cần chuỗi chính xác (case-sensitive) khớp với Enum
             lichTrinh.setTrangThai(TrangThai.valueOf(status));
 
             boolean success;
             if (isEditMode) {
-                // Cập nhật
                 lichTrinh.setMaLichTrinh(editingSchedule.getMaLichTrinh());
                 success = lichTrinhDAO.capNhatLichTrinh(lichTrinh);
             } else {
-                // Thêm mới
                 success = lichTrinhDAO.themLichTrinh(lichTrinh);
             }
 
             if (success) {
                 showAlert(Alert.AlertType.INFORMATION, "Thành công", 
-                         (isEditMode ? "Đã cập nhật" : "Đã thêm") + " lịch trình:\n\n" +
-                         "Tuyến: " + route + "\n" +
-                         "Tàu: " + train + "\n" +
-                         "Ngày giờ: " + date + " " + hour + ":" + minute);
+                          (isEditMode ? "Đã cập nhật" : "Đã thêm") + " lịch trình thành công!");
                 
-                // Refresh parent
                 if (parentController != null) {
                     parentController.handleRefresh();
                 }
-                
                 closeDialog();
             } else {
                 showAlert(Alert.AlertType.ERROR, "Thất bại", 
-                         "Không thể " + (isEditMode ? "cập nhật" : "thêm") + " lịch trình!");
+                          "Không thể " + (isEditMode ? "cập nhật" : "thêm") + " lịch trình!");
             }
 
         } catch (Exception e) {

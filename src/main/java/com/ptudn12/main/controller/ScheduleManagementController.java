@@ -1,21 +1,21 @@
 package com.ptudn12.main.controller;
 
 import com.ptudn12.main.dao.LichTrinhDAO;
-import com.ptudn12.main. entity.LichTrinh;
+import com.ptudn12.main.entity.LichTrinh;
 import com.ptudn12.main.enums.TrangThai;
 import javafx.collections.FXCollections;
-import javafx.collections. ObservableList;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene. control.*;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.geometry.Pos;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.stage. Modality;
-import javafx. stage.Stage;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import javafx.application.Platform;
-import javafx. concurrent.Task;
-import javafx. scene.layout. StackPane;
+import javafx.concurrent.Task;
+import javafx.scene.layout.StackPane;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -53,7 +53,6 @@ public class ScheduleManagementController {
     private ObservableList<LichTrinh> filteredData = FXCollections.observableArrayList();
     private LichTrinhDAO lichTrinhDAO = new LichTrinhDAO();
     
-    // Cache thông tin giống redis gần gần giống =))
     private Map<String, String> seatInfoCache = new HashMap<>();
     private Map<String, Double> seatRatioCache = new HashMap<>();
     
@@ -68,81 +67,55 @@ public class ScheduleManagementController {
         loadDataFromDatabase();
     }
 
-    /**
-     * Setup các cột trong bảng
-     */
     private void setupTableColumns() {
-        // Các cột cơ bản
         idColumn.setCellValueFactory(new PropertyValueFactory<>("maLichTrinh"));
         trainColumn.setCellValueFactory(new PropertyValueFactory<>("maTauDisplay"));
         routeColumn.setCellValueFactory(new PropertyValueFactory<>("tuyenDuongDisplay"));
-        departureColumn. setCellValueFactory(new PropertyValueFactory<>("ngayGioKhoiHanhFormatted"));
+        departureColumn.setCellValueFactory(new PropertyValueFactory<>("ngayGioKhoiHanhFormatted"));
         arrivalColumn.setCellValueFactory(new PropertyValueFactory<>("ngayGioDenFormatted"));
         priceColumn.setCellValueFactory(new PropertyValueFactory<>("giaCoBanFormatted"));
 
-        // Cột chỗ ngồi với custom cell factory
         setupSeatsColumn();
-        
-        // Cột trạng thái với custom cell factory
         setupStatusColumn();
     }
 
-    /**
-     * Setup cột chỗ ngồi với hiển thị màu sắc theo tỷ lệ
-     */
     private void setupSeatsColumn() {
         seatsColumn.setCellFactory(column -> new TableCell<LichTrinh, String>() {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                
                 if (empty || getTableRow() == null || getTableRow().getItem() == null) {
-                    setText(null);
-                    setGraphic(null);
-                    setStyle("");
-                    return;
+                    setText(null); setGraphic(null); setStyle(""); return;
                 }
 
                 LichTrinh lichTrinh = getTableRow().getItem();
                 if (lichTrinh == null || lichTrinh.getMaLichTrinh() == null) {
-                    setText(null);
-                    setGraphic(null);
-                    setStyle("");
-                    return;
+                    setText(null); setGraphic(null); setStyle(""); return;
                 }
 
                 String maLichTrinh = lichTrinh.getMaLichTrinh();
 
-                // Kiểm tra cache trước
-                if (seatInfoCache.containsKey(maLichTrinh) && seatRatioCache. containsKey(maLichTrinh)) {
-                    String thongTinCho = seatInfoCache.get(maLichTrinh);
-                    double tyLe = seatRatioCache.get(maLichTrinh);
-                    displaySeatInfo(thongTinCho, tyLe);
+                if (seatInfoCache.containsKey(maLichTrinh) && seatRatioCache.containsKey(maLichTrinh)) {
+                    displaySeatInfo(seatInfoCache.get(maLichTrinh), seatRatioCache.get(maLichTrinh));
                     return;
                 }
 
-                // Hiển thị loading
                 Label loadingLabel = new Label("Đang tải...");
                 loadingLabel.setStyle("-fx-text-fill: #999999; -fx-font-style: italic;");
                 setGraphic(loadingLabel);
                 setAlignment(Pos.CENTER);
 
-                // Load async để không block UI
                 Task<Void> loadTask = new Task<Void>() {
                     private String thongTinCho;
                     private double tyLe;
-                    
                     @Override
                     protected Void call() throws Exception {
                         thongTinCho = lichTrinhDAO.layThongTinChoNgoiFormat(maLichTrinh);
                         tyLe = lichTrinhDAO.layTyLeChoNgoiDaBan(maLichTrinh);
-                        
-                        // Cache kết quả
                         seatInfoCache.put(maLichTrinh, thongTinCho);
                         seatRatioCache.put(maLichTrinh, tyLe);
                         return null;
                     }
-                    
                     @Override
                     protected void succeeded() {
                         Platform.runLater(() -> {
@@ -152,7 +125,6 @@ public class ScheduleManagementController {
                             }
                         });
                     }
-                    
                     @Override
                     protected void failed() {
                         Platform.runLater(() -> {
@@ -163,81 +135,44 @@ public class ScheduleManagementController {
                         });
                     }
                 };
-                
                 new Thread(loadTask).start();
             }
-            
-            /**
-             * Hiển thị thông tin chỗ ngồi với màu sắc tương ứng
-             */
+
             private void displaySeatInfo(String thongTinCho, double tyLe) {
                 Label label = new Label(thongTinCho);
                 label.getStyleClass().add("seats-label");
-                
-                if (tyLe >= 90) {
-                    label.setStyle("-fx-background-color:  #ffcccc; -fx-text-fill: #cc0000; " +
-                                 "-fx-padding: 3 8 3 8; -fx-background-radius: 3; -fx-font-weight: bold;");
-                } else if (tyLe >= 70) {
-                    label.setStyle("-fx-background-color:  #fff3cd; -fx-text-fill: #856404; " +
-                                 "-fx-padding: 3 8 3 8; -fx-background-radius: 3;");
-                } else if (tyLe >= 50) {
-                    label.setStyle("-fx-background-color: #d1ecf1; -fx-text-fill: #0c5460; " +
-                                 "-fx-padding: 3 8 3 8; -fx-background-radius: 3;");
-                } else {
-                    label.setStyle("-fx-background-color: #d4edda; -fx-text-fill: #155724; " +
-                                 "-fx-padding: 3 8 3 8; -fx-background-radius: 3;");
-                }
-                
+                if (tyLe >= 90) label.setStyle("-fx-background-color: #ffcccc; -fx-text-fill: #cc0000; -fx-padding: 3 8 3 8; -fx-background-radius: 3; -fx-font-weight: bold;");
+                else if (tyLe >= 70) label.setStyle("-fx-background-color: #fff3cd; -fx-text-fill: #856404; -fx-padding: 3 8 3 8; -fx-background-radius: 3;");
+                else if (tyLe >= 50) label.setStyle("-fx-background-color: #d1ecf1; -fx-text-fill: #0c5460; -fx-padding: 3 8 3 8; -fx-background-radius: 3;");
+                else label.setStyle("-fx-background-color: #d4edda; -fx-text-fill: #155724; -fx-padding: 3 8 3 8; -fx-background-radius: 3;");
                 setGraphic(label);
                 setAlignment(Pos.CENTER);
             }
         });
     }
 
-    /**
-     * Setup cột trạng thái với hiển thị màu sắc
-     */
     private void setupStatusColumn() {
         statusColumn.setCellValueFactory(new PropertyValueFactory<>("trangThaiDisplay"));
-        statusColumn. setCellFactory(column -> new TableCell<LichTrinh, String>() {
+        statusColumn.setCellFactory(column -> new TableCell<LichTrinh, String>() {
             @Override
             protected void updateItem(String status, boolean empty) {
                 super.updateItem(status, empty);
                 if (empty || status == null) {
-                    setText(null);
-                    setGraphic(null);
-                    return;
+                    setText(null); setGraphic(null); return;
                 }
-
                 Label label = new Label(status);
                 label.getStyleClass().add("status-label");
-                
                 switch (status) {
-                    case "SanSang":
-                    case "DangChay":
-                        label.getStyleClass().add("status-ready");
-                        break;
-                    case "Nhap":
-                        label.getStyleClass().add("status-inactive");
-                        break;
-                    case "TamNgung":
-                    case "TamHoan":
-                        label.getStyleClass().add("status-paused");
-                        break;
-                    case "ChuaKhoiHanh":
-                        label.getStyleClass().add("status-waiting");
-                        break;
-                    default:
-                        break;
+                    case "SanSang": case "DangChay": label.getStyleClass().add("status-ready"); break;
+                    case "Nhap": label.getStyleClass().add("status-inactive"); break;
+                    case "TamNgung": case "TamHoan": label.getStyleClass().add("status-paused"); break;
+                    case "ChuaKhoiHanh": label.getStyleClass().add("status-waiting"); break;
                 }
                 setGraphic(label);
             }
         });
     }
 
-    /**
-     * Load dữ liệu từ database
-     */
     private void loadDataFromDatabase() {
         showLoading("Đang tải danh sách lịch trình...");
         
@@ -245,20 +180,29 @@ public class ScheduleManagementController {
             @Override
             protected List<LichTrinh> call() throws Exception {
                 List<LichTrinh> lichTrinhList = lichTrinhDAO.layTatCaLichTrinh();
-                
-                // Cập nhật trạng thái tự động
                 LocalDateTime now = LocalDateTime.now();
+                
                 for (LichTrinh lichTrinh : lichTrinhList) {
                     if (lichTrinh.getNgayGioKhoiHanh() == null || lichTrinh.getNgayGioDen() == null) {
                         continue;
                     }
 
+                    // 1. Đang chạy
                     if (lichTrinh.getNgayGioKhoiHanh().isBefore(now) && lichTrinh.getNgayGioDen().isAfter(now)) {
                         lichTrinh.setTrangThai(TrangThai.DangChay);
-                    } else if (lichTrinh.getNgayGioDen().isBefore(now)) {
-                        lichTrinh. setTrangThai(TrangThai.DaKetThuc);
-                    } else if (lichTrinh. getNgayGioKhoiHanh().isAfter(now) && lichTrinh.getTrangThai() == TrangThai. Nhap) {
-                        lichTrinh.setTrangThai(TrangThai.SanSang);
+                    } 
+                    // 2. Đã kết thúc
+                    else if (lichTrinh.getNgayGioDen().isBefore(now)) {
+                        lichTrinh.setTrangThai(TrangThai.DaKetThuc);
+                    } 
+                    // 3. Chưa khởi hành (Thời gian > Hiện tại)
+                    else if (lichTrinh.getNgayGioKhoiHanh().isAfter(now)) {
+                        // Nếu là Nháp -> Giữ nguyên là Nháp
+                        if (lichTrinh.getTrangThai() == TrangThai.Nhap) {
+                        } 
+                        else {
+                            lichTrinh.setTrangThai(TrangThai.SanSang);
+                        }
                     }
                 }
                 
@@ -271,16 +215,11 @@ public class ScheduleManagementController {
                     List<LichTrinh> danhSach = getValue();
                     allScheduleData.clear();
                     allScheduleData.addAll(danhSach);
-                    
                     filteredData.clear();
                     filteredData.addAll(danhSach);
-                    
-                    // Setup filters SAU KHI đã có dữ liệu
                     setupFilters();
-                    
                     currentPage = 0;
                     updatePagination();
-                    
                 } finally {
                     hideLoading();
                 }
@@ -289,214 +228,97 @@ public class ScheduleManagementController {
             @Override
             protected void failed() {
                 hideLoading();
-                Throwable e = getException();
-                e.printStackTrace();
-                showAlert(Alert.AlertType. ERROR, "Lỗi", "Không thể tải dữ liệu từ database:\n" + e. getMessage());
+                getException().printStackTrace();
+                showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể tải dữ liệu:\n" + getException().getMessage());
             }
         };
         
         new Thread(loadTask).start();
     }
 
-    /**
-     * Setup các bộ lọc
-     */
     private void setupFilters() {
-        if (startStationCombo == null || endStationCombo == null || trainCombo == null || statusCombo == null) {
-            return;
-        }
+        if (startStationCombo == null || endStationCombo == null || trainCombo == null || statusCombo == null) return;
         
-        // Lưu giá trị hiện tại trước khi cập nhật
-        String currentStartStation = startStationCombo. getValue();
-        String currentEndStation = endStationCombo.getValue();
+        String currentStart = startStationCombo.getValue();
+        String currentEnd = endStationCombo.getValue();
         String currentTrain = trainCombo.getValue();
-        String currentStatus = statusCombo. getValue();
+        String currentStatus = statusCombo.getValue();
         
-        // Setup điểm đi
-        ObservableList<String> startStations = FXCollections. observableArrayList("Tất cả điểm đi");
-        if (allScheduleData != null && !allScheduleData.isEmpty()) {
-            allScheduleData.stream()
-                .filter(lt -> lt != null && lt.getTuyenDuong() != null && lt.getTuyenDuong().getTenDiemDi() != null)
-                .map(lt -> lt.getTuyenDuong().getTenDiemDi())
-                .distinct()
-                .sorted()
-                .forEach(startStations::add);
-        }
+        ObservableList<String> startStations = FXCollections.observableArrayList("Tất cả điểm đi");
+        allScheduleData.stream().filter(lt -> lt.getTuyenDuong() != null).map(lt -> lt.getTuyenDuong().getTenDiemDi()).distinct().sorted().forEach(startStations::add);
         startStationCombo.setItems(startStations);
-        startStationCombo.setValue(
-            startStations.contains(currentStartStation) ? currentStartStation : "Tất cả điểm đi"
-        );
-        
-        // Setup điểm đến
+        startStationCombo.setValue(startStations.contains(currentStart) ? currentStart : "Tất cả điểm đi");
+
         ObservableList<String> endStations = FXCollections.observableArrayList("Tất cả điểm đến");
-        if (allScheduleData != null && !allScheduleData.isEmpty()) {
-            allScheduleData.stream()
-                .filter(lt -> lt != null && lt.getTuyenDuong() != null && lt.getTuyenDuong().getTenDiemDen() != null)
-                .map(lt -> lt.getTuyenDuong().getTenDiemDen())
-                .distinct()
-                .sorted()
-                .forEach(endStations::add);
-        }
+        allScheduleData.stream().filter(lt -> lt.getTuyenDuong() != null).map(lt -> lt.getTuyenDuong().getTenDiemDen()).distinct().sorted().forEach(endStations::add);
         endStationCombo.setItems(endStations);
-        endStationCombo.setValue(
-            endStations.contains(currentEndStation) ? currentEndStation : "Tất cả điểm đến"
-        );
+        endStationCombo.setValue(endStations.contains(currentEnd) ? currentEnd : "Tất cả điểm đến");
 
-        // Setup mã tàu
         ObservableList<String> trains = FXCollections.observableArrayList("Tất cả mã tàu");
-        if (allScheduleData != null && !allScheduleData.isEmpty()) {
-            allScheduleData. stream()
-                .filter(lt -> lt != null && lt.getTau() != null && lt.getTau().getMacTau() != null)
-                .map(lt -> lt.getTau().getMacTau())
-                .distinct()
-                .sorted()
-                .forEach(trains:: add);
-        }
+        allScheduleData.stream().filter(lt -> lt.getTau() != null).map(lt -> lt.getTau().getMacTau()).distinct().sorted().forEach(trains::add);
         trainCombo.setItems(trains);
-        trainCombo.setValue(
-            trains.contains(currentTrain) ? currentTrain : "Tất cả mã tàu"
-        );
+        trainCombo.setValue(trains.contains(currentTrain) ? currentTrain : "Tất cả mã tàu");
 
-        // Setup trạng thái
         ObservableList<String> statuses = FXCollections.observableArrayList("Tất cả trạng thái");
-        if (allScheduleData != null && !allScheduleData. isEmpty()) {
-            allScheduleData.stream()
-                .filter(lt -> lt != null && lt.getTrangThai() != null && lt.getTrangThai().getTenTrangThai() != null)
-                .map(lt -> lt.getTrangThai().getTenTrangThai())
-                .distinct()
-                .sorted()
-                .forEach(statuses::add);
-        }
+        allScheduleData.stream().filter(lt -> lt.getTrangThai() != null).map(lt -> lt.getTrangThai().getTenTrangThai()).distinct().sorted().forEach(statuses::add);
         statusCombo.setItems(statuses);
-        statusCombo.setValue(
-            statuses.contains(currentStatus) ? currentStatus : "Tất cả trạng thái"
-        );
+        statusCombo.setValue(statuses.contains(currentStatus) ? currentStatus : "Tất cả trạng thái");
     }
 
-    /**
-     * Setup listeners cho các bộ lọc
-     */
     private void setupFilterListeners() {
-        if (startStationCombo != null) {
-            startStationCombo.setOnAction(e -> applyFilters());
-        }
-        if (endStationCombo != null) {
-            endStationCombo.setOnAction(e -> applyFilters());
-        }
-        if (trainCombo != null) {
-            trainCombo.setOnAction(e -> applyFilters());
-        }
-        if (statusCombo != null) {
-            statusCombo.setOnAction(e -> applyFilters());
-        }
+        if (startStationCombo != null) startStationCombo.setOnAction(e -> applyFilters());
+        if (endStationCombo != null) endStationCombo.setOnAction(e -> applyFilters());
+        if (trainCombo != null) trainCombo.setOnAction(e -> applyFilters());
+        if (statusCombo != null) statusCombo.setOnAction(e -> applyFilters());
     }
     
-    /**
-     * Áp dụng bộ lọc
-     */
     private void applyFilters() {
         showLoading("Đang lọc dữ liệu...");
-        
         Task<List<LichTrinh>> filterTask = new Task<List<LichTrinh>>() {
             @Override
-            protected List<LichTrinh> call() throws Exception {
-                String startStation = startStationCombo.getValue();
-                String endStation = endStationCombo.getValue();
+            protected List<LichTrinh> call() {
+                String start = startStationCombo.getValue();
+                String end = endStationCombo.getValue();
                 String train = trainCombo.getValue();
                 String status = statusCombo.getValue();
                 
-                return allScheduleData.stream()
-                    .filter(lichTrinh -> {
-                        // Filter điểm đi
-                        boolean matchStart = startStation == null || "Tất cả điểm đi".equals(startStation) || 
-                            (lichTrinh.getTuyenDuong() != null && lichTrinh.getTuyenDuong().getTenDiemDi() != null && 
-                             lichTrinh. getTuyenDuong().getTenDiemDi().equals(startStation));
-                        
-                        // Filter điểm đến
-                        boolean matchEnd = endStation == null || "Tất cả điểm đến".equals(endStation) || 
-                            (lichTrinh. getTuyenDuong() != null && lichTrinh.getTuyenDuong().getTenDiemDen() != null && 
-                             lichTrinh. getTuyenDuong().getTenDiemDen().equals(endStation));
-                        
-                        // Filter mã tàu
-                        boolean matchTrain = train == null || "Tất cả mã tàu".equals(train) || 
-                            (lichTrinh.getTau() != null && lichTrinh.getTau().getMacTau() != null && 
-                             lichTrinh.getTau().getMacTau().equals(train));
-                        
-                        // Filter trạng thái
-                        boolean matchStatus = status == null || "Tất cả trạng thái".equals(status) || 
-                            (lichTrinh.getTrangThai() != null && lichTrinh.getTrangThai().getTenTrangThai() != null && 
-                             lichTrinh.getTrangThai().getTenTrangThai().equals(status));
-                        
-                        return matchStart && matchEnd && matchTrain && matchStatus;
-                    })
-                    .collect(Collectors.toList());
+                return allScheduleData.stream().filter(lt -> {
+                    boolean mStart = start == null || "Tất cả điểm đi".equals(start) || (lt.getTuyenDuong() != null && lt.getTuyenDuong().getTenDiemDi().equals(start));
+                    boolean mEnd = end == null || "Tất cả điểm đến".equals(end) || (lt.getTuyenDuong() != null && lt.getTuyenDuong().getTenDiemDen().equals(end));
+                    boolean mTrain = train == null || "Tất cả mã tàu".equals(train) || (lt.getTau() != null && lt.getTau().getMacTau().equals(train));
+                    boolean mStatus = status == null || "Tất cả trạng thái".equals(status) || (lt.getTrangThai() != null && lt.getTrangThai().getTenTrangThai().equals(status));
+                    return mStart && mEnd && mTrain && mStatus;
+                }).collect(Collectors.toList());
             }
-            
             @Override
             protected void succeeded() {
-                try {
-                    List<LichTrinh> filtered = getValue();
-                    filteredData.clear();
-                    filteredData.addAll(filtered);
-                    
-                    currentPage = 0;
-                    updatePagination();
-                } finally {
-                    hideLoading();
-                }
-            }
-            
-            @Override
-            protected void failed() {
+                filteredData.clear();
+                filteredData.addAll(getValue());
+                currentPage = 0;
+                updatePagination();
                 hideLoading();
-                Throwable e = getException();
-                e. printStackTrace();
             }
+            @Override
+            protected void failed() { hideLoading(); getException().printStackTrace(); }
         };
-        
         new Thread(filterTask).start();
     }
 
-    /**
-     * Cập nhật phân trang
-     */
     private void updatePagination() {
         totalPages = (int) Math.ceil((double) filteredData.size() / ITEMS_PER_PAGE);
         if (totalPages == 0) totalPages = 1;
-        
         int fromIndex = currentPage * ITEMS_PER_PAGE;
         int toIndex = Math.min(fromIndex + ITEMS_PER_PAGE, filteredData.size());
-        
         scheduleData.clear();
-        if (fromIndex < filteredData.size()) {
-            scheduleData.addAll(filteredData.subList(fromIndex, toIndex));
-        }
+        if (fromIndex < filteredData.size()) scheduleData.addAll(filteredData.subList(fromIndex, toIndex));
         scheduleTable.setItems(scheduleData);
-        
-        if (pageLabel != null) {
-            pageLabel.setText("Trang " + (currentPage + 1) + "/" + totalPages + 
-                            " (Tổng:  " + filteredData.size() + " lịch trình)");
-        }
-        
+        if (pageLabel != null) pageLabel.setText("Trang " + (currentPage + 1) + "/" + totalPages + " (Tổng: " + filteredData.size() + " lịch trình)");
         if (prevButton != null) prevButton.setDisable(currentPage == 0);
         if (nextButton != null) nextButton.setDisable(currentPage >= totalPages - 1);
     }
     
-    @FXML
-    private void handlePrevPage() {
-        if (currentPage > 0) {
-            currentPage--;
-            updatePagination();
-        }
-    }
-    
-    @FXML
-    private void handleNextPage() {
-        if (currentPage < totalPages - 1) {
-            currentPage++;
-            updatePagination();
-        }
-    }
+    @FXML private void handlePrevPage() { if (currentPage > 0) { currentPage--; updatePagination(); } }
+    @FXML private void handleNextPage() { if (currentPage < totalPages - 1) { currentPage++; updatePagination(); } }
 
     @FXML
     private void handleAddSchedule() {
@@ -506,6 +328,10 @@ public class ScheduleManagementController {
             
             AddScheduleDialogController controller = loader.getController();
             controller.setParentController(this);
+            
+            // --- CẬP NHẬT: GỌI HÀM SET MODE ---
+            controller.setAddMode(); 
+            // ----------------------------------
             
             Stage dialogStage = new Stage();
             dialogStage.setTitle("Thêm Lịch Trình Mới");
@@ -518,7 +344,7 @@ public class ScheduleManagementController {
             showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể mở form thêm lịch trình:\n" + e.getMessage());
         }
     }
-
+    
     @FXML
     private void handleEditSchedule() {
         LichTrinh selected = scheduleTable.getSelectionModel().getSelectedItem();
@@ -527,6 +353,13 @@ public class ScheduleManagementController {
             return;
         }
         
+        if (selected.getTrangThai() != TrangThai.Nhap) {
+            showAlert(Alert.AlertType.WARNING, "Không thể sửa", 
+                      "Chỉ được phép chỉnh sửa các lịch trình ở trạng thái 'Nháp'!\n\n" +
+                      "Trạng thái hiện tại: " + selected.getTrangThai().getTenTrangThai());
+            return;
+        }
+
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/add-schedule-dialog.fxml"));
             Scene scene = new Scene(loader.load());
@@ -536,8 +369,8 @@ public class ScheduleManagementController {
             controller.setEditMode(selected);
             
             Stage dialogStage = new Stage();
-            dialogStage.setTitle("Sửa Lịch Trình");
-            dialogStage. initModality(Modality. APPLICATION_MODAL);
+            dialogStage.setTitle("Sửa Lịch Trình (Nháp)");
+            dialogStage.initModality(Modality.APPLICATION_MODAL);
             dialogStage.setScene(scene);
             dialogStage.showAndWait();
             
@@ -547,28 +380,71 @@ public class ScheduleManagementController {
         }
     }
 
-    @FXML
+  @FXML
     private void handleDeleteSchedule() {
         LichTrinh selected = scheduleTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
             showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Vui lòng chọn lịch trình cần xóa!");
             return;
         }
-        
+
+        // Kiểm tra điều kiện với các lịch trình đã hoạt động (Không phải Nháp)
+        if (selected.getTrangThai() != TrangThai.Nhap) {
+            try {
+                // stats[0] = Tổng số ghế
+                // stats[1] = Số vé đã bán (có thể chỉ tính vé Đã Thanh Toán)
+                // stats[2] = Số ghế còn trống (Available)
+                int[] stats = lichTrinhDAO.layThongTinChoNgoiTau(selected.getMaLichTrinh());
+                
+                int tongSoGhe = stats[0];
+                int soGheConLai = stats[2];
+                
+                // Logic sửa đổi: Tính số ghế đang bị chiếm dụng (Đã bán + Đang đặt + Bảo trì...)
+                int soGheDaChiEm = tongSoGhe - soGheConLai;
+
+                // Nếu có bất kỳ ghế nào bị chiếm (Số bị chiếm > 0)
+                if (soGheDaChiEm > 0) {
+                    showAlert(Alert.AlertType.ERROR, "Không thể xóa", 
+                        "Lịch trình này ĐÃ CÓ " + soGheDaChiEm + " GHẾ ĐƯỢC ĐẶT/BÁN!\n" +
+                        "(Tổng: " + tongSoGhe + " - Còn lại: " + soGheConLai + ")\n\n" +
+                        "Để đảm bảo dữ liệu, bạn không thể xóa lịch trình đã phát sinh giao dịch.\n" +
+                        "Vui lòng hủy vé/chỗ trước hoặc chọn phương án 'Tạm Ngưng'.");
+                    return; // Chặn luôn
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                showAlert(Alert.AlertType.ERROR, "Lỗi Database", "Không thể kiểm tra thông tin chỗ ngồi!");
+                return;
+            }
+        }
+
+        // --- Phần xác nhận xóa bên dưới giữ nguyên ---
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Xác nhận xóa");
-        confirm.setHeaderText("Bạn có chắc muốn xóa lịch trình này? ");
-        confirm.setContentText(selected.getMaLichTrinh());
+        confirm.setHeaderText("Bạn có chắc muốn xóa lịch trình này?");
+        
+        String content = "Mã: " + selected.getMaLichTrinh() + "\n" +
+                         "Tàu: " + selected.getTau().getMacTau() + "\n" +
+                         "Tuyến: " + selected.getTuyenDuong().getTenDiemDi() + " - " + selected.getTuyenDuong().getTenDiemDen();
+        
+        if (selected.getTrangThai() != TrangThai.Nhap) {
+            content += "\n\nLưu ý: Lịch trình sẽ chuyển sang trạng thái TẠM NGƯNG.";
+        } else {
+            content += "\n\nLưu ý: Lịch trình Nháp sẽ bị xóa hoàn toàn khỏi hệ thống.";
+        }
+        
+        confirm.setContentText(content);
         
         if (confirm.showAndWait().get() == ButtonType.OK) {
             try {
                 boolean success = lichTrinhDAO.xoaLichTrinh(selected.getMaLichTrinh());
                 
                 if (success) {
-                    showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã xóa/tạm ngưng lịch trình!");
+                    showAlert(Alert.AlertType.INFORMATION, "Thành công", 
+                        selected.getTrangThai() == TrangThai.Nhap ? "Đã xóa lịch trình vĩnh viễn!" : "Đã chuyển lịch trình sang Tạm Ngưng!");
                     handleRefresh();
                 } else {
-                    showAlert(Alert.AlertType.ERROR, "Thất bại", "Không thể xóa lịch trình!");
+                    showAlert(Alert.AlertType.ERROR, "Thất bại", "Không thể xóa/tạm ngưng lịch trình!");
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -582,33 +458,25 @@ public class ScheduleManagementController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/generate-schedules-dialog.fxml"));
             Scene scene = new Scene(loader.load());
-            
-            GenerateSchedulesDialogController controller = loader. getController();
+            GenerateSchedulesDialogController controller = loader.getController();
             controller.setParentController(this);
-            
             Stage dialogStage = new Stage();
-            dialogStage. setTitle("Tự Động Gen Lịch Trình");
+            dialogStage.setTitle("Tự Động Tạo Lịch Trình");
             dialogStage.initModality(Modality.APPLICATION_MODAL);
             dialogStage.setScene(scene);
             dialogStage.showAndWait();
-            
         } catch (Exception e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể mở form gen lịch trình:\n" + e.getMessage());
         }
     }
 
-    @FXML
-    public void handleRefresh() {
-        // Xóa cache để reload dữ liệu mới
+    @FXML public void handleRefresh() {
         seatInfoCache.clear();
         seatRatioCache.clear();
-        
-        // Reload data từ database
         loadDataFromDatabase();
     }
 
-    // ==================== View Details ====================
     @FXML
     private void handleViewSeatsDetail() {
         LichTrinh selected = scheduleTable.getSelectionModel().getSelectedItem();
@@ -616,34 +484,28 @@ public class ScheduleManagementController {
             showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Vui lòng chọn lịch trình để xem chi tiết!");
             return;
         }
-        
         try {
-            // Lấy thông tin chi tiết
             int[] thongTin = lichTrinhDAO.layThongTinChoNgoiTau(selected.getMaLichTrinh());
-            List<Map<String, Object>> danhSachDaBan = lichTrinhDAO. layDanhSachChoDaBan(selected.getMaLichTrinh());
+            List<Map<String, Object>> danhSachDaBan = lichTrinhDAO.layDanhSachChoDaBan(selected.getMaLichTrinh());
             
             StringBuilder message = new StringBuilder();
-            message. append("Lịch trình: ").append(selected.getMaLichTrinh()).append("\n");
+            message.append("Lịch trình: ").append(selected.getMaLichTrinh()).append("\n");
             message.append("Tàu: ").append(selected.getTau().getMacTau()).append("\n\n");
             message.append("Tổng số chỗ: ").append(thongTin[0]).append("\n");
             message.append("Đã bán: ").append(thongTin[1]).append("\n");
             message.append("Còn trống: ").append(thongTin[2]).append("\n");
             message.append("Tỷ lệ: ").append(String.format("%.2f%%", lichTrinhDAO.layTyLeChoNgoiDaBan(selected.getMaLichTrinh()))).append("\n\n");
             
-            if (! danhSachDaBan. isEmpty()) {
+            if (!danhSachDaBan.isEmpty()) {
                 message.append("Chi tiết chỗ đã bán:\n");
                 for (Map<String, Object> cho : danhSachDaBan) {
-                    message.append("- Toa:  ").append(cho.get("tenToa"))
-                           .append(", Vị trí: ").append(cho.get("viTriCho"))
-                           .append(", Loại: ").append(cho.get("loaiCho"))
-                           . append(", Vé:  ").append(cho.get("maVe"))
-                           .append("\n");
+                    message.append("- Toa: ").append(cho.get("tenToa")).append(", Vị trí: ").append(cho.get("viTriCho"))
+                           .append(", Loại: ").append(cho.get("loaiCho")).append(", Vé: ").append(cho.get("maVe")).append("\n");
                 }
             }
-            
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Chi tiết chỗ ngồi");
-            alert.setHeaderText("Thông tin chỗ ngồi");
+            alert.setTitle("Chi tiết lịch trình");
+            alert.setHeaderText("Thông tin");
             alert.setContentText(message.toString());
             alert.getDialogPane().setPrefWidth(600);
             alert.showAndWait();
@@ -653,34 +515,19 @@ public class ScheduleManagementController {
         }
     }
 
-    /**
-     * Hiển thị loading overlay
-     */
     private void showLoading(String message) {
         Platform.runLater(() -> {
-            if (loadingLabel != null) {
-                loadingLabel.setText(message);
-            }
-            if (loadingOverlay != null) {
-                loadingOverlay.setVisible(true);
-            }
+            if (loadingLabel != null) loadingLabel.setText(message);
+            if (loadingOverlay != null) loadingOverlay.setVisible(true);
         });
     }
     
-    /**
-     * Ẩn loading overlay
-     */
     private void hideLoading() {
         Platform.runLater(() -> {
-            if (loadingOverlay != null) {
-                loadingOverlay.setVisible(false);
-            }
+            if (loadingOverlay != null) loadingOverlay.setVisible(false);
         });
     }
 
-    /**
-     * Hiển thị alert dialog
-     */
     private void showAlert(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);
         alert.setTitle(title);

@@ -69,7 +69,7 @@
 
             <!-- Action Buttons -->
             <HBox spacing="15" alignment="CENTER_RIGHT">
-                <Button text="Chi tiết chỗ" styleClass="secondary-button" onAction="#handleViewSeatsDetail"/>
+                <Button text="Chi tiết lịch trình" styleClass="secondary-button" onAction="#handleViewSeatsDetail"/>
                 <Button text="Làm mới" styleClass="secondary-button" onAction="#handleRefresh"/>
                 <Button text="Sửa" styleClass="primary-button" onAction="#handleEditSchedule"/>
                 <Button text="Xóa" styleClass="danger-button" onAction="#handleDeleteSchedule"/>
