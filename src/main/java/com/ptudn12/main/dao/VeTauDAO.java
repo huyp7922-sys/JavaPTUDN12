@@ -67,6 +67,7 @@ public class VeTauDAO {
             while (rs.next()) {
                 VeTau ve = new VeTau();
                 ve.setMaVe(rs.getString("maVe"));
+                ve.setLoaiVe(LoaiVe.fromDescription(rs.getString("loaiVe")));
                 ve.setKhuHoi(rs.getBoolean("khuHoi"));
                 ve.setTrangThai(rs.getString("trangThai"));
                 
@@ -273,14 +274,18 @@ public class VeTauDAO {
     }
     
     /**
-     * Tạo mã vé duy nhất (YYYYMMDD + 4 số).
-     * @return Mã vé mới hoặc null nếu lỗi.
+     * Tạo mã vé: YYMMDD (6 số) + 6 số thứ tự.
+     * Ví dụ: 251216000001 (Ngày 16/12/2025, vé số 1)
+     * Max: 1 triệu vé/ngày.
      */
     public String generateUniqueVeId() {
-        LocalDate today = LocalDate.now();
-        String prefix = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        // Format ngày chỉ lấy 2 số cuối của năm: YYMMDD (Ví dụ: 251216)
+        String prefix = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyMMdd"));
+        
         int nextSequence = 1;
-        String sqlQuery = "SELECT MAX(CAST(SUBSTRING(maVe, 9, 4) AS INT)) FROM VeTau WHERE maVe LIKE ?";
+        
+        // SQL: Lấy 6 ký tự cuối cùng (Bỏ 6 ký tự đầu là ngày tháng)
+        String sqlQuery = "SELECT MAX(CAST(SUBSTRING(maVe, 7, 6) AS INT)) FROM VeTau WHERE maVe LIKE ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement psQuery = conn.prepareStatement(sqlQuery)) {
@@ -288,9 +293,12 @@ public class VeTauDAO {
             psQuery.setString(1, prefix + "%");
             ResultSet rs = psQuery.executeQuery();
             if (rs.next()) {
-                nextSequence = rs.getInt(1) + 1;
+                int maxSeq = rs.getInt(1);
+                if (maxSeq > 0) nextSequence = maxSeq + 1;
             }
-            return String.format("%s%04d", prefix, nextSequence);
+            
+            // Format thành 6 chữ số (Tổng: 6 ngày + 6 số = 12 ký tự)
+            return String.format("%s%06d", prefix, nextSequence);
 
         } catch (SQLException e) {
             System.err.println("Lỗi khi tạo mã vé: " + e.getMessage());

@@ -325,18 +325,55 @@ public class TraVeController {
     @FXML
     private void handleDoiVe() {
         if (selectedVe == null) return;
-        // Chuyển sang Step 1 để chọn tàu mới
+
+        // 1. Kiểm tra trạng thái
+        if (!"DaBan".equals(selectedVe.getTrangThai())) {
+            showAlert(Alert.AlertType.ERROR, "Chỉ được đổi vé 1 lần duy nhất!");
+            return;
+        }
+
+        // 2. Kiểm tra thời gian (Quy định: Trước 24h)
+        LocalDateTime now = LocalDateTime.now();
+        
+        // Cần check null an toàn cho Lịch trình
+        if (selectedVe.getChiTietLichTrinh() == null || selectedVe.getChiTietLichTrinh().getLichTrinh() == null) {
+             showAlert(Alert.AlertType.ERROR, "Lỗi dữ liệu vé (Không tìm thấy lịch trình).");
+             return;
+        }
+        
+        LocalDateTime gioKhoiHanh = selectedVe.getChiTietLichTrinh().getLichTrinh().getNgayGioKhoiHanh();
+        long hoursDiff = ChronoUnit.HOURS.between(now, gioKhoiHanh);
+
+        if (hoursDiff < 24) {
+            showAlert(Alert.AlertType.ERROR, "Không đủ điều kiện đổi vé.\nPhải đổi trước giờ tàu chạy tối thiểu 24 giờ.\nThời gian còn lại: " + hoursDiff + " giờ.");
+            return;
+        }
+        
+        if (selectedVe.getKhachHang() == null) {
+            KhachHang khachDi = khachHangDAO.getHanhKhachByMaVe(selectedVe.getMaVe());
+            if (khachDi != null) {
+                selectedVe.setKhachHang(khachDi);
+                System.out.println("DEBUG: Đã nạp thông tin khách hàng vào vé: " + khachDi.getTenKhachHang());
+            } else {
+                System.err.println("ERROR: Không tìm thấy khách hàng cho vé này!");
+            }
+        }
+
+        // --- 3. HIỆN THÔNG BÁO THÀNH CÔNG (UX Only) ---
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Đủ điều kiện đổi vé");
+        alert.setHeaderText(null);
+        alert.setContentText("Vé đủ điều kiện đổi.\nTrạng thái chỗ ngồi sẽ được cập nhật sau khi hoàn tất chọn vé mới.\nVui lòng chọn lại lịch trình mong muốn.");
+        alert.showAndWait();
+
+        // --- 4. RESET CACHE & CHUYỂN TRANG ---
+        // a. Xóa sạch cache cũ để tránh lỗi dính giao diện (Fix lỗi Step 2)
+        mainController.prepareForNewDoiVeTransaction();
+        // b. Set lại mode (vì hàm prepare ở trên có thể chưa set hoặc lỡ xóa)
+        mainController.setUserData("transactionType", BanVeController.MODE_DOI_VE);
+        // c. Lưu vé cũ vào Session
         mainController.setUserData("veCuCanDoi", selectedVe);
-        
-        // Clear data cũ
-        mainController.setUserData("lichTrinhChieuDi", null);
-        mainController.setUserData("lichTrinhChieuVe", null);
-        mainController.setUserData("gioHang_Di", null);
-        mainController.setUserData("gioHang_Ve", null);
-        mainController.setUserData("danhSachHanhKhachDaNhap", null);
-        mainController.setUserData("thongTinNguoiMua", null);
-        mainController.setUserData("tongThanhTien", null);
-        
+        // d. Chuyển màn hình
         mainController.loadContent("step-1.fxml");
     }
     

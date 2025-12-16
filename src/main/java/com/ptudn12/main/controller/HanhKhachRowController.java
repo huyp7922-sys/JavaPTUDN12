@@ -345,6 +345,10 @@ public class HanhKhachRowController {
     
     public VeTamThoi getVeDi() { return veDi; }
     public VeTamThoi getVeVe() { return veVe; }
+    
+    public ComboBox<LoaiVe> getComboDoiTuong() {
+        return this.comboDoiTuong;
+    }
 
     private void showAlert(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);

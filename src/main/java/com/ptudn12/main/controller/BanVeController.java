@@ -265,6 +265,34 @@ public class BanVeController {
         // 4. Load lại Step 1
         loadContent("step-1.fxml");
     }
+    
+    /**
+     * Hàm này được gọi khi bắt đầu quy trình Đổi Vé từ màn hình Tra Cứu.
+     * Mục đích: Xóa sạch cache giao diện cũ (Step 1, 2, 3, 4) để không bị dính dữ liệu của lần thao tác trước.
+     */
+    public void prepareForNewDoiVeTransaction() {
+        // 1. Xóa Cache View & Controller (Để lần sau load nó sẽ new mới lại)
+        step1View = null; step1ControllerInstance = null;
+        step2View = null; step2ControllerInstance = null;
+        step3View = null; step3ControllerInstance = null;
+        step4View = null; step4ControllerInstance = null;
+
+        // 2. Xóa các dữ liệu rác trong session (Trừ thông tin user đăng nhập)
+        // Lưu ý: Không xóa "transactionType" vì đang cần dùng nó
+        userData.remove("lichTrinhChieuDi");
+        userData.remove("lichTrinhChieuVe");
+        userData.remove("gioHang_Di");
+        userData.remove("gioHang_Ve");
+        userData.remove("danhSachHanhKhachDaNhap");
+        userData.remove("thongTinNguoiMua");
+        userData.remove("tongThanhTien");
+        
+        // Xóa data form step 1
+        userData.remove("step1_gaDi");
+        userData.remove("step1_gaDen");
+        userData.remove("step1_ngayDi");
+        userData.remove("step1_isKhuHoi");
+    }
 
     @FXML
     public void handleLogout() {

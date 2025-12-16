@@ -4,6 +4,7 @@ import com.ptudn12.main.dao.KhachHangDAO;
 import com.ptudn12.main.entity.KhachHang;
 import com.ptudn12.main.controller.VeTamThoi;
 import com.ptudn12.main.entity.VeTau;
+import com.ptudn12.main.enums.LoaiVe;
 import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -175,49 +176,68 @@ public class Step3Controller {
         if (BanVeController.MODE_DOI_VE.equals(mode)) {
             VeTau veCu = (VeTau) mainController.getUserData("veCuCanDoi");
             
-            // A. XỬ LÝ THÔNG TIN HÀNH KHÁCH (Người C)
-            // Chỉ xử lý dòng đầu tiên (vì đổi vé làm từng cái)
-            if (!rowControllers.isEmpty() && veCu != null) {
-                HanhKhachRowController row = rowControllers.get(0);
-                KhachHang khachDi = veCu.getKhachHang(); // Đây là người C (Người đi tàu)
-
-                if (khachDi != null) {
-                    // Fill thông tin người đi
-                    row.getTxtHoTen().setText(khachDi.getTenKhachHang());
-                    String giayTo = (khachDi.getSoCCCD() != null && !khachDi.getSoCCCD().isEmpty()) ? khachDi.getSoCCCD() : khachDi.getHoChieu();
-                    row.getTxtSoGiayTo().setText(giayTo);
-                    
-                    // --- KHÓA INPUT HÀNH KHÁCH ---
-                    row.getTxtHoTen().setDisable(true);
-                    row.getTxtSoGiayTo().setDisable(true);
-                    // row.getComboDoiTuong().setDisable(true); // Nếu muốn khóa luôn loại đối tượng
-                }
-            }
-
-            // B. XỬ LÝ THÔNG TIN NGƯỜI MUA (Người A)
             if (veCu != null) {
-                // Gọi DAO để tìm người A (Chủ hóa đơn gốc)
+                // A. FILL THÔNG TIN NGƯỜI ĐI (HÀNH KHÁCH - Dòng đầu tiên)
+                // Vì đổi vé chỉ làm việc với 1 vé (hoặc 1 cặp vé) của 1 người, 
+                // nên ta chỉ fill vào row đầu tiên (index 0)
+                if (!rowControllers.isEmpty()) {
+                    HanhKhachRowController row = rowControllers.get(0);
+                    KhachHang khachDi = veCu.getKhachHang();
+
+                    if (khachDi != null) {
+                        // Fill Họ tên
+                        if (row.getTxtHoTen() != null) {
+                            row.getTxtHoTen().setText(khachDi.getTenKhachHang());
+                            row.getTxtHoTen().setDisable(true); // Khóa
+                        }
+                        
+                        // Fill Giấy tờ
+                        String giayTo = (khachDi.getSoCCCD() != null && !khachDi.getSoCCCD().isEmpty()) 
+                                        ? khachDi.getSoCCCD() 
+                                        : khachDi.getHoChieu();
+                        
+                        if (row.getTxtSoGiayTo() != null) {
+                            row.getTxtSoGiayTo().setText(giayTo);
+                            row.getTxtSoGiayTo().setDisable(true); // Khóa
+                        }
+                        
+                        ComboBox<LoaiVe> comboDoiTuong = row.getComboDoiTuong(); 
+
+                        if (comboDoiTuong != null) {
+                            LoaiVe loaiVeCu = veCu.getLoaiVe();
+
+                            if (loaiVeCu != null) {
+                                comboDoiTuong.setValue(loaiVeCu);
+
+                                // Khóa lại
+                                comboDoiTuong.setDisable(true);
+                                comboDoiTuong.setStyle("-fx-opacity: 1; -fx-text-fill: black;");
+                            }
+                        }
+                    }
+                }
+
+                // B. FILL THÔNG TIN NGƯỜI MUA (NGƯỜI ĐẠI DIỆN)
+                // Tìm người mua gốc (A)
                 KhachHang nguoiMua = khachHangDAO.getNguoiMuaByMaVe(veCu.getMaVe());
                 
-                // Fallback: Nếu không tìm thấy người mua (do dữ liệu cũ lỗi), thì lấy tạm người đi
+                // Fallback: Nếu ko tìm thấy người mua gốc thì lấy chính người đi
                 if (nguoiMua == null) nguoiMua = veCu.getKhachHang();
-                
-                String giayToDinhDanh = (nguoiMua.getSoCCCD() != null && !nguoiMua.getSoCCCD().isEmpty()) 
-                        ? nguoiMua.getSoCCCD() 
-                        : nguoiMua.getHoChieu();
-                String emailDB = khachHangDAO.getEmailKhachHang(giayToDinhDanh);
-                
+
                 if (nguoiMua != null) {
                     txtNguoiMuaHoTen.setText(nguoiMua.getTenKhachHang());
-                    String giayToMua = (nguoiMua.getSoCCCD() != null && !nguoiMua.getSoCCCD().isEmpty()) ? nguoiMua.getSoCCCD() : nguoiMua.getHoChieu();
+                    
+                    String giayToMua = (nguoiMua.getSoCCCD() != null && !nguoiMua.getSoCCCD().isEmpty()) 
+                                       ? nguoiMua.getSoCCCD() : nguoiMua.getHoChieu();
                     txtNguoiMuaSoGiayTo.setText(giayToMua);
-                    String idToSearch = (giayToMua != null) ? giayToMua : "";
-                    txtNguoiMuaEmail.setText(khachHangDAO.getEmailKhachHang(idToSearch));
+                    
+                    // Email
+                    String email = khachHangDAO.getEmailKhachHang(giayToMua);
+                    txtNguoiMuaEmail.setText(email);
                     txtNguoiMuaSDT.setText(nguoiMua.getSoDienThoai());
                 }
 
                 // --- KHÓA INPUT NGƯỜI MUA ---
-                // Disable toàn bộ để không cho sửa thông tin người đại diện cũ
                 txtNguoiMuaHoTen.setDisable(true);
                 txtNguoiMuaSoGiayTo.setDisable(true);
                 txtNguoiMuaEmail.setDisable(true);
@@ -225,8 +245,7 @@ public class Step3Controller {
             }
         } 
         else {
-            // --- LOGIC BÁN VÉ THƯỜNG ---
-            // Mở khóa input phòng trường hợp trước đó bị disable
+            // --- LOGIC BÁN VÉ THƯỜNG: Mở khóa ---
             txtNguoiMuaHoTen.setDisable(false);
             txtNguoiMuaSoGiayTo.setDisable(false);
             txtNguoiMuaEmail.setDisable(false);

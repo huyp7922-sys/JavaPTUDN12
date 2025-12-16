@@ -41,14 +41,20 @@ public class HoaDonDAO {
     }
 
      /**
-     * Tạo mã hóa đơn duy nhất ("HD" + YYYY + 6 số).
-     * @return Mã hóa đơn mới hoặc null nếu lỗi.
+     * Tạo mã hóa đơn: HD + YY (2 số cuối năm) + 8 số thứ tự.
+     * Ví dụ: HD2500000001 (Năm 2025, hóa đơn số 1)
+     * Max: 100 triệu hóa đơn/năm.
      */
-     public String generateUniqueHoaDonId() {
-        int currentYear = LocalDate.now().getYear();
-        String prefix = "HD" + currentYear;
+    public String generateUniqueHoaDonId() {
+        // Lấy 2 số cuối của năm (Ví dụ: 2025 -> "25")
+        String yearSuffix = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yy"));
+        String prefix = "HD" + yearSuffix; 
+        
         int nextSequence = 1;
-        String sqlQuery = "SELECT MAX(CAST(SUBSTRING(maHoaDon, 7, 6) AS INT)) FROM HoaDon WHERE maHoaDon LIKE ?";
+        
+        // SQL: Lấy 8 ký tự cuối cùng để chuyển thành số (Bỏ 'HD' và 2 số năm = 4 ký tự đầu)
+        // SUBSTRING(cột, vị_trí_bắt_đầu, độ_dài) -> Bắt đầu từ 5
+        String sqlQuery = "SELECT MAX(CAST(SUBSTRING(maHoaDon, 5, 8) AS BIGINT)) FROM HoaDon WHERE maHoaDon LIKE ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement psQuery = conn.prepareStatement(sqlQuery)) {
@@ -56,9 +62,13 @@ public class HoaDonDAO {
             psQuery.setString(1, prefix + "%");
             ResultSet rs = psQuery.executeQuery();
             if (rs.next()) {
-                nextSequence = rs.getInt(1) + 1;
+                // Nếu tìm thấy, tăng số thứ tự lên 1
+                long maxId = rs.getLong(1); 
+                if (maxId > 0) nextSequence = (int) (maxId + 1);
             }
-            return String.format("%s%06d", prefix, nextSequence);
+            
+            // Format thành 8 chữ số (để tổng là 2 + 2 + 8 = 12)
+            return String.format("%s%08d", prefix, nextSequence);
 
         } catch (SQLException e) {
             System.err.println("Lỗi khi tạo mã hóa đơn: " + e.getMessage());

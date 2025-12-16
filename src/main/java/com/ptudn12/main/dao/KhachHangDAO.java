@@ -366,5 +366,31 @@ public class KhachHangDAO {
         }
         return null;
     }
+    
+    public KhachHang getHanhKhachByMaVe(String maVe) {
+        String sql = "SELECT KH.* FROM KhachHang KH " +
+                     "JOIN VeTau VT ON KH.maKhachHang = VT.khachHangId " +
+                     "WHERE VT.maVe = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setString(1, maVe);
+            ResultSet rs = ps.executeQuery();
+            
+            if (rs.next()) {
+                KhachHang kh = new KhachHang();
+                // Map dữ liệu (Đảm bảo đúng tên cột trong DB của bạn)
+                kh.setMaKH(String.valueOf(rs.getInt("maKhachHang")));
+                kh.setTenKhachHang(rs.getString("tenKhachHang"));
+                kh.setSoCCCD(rs.getString("soCCCD"));
+                kh.setHoChieu(rs.getString("hoChieu"));
+                kh.setSoDienThoai(rs.getString("soDienThoai"));
+                return kh;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
 

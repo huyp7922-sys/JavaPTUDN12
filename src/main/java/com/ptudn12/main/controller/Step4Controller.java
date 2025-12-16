@@ -42,6 +42,10 @@ public class Step4Controller {
     @FXML private Button btnXuatHoaDon;
     @FXML private Button btnDoiDiem;
     @FXML private Button btnTichDiem;
+    @FXML private Label lblTitleTongTien;
+    @FXML private Label lblTitleGiamDoiTuong;
+    @FXML private Label lblTitleBaoHiem;
+    
 
     // --- FXML Right Section ---
     @FXML private Label lblDisplayTongThanhToan;
@@ -106,8 +110,7 @@ public class Step4Controller {
         danhSachHanhKhach = (List<Map<String, Object>>) mainController.getUserData("danhSachHanhKhachDaNhap");
         thongTinNguoiMua = (Map<String, String>) mainController.getUserData("thongTinNguoiMua");
         String tongThanhToanStr = (String) mainController.getUserData("tongThanhTien");
-
-        // Chuyển đổi giá tiền từ chuỗi
+        
         double rawNewPrice = 0;
         try {
             if (tongThanhToanStr != null) {
@@ -115,73 +118,114 @@ public class Step4Controller {
                 rawNewPrice = Double.parseDouble(numericString);
             }
         } catch (Exception e) {
-            System.err.println("Lỗi chuyển đổi tổng thành tiền: " + e.getMessage());
+            System.err.println("Lỗi parse tiền: " + e.getMessage());
         }
-        
+
         String mode = (String) mainController.getUserData("transactionType");
         
-        // --- XỬ LÝ LOGIC TÍNH TOÁN THEO MODE ---
+        // --- CHECK MODE ĐỂ HIỂN THỊ ---
         if (BanVeController.MODE_DOI_VE.equals(mode)) {
-            // === CHẾ ĐỘ ĐỔI VÉ ===
+            // ============================================================
+            // CHẾ ĐỘ ĐỔI VÉ
+            // ============================================================
             VeTau veCu = (VeTau) mainController.getUserData("veCuCanDoi");
             
-            // a. Lấy giá thực tế của vé cũ (Giá đã thanh toán trong hóa đơn cũ)
-            // Lưu ý: Cần hàm lấy giá trị thực từ ChiTietHoaDon, tạm thời lấy giá hiện tại
-            double giaVeCu = veCu.getChiTietLichTrinh().getGiaChoNgoi(); 
+            // a. Lấy giá vé cũ (Giá thực tế đã mua trong CTHD)
+            // Tạm thời lấy giá niêm yết nếu chưa query được CTHD
+            double giaVeCu = 0;
+            if (veCu != null && veCu.getChiTietLichTrinh() != null) {
+                giaVeCu = veCu.getChiTietLichTrinh().getGiaChoNgoi();
+            }
             
-            double phiDoiVe = 20000;
-            double chenhLech = rawNewPrice - giaVeCu;
-            if (chenhLech < 0) chenhLech = 0; // Không hoàn tiền thừa
+            double phiDoiVe = 20000; // Phí cố định
             
-            // b. Tính tổng tiền phải thu thêm
-            double tongPhaiThu = chenhLech + phiDoiVe;
+            // b. Tính toán chênh lệch
+            // Công thức: Tiền phải đóng = (Giá Mới - Giá Cũ) + Phí
+            // Nếu Giá Mới < Giá Cũ -> Chỉ thu Phí (Không hoàn tiền thừa - theo nghiệp vụ thường thấy)
+            double chenhLechGiaVe = rawNewPrice - giaVeCu;
+            if (chenhLechGiaVe < 0) chenhLechGiaVe = 0; 
+            
+            double tongPhaiThu = chenhLechGiaVe + phiDoiVe;
             this.tongThanhToanValue = roundUpToThousand(tongPhaiThu);
 
-            // c. Cập nhật giao diện hiển thị riêng cho Đổi Vé
-            lblDetailTongTienVe.setText("Giá vé mới: " + moneyFormatter.format(rawNewPrice));
+            // c. Cập nhật LABEL hiển thị
+            // 1. Dòng Giá vé mới
+            lblTitleTongTien.setText("Giá vé mới:"); // Set tiêu đề bên trái
+            lblDetailTongTienVe.setText(moneyFormatter.format(rawNewPrice));
+            lblDetailTongTienVe.setStyle("-fx-text-fill: #008000; -fx-font-weight: bold;"); 
             
-            // Tận dụng label giảm giá để hiện giá vé cũ
-            lblDetailGiamDoiTuong.setText("Trừ vé cũ: -" + moneyFormatter.format(giaVeCu));
-            lblDetailGiamDoiTuong.setStyle("-fx-text-fill: #e74c3c;"); // Màu đỏ
+            // 2. Dòng Giá vé cũ
+            lblTitleGiamDoiTuong.setText("Trừ giá vé cũ:");
+            lblDetailGiamDoiTuong.setText(moneyFormatter.format(giaVeCu));
+            lblDetailGiamDoiTuong.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;"); 
             
-            // Tận dụng label bảo hiểm để hiện phí đổi
-            lblDetailBaoHiem.setText("Phí đổi vé: +" + moneyFormatter.format(phiDoiVe));
-            lblDetailGiamDiem.setText(""); // Ẩn giảm điểm nếu không dùng
+            // 3. Dòng Phí đổi vé
+            lblTitleBaoHiem.setText("Lệ phí đổi vé:");
+            lblDetailBaoHiem.setText("+" + moneyFormatter.format(phiDoiVe));
+            lblDetailBaoHiem.setStyle("-fx-text-fill: #333;");
 
+            lblDetailGiamDiem.setText(""); 
+            
             btnXacNhanVaIn.setText("XÁC NHẬN ĐỔI VÉ");
 
         } else {
-            // === CHẾ ĐỘ BÁN VÉ THƯỜNG ===
+            // ============================================================
+            // CHẾ ĐỘ BÁN VÉ THƯỜNG
+            // ============================================================
             this.tongThanhToanValue = roundUpToThousand(rawNewPrice);
             
-            // Hiển thị chi tiết thanh toán chuẩn (Gọi hàm helper)
-            displayPaymentDetailsStandard();
+            // Tính toán chi tiết hiển thị
+            double tongTienVeGoc = 0;
+            double tongGiamDoiTuong = 0;
+            double tongBaoHiem = 0;
+
+            for (Map<String, Object> hanhKhach : danhSachHanhKhach) {
+                VeTamThoi veDi = (VeTamThoi) hanhKhach.get("veDi");
+                VeTamThoi veVe = (VeTamThoi) hanhKhach.get("veVe");
+                LoaiVe loaiVe = (LoaiVe) hanhKhach.get("doiTuong");
+
+                if (veDi != null) {
+                    double giaVeGoc = veDi.getGiaVe() - PHI_BAO_HIEM;
+                    tongTienVeGoc += giaVeGoc;
+                    tongGiamDoiTuong += giaVeGoc * loaiVe.getHeSoGiamGia();
+                    tongBaoHiem += PHI_BAO_HIEM;
+                }
+                if (veVe != null) {
+                    double giaVeGoc = veVe.getGiaVe() - PHI_BAO_HIEM;
+                    tongTienVeGoc += giaVeGoc;
+                    tongGiamDoiTuong += giaVeGoc * loaiVe.getHeSoGiamGia();
+                    tongBaoHiem += PHI_BAO_HIEM;
+                }
+            }
+
+            // Set lại text chuẩn cho bán vé
+            lblDetailTongTienVe.setText("Tổng tiền vé: " + moneyFormatter.format(tongTienVeGoc));
+            lblDetailGiamDoiTuong.setText("Giảm đối tượng: -" + moneyFormatter.format(tongGiamDoiTuong));
+            lblDetailGiamDoiTuong.setStyle("-fx-text-fill: #e74c3c;"); // Reset style nếu cần
+            lblDetailBaoHiem.setText("Bảo hiểm du lịch: " + moneyFormatter.format(tongBaoHiem));
+            lblDetailBaoHiem.setStyle("-fx-text-fill: #333;");
+            lblDetailGiamDiem.setText("Giảm điểm tích lũy: 0 VND"); // Reset
             btnXacNhanVaIn.setText("THANH TOÁN & IN VÉ");
         }
         
 
-        // --- CÁC BƯỚC CHUNG ---
+        // --- CÁC BƯỚC CHUNG (VALIDATION & UI) ---
         if (danhSachHanhKhach == null || danhSachHanhKhach.isEmpty() || thongTinNguoiMua == null) {
             showAlert(Alert.AlertType.ERROR, "Lỗi dữ liệu", "Không thể tải thông tin từ bước trước.");
             btnXacNhanVaIn.setDisable(true);
             return;
         }
 
-        // 2. Hiển thị bảng xác nhận vé (Danh sách vé mới)
         populateTicketTable();
 
-        // 3. Hiển thị tổng thanh toán (Đã làm tròn) bên phải
         lblDetailTongThanhToan.setText(moneyFormatter.format(tongThanhToanValue));
         lblDisplayTongThanhToan.setText(moneyFormatter.format(tongThanhToanValue));
 
-        // 4. Tạo các nút gợi ý mệnh giá
         generateSuggestionButtons();
 
-        // 5. Reset ô tiền khách đưa và tiền thối
         txtTienKhachDua.clear();
         lblTienThoiLai.setText("0 VNĐ");
         
-        // Hiện nút In và Ẩn nút Hoàn tất
         btnXacNhanVaIn.setDisable(true);
         btnXacNhanVaIn.setVisible(true);
         btnXacNhanVaIn.setManaged(true);
