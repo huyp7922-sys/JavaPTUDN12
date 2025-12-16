@@ -4,6 +4,7 @@
  */
 package com.ptudn12.main.controller;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -24,22 +25,24 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import javax.swing.SwingUtilities;
+import javax.imageio.ImageIO;
 
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
 import com.ptudn12.main.dao.ChiTietHoaDonDAO;
 import com.ptudn12.main.dao.ChiTietLichTrinhDAO;
 import com.ptudn12.main.dao.HoaDonDAO;
 import com.ptudn12.main.dao.KhachHangDAO;
 import com.ptudn12.main.dao.VeTauDAO;
 import com.ptudn12.main.entity.HoaDon;
-import com.ptudn12.main.entity.VeTau;
 import com.ptudn12.main.enums.LoaiVe;
 import com.ptudn12.main.utils.NumberUtils;
-import com.ptudn12.main.utils.ReportManager;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -47,6 +50,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -134,6 +138,8 @@ public class Step4Controller {
 	private final ChiTietHoaDonDAO chiTietHoaDonDAO = new ChiTietHoaDonDAO();
 	private final KhachHangDAO khachHangDAO = new KhachHangDAO();
 	private final ChiTietLichTrinhDAO chiTietLichTrinhDAO = new ChiTietLichTrinhDAO();
+
+	private static final String GITHUB_PAGES_URL = "https://huyp7922-sys.github.io/railway-ticket-verify/";
 
 	public void setMainController(BanVeController mainController) {
 		this.mainController = mainController;
@@ -442,86 +448,85 @@ public class Step4Controller {
 			return;
 
 		try {
-			String maNhanVien = "NV001"; // TODO: Lấy từ session
+			// --- 1. LOGIC LẤY NHÂN VIÊN (Từ Class 2 - Tốt hơn) ---
+			String maNhanVien = "NV001"; // Fallback
+			if (mainController != null && mainController.getNhanVien() != null) {
+				maNhanVien = mainController.getNhanVien().getMaNhanVien();
+			}
 
-			// 1. Lưu Khách Hàng
+			// --- 2. TẠO KHÁCH HÀNG & HÓA ĐƠN (Chung logic) ---
 			int khachHangId = khachHangDAO.findOrInsertKhachHang(thongTinNguoiMua);
 			if (khachHangId == -1) {
-				showAlert(Alert.AlertType.ERROR, "Lỗi", "Lỗi xử lý khách hàng.");
+				showAlert(Alert.AlertType.ERROR, "Lỗi", "Lỗi xử lý thông tin khách hàng.");
 				return;
 			}
 
-			// 2. Tạo Hóa Đơn
 			String maHoaDon = hoaDonDAO.generateUniqueHoaDonId();
+			// Lưu tổng tiền đã làm tròn (tongThanhToanValue từ Class 1 & 2 đều có)
 			if (!hoaDonDAO.createHoaDon(maHoaDon, khachHangId, maNhanVien, tongThanhToanValue)) {
 				showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể tạo hóa đơn.");
 				return;
 			}
 
+			// --- 3. LƯU TRẠNG THÁI HÓA ĐƠN (Từ Class 1 - Để dùng cho nút Xuất PDF) ---
 			this.completedMaHoaDon = maHoaDon;
 
-			// 3. Tạo Vé & Chi Tiết (Lưu vào DB)
+			// --- 4. XỬ LÝ VÉ & QR CODE (Kết hợp) ---
 			List<String> createdTicketIds = new ArrayList<>();
+
 			for (Map<String, Object> hanhKhach : danhSachHanhKhach) {
 				VeTamThoi veDi = (VeTamThoi) hanhKhach.get("veDi");
 				VeTamThoi veVe = (VeTamThoi) hanhKhach.get("veVe");
 				LoaiVe loaiVe = (LoaiVe) hanhKhach.get("doiTuong");
 
+				// Gọi hàm processVe (Phiên bản có tạo QR của Class 2)
 				if (veDi != null) {
-					String ma = processVe(maHoaDon, khachHangId, veDi, loaiVe);
+					String ma = processVe(maHoaDon, khachHangId, veDi, loaiVe, hanhKhach);
 					if (ma != null)
 						createdTicketIds.add(ma);
 				}
 				if (veVe != null) {
-					String ma = processVe(maHoaDon, khachHangId, veVe, loaiVe);
+					String ma = processVe(maHoaDon, khachHangId, veVe, loaiVe, hanhKhach);
 					if (ma != null)
 						createdTicketIds.add(ma);
 				}
 			}
 
-			// 4. HIỆN MODAL PREVIEW (IN VÉ)
-			// Chạy trên luồng Swing để tránh xung đột với JavaFX nếu JasperViewer bị lag
-			SwingUtilities.invokeLater(() -> {
-				for (String maVe : createdTicketIds) {
-					VeTau fullVe = veTauDAO.getVeTauDetail(maVe);
-					if (fullVe != null) {
-						// Hàm này sẽ mở cửa sổ mới
-						ReportManager.printVeTau(fullVe);
-					}
-				}
-			});
+			// --- 5. HIỂN THỊ DIALOG IN VÉ (Từ Class 2 - UX tốt hơn) ---
+			if (!createdTicketIds.isEmpty()) {
+				// Mở dialog danh sách vé thay vì in ngay lập tức
+				showPrintListDialog(createdTicketIds);
+			}
 
-			// 5. CẬP NHẬT GIAO DIỆN -> CHỜ HOÀN TẤT
-			showAlert(Alert.AlertType.INFORMATION, "Thành công", "Thanh toán thành công!\nCửa sổ in vé đang được mở.");
+			// --- 6. CẬP NHẬT UI & TRẠNG THÁI (Từ Class 1 - Logic nghiệp vụ đầy đủ hơn) ---
+			showAlert(Alert.AlertType.INFORMATION, "Thành công", "Thanh toán thành công! Hóa đơn: " + maHoaDon);
 
-			// Ẩn nút In, Ẩn nút Quay lại
+			// a. Ẩn nút xác nhận, hiện nút hoàn tất
 			btnXacNhanVaIn.setVisible(false);
 			btnXacNhanVaIn.setManaged(false);
 
 			if (btnQuayLai != null) {
-				btnQuayLai.setVisible(false); // Ẩn luôn cho gọn
+				btnQuayLai.setVisible(false);
 				btnQuayLai.setManaged(false);
 			}
 
-			// Hiện nút Hoàn tất to đùng
 			if (btnHoanTat != null) {
 				btnHoanTat.setVisible(true);
 				btnHoanTat.setManaged(true);
-				btnHoanTat.requestFocus();
+				btnHoanTat.requestFocus(); // Focus để bấm Enter cho nhanh
 			}
 
-			// ===============================================
-			// === THAY ĐỔI TRẠNG THÁI CÁC NÚT SAU KHI LƯU ===
-			// ===============================================
-			System.out.println("Sẵn sàng hiển thị hóa đơn với mã: " + maHoaDon);
-
-			btnXacNhanVaIn.setDisable(true); // Vô hiệu hóa nút thanh toán để tránh bấm nhầm
-			btnDoiDiem.setDisable(true); // Khóa chức năng đổi điểm sau khi đã trả tiền
+			// b. Khóa các chức năng thanh toán để tránh sửa đổi sau khi đã thu tiền
+			btnDoiDiem.setDisable(true); // Khóa đổi điểm
 			txtTienKhachDua.setEditable(false); // Khóa ô nhập tiền
 
-			btnTichDiem.setDisable(false); // BẬT nút Tích điểm
-			btnXuatHoaDon.setDisable(false); // BẬT nút Xuất hóa đơn
-			// ===============================================
+			// c. Bật các tính năng sau bán hàng (Loyalty & VAT)
+			if (btnTichDiem != null)
+				btnTichDiem.setDisable(false); // BẬT nút Tích điểm
+			if (btnXuatHoaDon != null)
+				btnXuatHoaDon.setDisable(false); // BẬT nút Xuất hóa đơn
+
+			System.out.println("Giao dịch hoàn tất. Mã HĐ: " + maHoaDon);
 
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -536,19 +541,21 @@ public class Step4Controller {
 	}
 
 	// Sửa hàm này trả về String (Mã vé) thay vì void
-	private String processVe(String maHoaDon, int khachHangId, VeTamThoi ve, LoaiVe loaiVe) {
+	private String processVe(String maHoaDon, int khachHangId, VeTamThoi ve, LoaiVe loaiVe,
+			Map<String, Object> hanhKhachInfo) {
 		double giaChoNgoi = ve.getGiaVe() - PHI_BAO_HIEM;
 
 		// 1. Tạo ChiTietLichTrinh (đánh dấu ghế đã bán)
 		int chiTietLichTrinhId = chiTietLichTrinhDAO.createChiTietLichTrinh(ve.getLichTrinh().getMaLichTrinh(),
-				ve.getChiTietToa().getCho().getMaCho(), giaChoNgoi, "DaBan"); // Truyền đúng "DaBan" khớp với DB
+				ve.getChiTietToa().getCho().getMaCho(), giaChoNgoi, "DaBan");
 
 		if (chiTietLichTrinhId != -1) {
-			// 2. Tạo mã vé
+			// 2. Sinh mã vé
 			String maVe = veTauDAO.generateUniqueVeId();
 			if (maVe != null) {
-				// 3. Tạo Vé Tàu
 				boolean isKhuHoi = !ve.isChieuDi();
+
+				// 3. Tạo Vé Tàu
 				boolean success = veTauDAO.createVeTau(maVe, khachHangId, chiTietLichTrinhId, loaiVe.getDescription(),
 						isKhuHoi, "DaBan");
 
@@ -556,8 +563,13 @@ public class Step4Controller {
 					// 4. Tạo Chi Tiết Hóa Đơn
 					double giaGoc = giaChoNgoi;
 					double giamGia = giaGoc * loaiVe.getHeSoGiamGia();
-					double thanhTien = ve.getGiaVe() - giamGia; // Giá vé + BH - Giảm giá
+					double thanhTien = ve.getGiaVe() - giamGia;
 					chiTietHoaDonDAO.createChiTietHoaDon(maHoaDon, maVe, giamGia, thanhTien);
+
+					// 5. TẠO QR CODE (Logic từ Class 2)
+					// Hàm này sẽ tạo ảnh và update đường dẫn ảnh vào DB
+					generateTicketQRCode(maVe, ve, hanhKhachInfo);
+
 					return maVe;
 				}
 			}
@@ -1288,5 +1300,72 @@ public class Step4Controller {
 		alert.setHeaderText(null);
 		alert.setContentText(message);
 		Platform.runLater(alert::showAndWait);
+	}
+
+	private void showPrintListDialog(List<String> ticketIds) {
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/print-list-view.fxml"));
+			Parent root = loader.load();
+
+			PrintListController controller = loader.getController();
+
+			Stage stage = new Stage();
+			stage.setTitle("Danh sách vé đã xuất");
+			stage.initModality(Modality.APPLICATION_MODAL);
+			stage.setScene(new Scene(root));
+
+			controller.setDialogStage(stage);
+			controller.setTicketIds(ticketIds);
+
+			stage.showAndWait();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			showAlert(Alert.AlertType.ERROR, "Lỗi hiển thị", "Không thể mở danh sách in vé:  " + e.getMessage());
+		}
+	}
+
+	private void generateTicketQRCode(String maVe, VeTamThoi ve, Map<String, Object> hanhKhachInfo) {
+		try {
+			String ngayGioKhoiHanh = ve.getLichTrinh().getNgayGioKhoiHanh().toString();
+
+			// ✅ FIX: Bỏ dấu cách sau dấu ?
+			String qrUrl = GITHUB_PAGES_URL + "?maVe=" + maVe + "&ngay=" + ngayGioKhoiHanh;
+
+			BufferedImage qrImage = generateQRImage(qrUrl, 300, 300);
+
+			File qrFile = new File("qrcodes/" + maVe + ".png");
+			qrFile.getParentFile().mkdirs();
+			ImageIO.write(qrImage, "PNG", qrFile);
+
+			veTauDAO.updateQRCode(maVe, "qrcodes/" + maVe + ".png");
+
+			System.out.println("✅ QR created:  " + qrFile.getAbsolutePath());
+			System.out.println("🔗 URL: " + qrUrl);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private BufferedImage generateQRImage(String data, int width, int height) throws WriterException {
+		QRCodeWriter qrWriter = new QRCodeWriter();
+		BitMatrix bitMatrix = qrWriter.encode(data, BarcodeFormat.QR_CODE, width, height);
+
+		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+		for (int x = 0; x < width; x++) {
+			for (int y = 0; y < height; y++) {
+				image.setRGB(x, y, bitMatrix.get(x, y) ? 0xFF000000 : 0xFFFFFFFF);
+			}
+		}
+		return image;
+	}
+
+	private String urlEncode(String text) {
+		try {
+			return java.net.URLEncoder.encode(text, "UTF-8");
+		} catch (Exception e) {
+			return text;
+		}
 	}
 }

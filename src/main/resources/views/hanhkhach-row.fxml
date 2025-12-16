@@ -9,100 +9,6 @@
 <?import javafx.scene.control.Button?>
 
 
-<!-- Cũ -->
-<!--<HBox fx:id="rowContainer" alignment="CENTER_LEFT" spacing="10.0" styleClass="passenger-row" stylesheets="@ban-ve.css" 
-      xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" 
-      fx:controller="com.ptudn12.main.controller.HanhKhachRowController">
-   <padding>
-      <Insets bottom="15.0" left="10.0" right="10.0" top="15.0" />
-   </padding>
-   <children>
-
-      <VBox spacing="8.0" fx:id="columnHanhKhach" prefWidth="500.0">
-         <children>
-             <HBox alignment="CENTER_LEFT" spacing="10.0">
-               <children>
-                  <Label text="Họ tên:" prefWidth="100.0" />
-                  <TextField fx:id="txtHoTen" prefWidth="250.0" />
-               </children>
-            </HBox>
-            <HBox alignment="CENTER_LEFT" spacing="10.0">
-               <children>
-                  <Label text="Đối tượng:" prefWidth="100.0" />
-                  <ComboBox fx:id="comboDoiTuong" prefWidth="250.0"/>
-                  <Button fx:id="btnChonNgaySinh" text="Chọn ngày sinh" onAction="#handleChonNgaySinh" managed="false" visible="false">
-                     <HBox.margin>
-                        <Insets left="10.0" />
-                     </HBox.margin>
-                  </Button>
-               </children>
-            </HBox>
-            <HBox alignment="CENTER_LEFT" spacing="10.0">
-               <children>
-                  <Label text="Số giấy tờ:" prefWidth="100.0" />
-                  <TextField fx:id="txtSoGiayTo" prefWidth="250.0" promptText="Nhập và nhấn Enter để tìm"/>
-               </children>
-            </HBox>
-            <HBox fx:id="boxMaVeNguoiLon" alignment="CENTER_LEFT" spacing="10.0" managed="false" visible="false">
-                 <children>
-                     <Label text="Mã vé người lớn đi cùng:" prefWidth="150.0" wrapText="true"/>
-                     <TextField fx:id="txtMaVeNguoiLon" promptText="Nhập mã vé người lớn" prefWidth="200.0"/>
-                 </children>
-                 <VBox.margin>
-                     <Insets top="5.0" />
-                 </VBox.margin>
-             </HBox>
-         </children>
-      </VBox>
-
-      <VBox spacing="5.0" fx:id="columnChuyenTau" prefWidth="200.0" alignment="CENTER_LEFT">
-         <children>
-            <Label fx:id="lblTenTauDi" styleClass="cell-data-label-small-bold" />
-            <Label fx:id="lblThoiGianDi" styleClass="cell-data-label-small" />
-            <Label fx:id="lblTenTauVe" styleClass="cell-data-label-small-bold" managed="false" visible="false">
-               <VBox.margin><Insets top="5.0" /></VBox.margin>
-            </Label>
-            <Label fx:id="lblThoiGianVe" styleClass="cell-data-label-small" managed="false" visible="false"/>
-         </children>
-      </VBox>
- 
-      <VBox spacing="5.0" fx:id="columnChoNgoi" prefWidth="200.0" alignment="CENTER_LEFT">
-         <children>
-            <Label fx:id="lblThongTinChoDi" styleClass="cell-data-label-small" />
-            <Label fx:id="lblLoaiToaDi" styleClass="cell-data-label-small" />
-             <Label fx:id="lblThongTinChoVe" styleClass="cell-data-label-small" managed="false" visible="false">
-               <VBox.margin><Insets top="5.0" /></VBox.margin>
-            </Label>
-            <Label fx:id="lblLoaiToaVe" styleClass="cell-data-label-small" managed="false" visible="false"/>
-         </children>
-      </VBox>
-
-      <VBox spacing="5.0" fx:id="columnGiaVe" alignment="CENTER_LEFT" prefWidth="150.0">
-         <children>
-            <Label fx:id="lblGiaVe" styleClass="cell-data-label" />
-         </children>
-      </VBox>
-
-      <VBox spacing="5.0" fx:id="columnGiamGia" alignment="CENTER_LEFT" prefWidth="150.0">
-         <children>
-            <Label fx:id="lblGiamGia" styleClass="cell-data-label" />
-         </children>
-      </VBox>
-
-      <VBox spacing="5.0" fx:id="columnBaoHiem" alignment="CENTER_LEFT" prefWidth="150.0">
-         <children>
-            <Label fx:id="lblBaoHiem" styleClass="cell-data-label" />
-         </children>
-      </VBox>
-
-      <VBox spacing="5.0" fx:id="columnThanhTien" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
-         <children>
-            <Label fx:id="lblThanhTien" styleClass="cell-data-label-bold" />
-         </children>
-      </VBox>
-   </children>
-</HBox>-->
-
 <HBox fx:id="rowContainer" alignment="CENTER_LEFT" spacing="10.0" styleClass="passenger-row" stylesheets="@ban-ve.css" 
       xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" 
       fx:controller="com.ptudn12.main.controller.HanhKhachRowController">
@@ -111,7 +17,7 @@
    </padding>
    <children>
 
-      <VBox spacing="8.0" fx:id="columnHanhKhach" prefWidth="250.0" HBox.hgrow="ALWAYS">
+<!--      <VBox spacing="8.0" fx:id="columnHanhKhach" prefWidth="250.0" HBox.hgrow="ALWAYS">
          <children>
              <HBox alignment="CENTER_LEFT" spacing="10.0">
                <children>
@@ -146,7 +52,36 @@
                  </VBox.margin>
              </HBox>
          </children>
-      </VBox>
+      </VBox>-->
+      
+        <VBox fx:id="columnHanhKhach" prefWidth="320.0" spacing="5.0" style="-fx-padding: 0 10 0 0;" xmlns="..." xmlns:fx="...">
+            <children>
+                <Label text="Họ tên:" styleClass="field-label"/>
+                <TextField fx:id="txtHoTen" promptText="Nhập họ tên" />
+
+                <Label text="Số giấy tờ (CCCD/Hộ chiếu)" styleClass="field-label"/>
+                <TextField fx:id="txtSoGiayTo" promptText="Nhập số giấy tờ" />
+
+                <Label text="Đối tượng" styleClass="field-label"/>
+
+                <HBox spacing="10.0" alignment="CENTER_LEFT">
+                    <children>
+                        <ComboBox fx:id="comboDoiTuong" prefWidth="140.0" />
+
+                        <Button fx:id="btnChonNgaySinh" text="📅 Ngày sinh"
+                                onAction="#handleChonNgaySinh"
+                                style="-fx-background-color: #0066CC; -fx-text-fill: white; -fx-font-size: 11px; -fx-cursor: hand;"
+                                visible="false" managed="false"/>
+                    </children>
+                </HBox>
+
+                <HBox fx:id="boxMaVeNguoiLon" spacing="5.0" alignment="CENTER_LEFT" visible="false" managed="false">
+                     <Label text="Vé người lớn đi cùng:" style="-fx-font-size: 11px;"/>
+                     <TextField fx:id="txtMaVeNguoiLon" prefWidth="120.0" promptText="Mã vé..."/>
+                </HBox>
+
+            </children>
+        </VBox>
 
       <VBox spacing="5.0" fx:id="columnChuyenTau" prefWidth="180.0" HBox.hgrow="ALWAYS" alignment="CENTER_LEFT">
          <children>

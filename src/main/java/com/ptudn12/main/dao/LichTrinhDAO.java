@@ -297,47 +297,80 @@ public class LichTrinhDAO {
      * @param maLichTrinh Mã lịch trình
      * @return int[4] - [0]: tổng chỗ, [1]: đã bán, [2]: còn trống, [3]: -1 nếu lỗi
      */
+//    Cũ
+//    public int[] layThongTinChoNgoiTau(String maLichTrinh) {
+//        int[] result = new int[4]; // [0]=tổng, [1]=đã bán, [2]=còn trống
+//        result[3] = -1; // Mặc định là lỗi
+//
+//        // Đầu tiên lấy mã tàu từ lịch trình
+//        String sqlGetTau = "SELECT maTau FROM LichTrinh WHERE maLichTrinh = ?";
+//        String maTau = null;
+//
+//        try (Connection conn = DatabaseConnection.getConnection();
+//             PreparedStatement stmt = conn.prepareStatement(sqlGetTau)) {
+//
+//            stmt.setString(1, maLichTrinh);
+//            ResultSet rs = stmt.executeQuery();
+//
+//            if (rs.next()) {
+//                maTau = rs.getString("maTau");
+//            } else {
+//                System.err.println("Không tìm thấy lịch trình: " + maLichTrinh);
+//                return result;
+//            }
+//
+//        } catch (SQLException e) {
+//            System.err.println("Lỗi khi lấy mã tàu: " + e.getMessage());
+//            e.printStackTrace();
+//            return result;
+//        }
+//
+//        // Gọi stored procedure để lấy thông tin chỗ
+//        String sql = "{CALL sp_DemTongSoChoVaChoDaBan(?)}";
+//
+//        try (Connection conn = DatabaseConnection.getConnection();
+//             CallableStatement stmt = conn.prepareCall(sql)) {
+//
+//            stmt.setString(1, maTau);
+//            ResultSet rs = stmt.executeQuery();
+//
+//            if (rs.next()) {
+//                result[0] = rs.getInt("TongSoCho");      // Tổng chỗ
+//                result[1] = rs.getInt("SoChoDaBan");     // Đã bán
+//                result[2] = rs.getInt("SoChoConTrong");  // Còn trống
+//                result[3] = 0; // Thành công
+//            }
+//
+//        } catch (SQLException e) {
+//            System.err.println("Lỗi khi gọi sp_DemTongSoChoVaChoDaBan: " + e.getMessage());
+//            e.printStackTrace();
+//        }
+//
+//        return result;
+//    }
+    
     public int[] layThongTinChoNgoiTau(String maLichTrinh) {
-        int[] result = new int[4]; // [0]=tổng, [1]=đã bán, [2]=còn trống
-        result[3] = -1; // Mặc định là lỗi
+        int[] result = new int[4]; 
+        result[3] = -1; 
 
-        // Đầu tiên lấy mã tàu từ lịch trình
-        String sqlGetTau = "SELECT maTau FROM LichTrinh WHERE maLichTrinh = ?";
-        String maTau = null;
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sqlGetTau)) {
-
-            stmt.setString(1, maLichTrinh);
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                maTau = rs.getString("maTau");
-            } else {
-                System.err.println("Không tìm thấy lịch trình: " + maLichTrinh);
-                return result;
-            }
-
-        } catch (SQLException e) {
-            System.err.println("Lỗi khi lấy mã tàu: " + e.getMessage());
-            e.printStackTrace();
-            return result;
-        }
-
-        // Gọi stored procedure để lấy thông tin chỗ
+        // --- KHÔNG CẦN LẤY MA_TAU NỮA ---
+        
+        // Gọi stored procedure mới (đã sửa nhận maLichTrinh)
         String sql = "{CALL sp_DemTongSoChoVaChoDaBan(?)}";
 
         try (Connection conn = DatabaseConnection.getConnection();
              CallableStatement stmt = conn.prepareCall(sql)) {
 
-            stmt.setString(1, maTau);
+            // Truyền trực tiếp mã lịch trình vào
+            stmt.setString(1, maLichTrinh); 
+            
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
-                result[0] = rs.getInt("TongSoCho");      // Tổng chỗ
-                result[1] = rs.getInt("SoChoDaBan");     // Đã bán
-                result[2] = rs.getInt("SoChoConTrong");  // Còn trống
-                result[3] = 0; // Thành công
+                result[0] = rs.getInt("TongSoCho");
+                result[1] = rs.getInt("SoChoDaBan");
+                result[2] = rs.getInt("SoChoConTrong");
+                result[3] = 0; 
             }
 
         } catch (SQLException e) {

@@ -102,6 +102,11 @@ public class HanhKhachRowController {
             }
         });
         
+        if (columnHanhKhach != null) {
+            columnHanhKhach.setMinWidth(320); // Đặt con số này khớp với prefWidth trong FXML
+            columnHanhKhach.setPrefWidth(320);
+        }
+        
         hideExtraControls();
     }
     
@@ -131,8 +136,7 @@ public class HanhKhachRowController {
         }
     }
     
-    // ... (Giữ nguyên các hàm hideExtraControls, handleDoiTuongChange, handleChonNgaySinh, showDatePickerDialog, validateAgeAndApplyPolicy, handleFreeTicket, enableInputs, setData, updatePrice, updatePriceInternal, getThanhTien, getVeDi, getVeVe, showAlert...)
-
+    
     private void hideExtraControls() {
         btnChonNgaySinh.setVisible(false);
         btnChonNgaySinh.setManaged(false);

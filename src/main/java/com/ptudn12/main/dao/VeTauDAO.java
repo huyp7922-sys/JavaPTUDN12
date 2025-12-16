@@ -156,6 +156,21 @@ public class VeTauDAO {
 		return listVe;
 	}
 
+	// Thêm method này vào VeTauDAO. java
+	public void updateQRCode(String maVe, String base64QR) {
+		String sql = "UPDATE VeTau SET maQR = ? WHERE maVe = ?";
+
+		try (Connection conn = DatabaseConnection.getConnection();
+				PreparedStatement pstmt = conn.prepareStatement(sql)) {
+			pstmt.setString(1, base64QR);
+			pstmt.setString(2, maVe);
+			int rowsAffected = pstmt.executeUpdate();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
 	public VeTau getVeTauDetail(String maVe) {
 		VeTau ve = null;
 
