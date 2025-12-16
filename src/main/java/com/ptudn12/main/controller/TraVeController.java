@@ -6,6 +6,7 @@ import com.ptudn12.main.dao.VeTauDAO;
 import com.ptudn12.main.entity.KhachHang;
 import com.ptudn12.main.entity.Toa;
 import com.ptudn12.main.entity.VeTau;
+import com.ptudn12.main.utils.TraVeService;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -20,6 +21,27 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
+
+import net.sf.jasperreports.engine.*;
+import net.sf.jasperreports.engine.design.JasperDesign;
+import net.sf.jasperreports.engine.xml.JRXmlLoader;
+import net.sf.jasperreports.view.JasperViewer;
+import java.util.HashMap;
+import java.util.Map;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ButtonBar.ButtonData;
+import java.awt.image.BufferedImage;
+import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import javafx.event.ActionEvent;
+import javafx.geometry.Insets;
+import net.sf.jasperreports.engine.JasperPrintManager;
 
 public class TraVeController {
     // --- FXML Elements ---
@@ -66,6 +88,7 @@ public class TraVeController {
     private final DecimalFormat moneyFormatter = new DecimalFormat("#,##0 'VNĐ'");
     private VeTau selectedVe = null;
     private double calculatedRefundAmount = 0;
+    private final TraVeService traVeService = new TraVeService();
 
     
     private BanVeController mainController;
@@ -299,26 +322,174 @@ public class TraVeController {
             btnDoiVe.setDisable(false);
         }
     }
-
+    
     @FXML
     private void handleXacNhanTra() {
         if (selectedVe == null) return;
+        
+        // 1. Alert Xác nhận
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Xác nhận trả vé");
-        confirm.setHeaderText("Hoàn tiền vé: " + selectedVe.getMaVe());
-        confirm.setContentText("Số tiền hoàn lại: " + moneyFormatter.format(calculatedRefundAmount));
+        confirm.setHeaderText("Bạn có chắc chắn muốn trả vé này?");
+        confirm.setContentText("Mã vé: " + selectedVe.getMaVe() + "\nSố tiền hoàn: " + moneyFormatter.format(calculatedRefundAmount));
 
-        if (confirm.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
-            boolean ok1 = veTauDAO.updateTrangThaiVe(selectedVe.getMaVe(), "DaHuy");
-            int ctlId = veTauDAO.getChiTietLichTrinhIdByMaVe(selectedVe.getMaVe());
-            boolean ok2 = (ctlId != -1) && chiTietLichTrinhDAO.updateTrangThaiCho(ctlId, "ConTrong");
-            
-            if (ok1 && ok2) {
-                showAlert(Alert.AlertType.INFORMATION, "Trả vé thành công!");
-                handleTimKiem();
-            } else {
-                showAlert(Alert.AlertType.ERROR, "Lỗi hệ thống.");
+        if (confirm.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) {
+            return;
+        }
+
+        // 2. Gọi Service xử lý Transaction (DB)
+        String maNhanVien = mainController.getNhanVien().getMaNhanVien();
+        boolean success = traVeService.processTraVe(selectedVe, this.calculatedRefundAmount, maNhanVien);
+
+        if (success) {
+            if (selectedVe.getKhachHang() == null || selectedVe.getKhachHang().getTenKhachHang() == null) {
+                // Gọi DAO lấy thông tin hành khách dựa trên mã vé
+                KhachHang kh = khachHangDAO.getHanhKhachByMaVe(selectedVe.getMaVe());
+                
+                // Nếu không tìm thấy người đi, thử tìm người mua (fallback)
+                if (kh == null) {
+                    kh = khachHangDAO.getNguoiMuaByMaVe(selectedVe.getMaVe());
+                }
+                
+                if (kh != null) {
+                    selectedVe.setKhachHang(kh);
+                }
             }
+            
+            // 3. Chuẩn bị dữ liệu in
+            double giaGoc = selectedVe.getChiTietLichTrinh().getGiaChoNgoi();
+            double thucNhan = this.calculatedRefundAmount;
+            double phiTra = giaGoc - thucNhan;
+            
+            // 4. In và hiển thị Preview
+            JasperPrint jasperPrint = createRefundReport(selectedVe, giaGoc, phiTra, thucNhan);
+            
+            if (jasperPrint != null) {
+                showPreviewDialog(jasperPrint);
+            } else {
+                showAlert(Alert.AlertType.INFORMATION, "Trả vé thành công! (Lỗi tạo file in)");
+                handleTimKiem(); // Refresh danh sách vé
+            }
+            
+        } else {
+            showAlert(Alert.AlertType.ERROR, "Lỗi hệ thống: Không thể thực hiện trả vé.");
+        }
+    }
+    
+    private JasperPrint createRefundReport(VeTau ve, double giaGoc, double phiTra, double thucNhan) {
+        try {
+            // Đường dẫn file .jrxml trong resources
+            String reportPath = "/views/bien-lai-tra-ve.xml"; 
+            InputStream reportStream = getClass().getResourceAsStream(reportPath);
+            
+            if (reportStream == null) {
+                System.err.println("Không tìm thấy file: " + reportPath);
+                return null;
+            }
+
+            JasperDesign jasperDesign = JRXmlLoader.load(reportStream);
+            JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
+
+            // Chuẩn bị tham số
+            Map<String, Object> parameters = new HashMap<>();
+            
+            parameters.put("p_MaGiaoDich", "GD-" + System.currentTimeMillis());
+            parameters.put("p_NgayTra", LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+            
+            // Lấy tên nhân viên an toàn
+            String tenNV = "Admin";
+            if (mainController != null && mainController.getNhanVien() != null) {
+                tenNV = mainController.getNhanVien().getTenNhanVien();
+            }
+            parameters.put("p_NhanVien", tenNV);
+            
+            // Thông tin vé
+            parameters.put("p_MaVe", ve.getMaVe());
+            parameters.put("p_KhachHang", ve.getKhachHang() != null ? ve.getKhachHang().getTenKhachHang() : "Khách lẻ");
+            
+            String giayTo = "-";
+            if (ve.getKhachHang() != null) {
+                giayTo = (ve.getKhachHang().getSoCCCD() != null && !ve.getKhachHang().getSoCCCD().isEmpty()) 
+                         ? ve.getKhachHang().getSoCCCD() 
+                         : ve.getKhachHang().getHoChieu();
+            }
+            parameters.put("p_SoGiayTo", giayTo);
+            
+            // Hành trình
+            parameters.put("p_Tau", ve.getChiTietLichTrinh().getLichTrinh().getTau().getMacTau());
+            parameters.put("p_GaDi", ve.getChiTietLichTrinh().getLichTrinh().getTuyenDuong().getDiemDi().getViTriGa());
+            parameters.put("p_GaDen", ve.getChiTietLichTrinh().getLichTrinh().getTuyenDuong().getDiemDen().getViTriGa());
+            parameters.put("p_NgayDi", ve.getChiTietLichTrinh().getLichTrinh().getNgayGioKhoiHanh().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+            
+            parameters.put("p_Toa", ve.getChiTietLichTrinh().getCho().getToa().getTenToa());
+            parameters.put("p_Ghe", String.valueOf(ve.getChiTietLichTrinh().getCho().getSoThuTu()));
+            
+            // Tiền tệ
+            parameters.put("p_GiaVeGoc", giaGoc);
+            parameters.put("p_LePhi", phiTra);
+            parameters.put("p_ThucNhan", thucNhan);
+
+            // Fill report với tham số và không dùng datasource (vì data đã nằm trong param)
+            return JasperFillManager.fillReport(jasperReport, parameters, new JREmptyDataSource());
+
+        } catch (JRException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Hiển thị Dialog Preview (Ảnh hóa đơn)
+     */
+    private void showPreviewDialog(JasperPrint jasperPrint) {
+        try {
+            // Chuyển trang đầu tiên thành ảnh (zoom 1.6f cho nét)
+            BufferedImage bufferedImage = (BufferedImage) JasperPrintManager.printPageToImage(jasperPrint, 0, 1.6f);
+            Image fxImage = SwingFXUtils.toFXImage(bufferedImage, null);
+
+            ImageView imageView = new ImageView(fxImage);
+            imageView.setPreserveRatio(true);
+            imageView.setFitHeight(500); // Chiều cao ảnh trong dialog
+
+            // Tạo Dialog
+            Dialog<ButtonType> dialog = new Dialog<>();
+            dialog.setTitle("Xem trước Biên lai trả vé");
+            dialog.setHeaderText("Giao dịch thành công! Kiểm tra biên lai trước khi kết thúc.");
+            
+            VBox content = new VBox(imageView);
+            content.setPadding(new Insets(10));
+            content.setStyle("-fx-alignment: center; -fx-background-color: #eee;");
+            dialog.getDialogPane().setContent(content);
+
+            // Nút bấm
+            ButtonType btnTypePrint = new ButtonType("In Biên Lai", ButtonData.OTHER);
+            ButtonType btnTypeFinish = new ButtonType("Kết thúc", ButtonData.OK_DONE);
+            dialog.getDialogPane().getButtonTypes().addAll(btnTypePrint, btnTypeFinish);
+
+            // Xử lý nút In (không đóng dialog)
+            final Button btnPrint = (Button) dialog.getDialogPane().lookupButton(btnTypePrint);
+            btnPrint.addEventFilter(ActionEvent.ACTION, event -> {
+                event.consume(); // Chặn đóng dialog
+                try {
+                    // In ra máy in mặc định (true = hiện hộp thoại chọn máy in)
+                    JasperPrintManager.printReport(jasperPrint, true);
+                    showAlert(Alert.AlertType.INFORMATION, "Đã gửi lệnh in!");
+                } catch (JRException e) {
+                    showAlert(Alert.AlertType.ERROR, "Lỗi máy in: " + e.getMessage());
+                }
+            });
+
+            // Hiển thị và chờ người dùng bấm Kết thúc
+            dialog.showAndWait();
+            
+            // Sau khi đóng dialog -> Reset màn hình
+            handleTimKiem();
+
+        } catch (JRException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Lỗi tạo ảnh xem trước: " + e.getMessage());
+            // Dù lỗi preview vẫn phải reset màn hình vì giao dịch đã thành công
+            handleTimKiem();
         }
     }
     
