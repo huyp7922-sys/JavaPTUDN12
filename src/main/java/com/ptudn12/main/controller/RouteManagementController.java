@@ -268,9 +268,7 @@ public class RouteManagementController {
                 return;
             }
         }
-        // ---------------------------------------------
 
-        // --- PHẦN XÁC NHẬN (CONFIRMATION) ---
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Xác nhận xóa");
         confirm.setHeaderText("Xóa tuyến đường");

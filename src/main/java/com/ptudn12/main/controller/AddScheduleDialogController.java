@@ -59,7 +59,6 @@ public class AddScheduleDialogController {
         minuteCombo.setItems(minutes);
         minuteCombo.setValue("00");
         
-        // Setup status combo
         var statuses = FXCollections.observableArrayList(
             "Nhap", "SanSang", "ChuaKhoiHanh", "DangChay", "TamHoan", "DaKetThuc", "TamNgung"
         );
