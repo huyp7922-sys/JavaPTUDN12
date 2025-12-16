@@ -280,7 +280,7 @@ public class TauDAO {
 			String sqlInsertTau = "INSERT INTO Tau (maTau, trangThai) VALUES (?, ?)";
 			try (PreparedStatement stmt = conn.prepareStatement(sqlInsertTau)) {
 				stmt.setString(1, tau.getMacTau());
-				stmt.setString(2, "SanSang"); // Trạng thái mặc định khi tạo mới
+				stmt.setString(2, "DungChay"); // Trạng thái mặc định khi tạo mới
 				stmt.executeUpdate();
 			}
 
