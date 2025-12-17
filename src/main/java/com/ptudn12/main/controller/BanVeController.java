@@ -9,6 +9,7 @@ package com.ptudn12.main.controller;
  * @author fo3cp
  */
 
+import com.ptudn12.main.entity.NhanVien;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -30,35 +31,30 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import com.ptudn12.main.entity.NhanVien;
+
 public class BanVeController {
+    public static final String MODE_BAN_VE = "BAN_VE";
+    public static final String MODE_DOI_VE = "DOI_VE";
+    public static final String MODE_TRA_VE = "TRA_VE";
+    
     @FXML private StackPane contentPane;
     @FXML private Label dateTimeLabel;
     
-//    Cũ:
-//    private Step1Controller step1ControllerInstance;
-//    private Step2Controller step2ControllerInstance;
-//    private Step2Controller_update step2Controller_updateInstance;
-//    private Step3Controller step3ControllerInstance;
-//    private Step4Controller step4ControllerInstance;
-    
-    private NhanVien nhanVien;
     // --- CACHE: Lưu trữ Controller và View của từng Step ---
     private Step1Controller step1ControllerInstance;
     private Node step1View;
-    
     private Step2Controller_update step2ControllerInstance;
     private Node step2View;
-    
     private Step3Controller step3ControllerInstance;
     private Node step3View;
-    
     private Step4Controller step4ControllerInstance;
     private Node step4View;
+    
+    // Lưu thông tin nhân viên trong phiên đăng nhập
+    private NhanVien nhanVienHienTai;
 
     // Menu items
     @FXML private TitledPane menuVeTau;
-    @FXML private Button btnDashboard;
     @FXML private Button btnBanVe;
     @FXML private Button btnDoiVe;
     @FXML private Button btnTraVe;
@@ -68,6 +64,16 @@ public class BanVeController {
     @FXML private Button btnLogout;
     
     private String currentUser;
+    
+    // Hàm để set nhân viên (Gọi từ LoginController khi đăng nhập thành công)
+    public void setNhanVien(NhanVien nhanVien) {
+        this.nhanVienHienTai = nhanVien;
+    }
+
+    // Hàm để các Step con lấy nhân viên
+    public NhanVien getNhanVien() {
+        return nhanVienHienTai;
+    }
 
     // BẮT BUỘC CÓ: Map để lưu data giữa các step
     private Map<String, Object> userData = new HashMap<>();
@@ -92,14 +98,6 @@ public class BanVeController {
     }
     
     // --- Các hàm xử lý menu ---
-
-
-    @FXML
-    private void showDashboard() {
-        resetMenuButtons();
-        btnDashboard.getStyleClass().add("menu-item-active");
-        loadContent("employee-dashboard-content.fxml");
-    }
     @FXML
     private void showBanVe() {
         resetMenuButtons();
@@ -115,13 +113,21 @@ public class BanVeController {
     private void showDoiVe() {
         resetMenuButtons();
         btnDoiVe.getStyleClass().add("menu-item-active");
-        loadContent("doi-ve.fxml");
+        // 1. Set mode là ĐỔI VÉ
+        setUserData("transactionType", MODE_DOI_VE);
+        
+        // 2. Load giao diện tìm kiếm (Dùng lại file tra-ve.fxml)
+        loadContent("tra-ve.fxml");
     }
     
     @FXML
     private void showTraVe() {
         resetMenuButtons();
         btnTraVe.getStyleClass().add("menu-item-active");
+        // 1. Set mode là TRẢ VÉ
+        setUserData("transactionType", MODE_TRA_VE);
+        
+        // 2. Load giao diện tìm kiếm
         loadContent("tra-ve.fxml");
     }
 
@@ -146,55 +152,6 @@ public class BanVeController {
         loadContent("statistics-management.fxml");
     }
     
-//    Cũ:
-    // HÀM QUAN TRỌNG: Tải FXML vào vùng nội dung
-//    public void loadContent(String fxmlFile) {
-//        try {
-//        // Check if file exists
-//        if (getClass().getResource("/views/" + fxmlFile) == null) {
-//            showPlaceholder("Chức năng chưa được tạo",
-//                    "Trang này đang được phát triển.\nVui lòng quay lại sau!");
-//            return;
-//        }
-//
-//        FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/" + fxmlFile));
-//        Node view = loader.load();
-//        Object controller = loader.getController();
-//
-//        // Lưu lại instance của controller
-//        if (controller instanceof Step1Controller) {
-//            step1ControllerInstance = (Step1Controller) controller;
-//            step1ControllerInstance.setMainController(this);
-//            step1ControllerInstance.initData();
-//        }
-//        else if (controller instanceof Step2Controller_update) {
-//            step2Controller_updateInstance = (Step2Controller_update) controller;
-//            step2Controller_updateInstance.setMainController(this);
-//            step2Controller_updateInstance.initData();
-//        }
-//        
-//        else if (controller instanceof Step3Controller) {
-//            step3ControllerInstance = (Step3Controller) controller;
-//            step3ControllerInstance.setMainController(this);
-//            step3ControllerInstance.initData();
-//        } else if (controller instanceof Step4Controller) {
-//            step4ControllerInstance = (Step4Controller) controller;
-//            step4ControllerInstance.setMainController(this);
-//            step4ControllerInstance.initData();
-//        }
-//
-//        contentPane.getChildren().clear();
-//        contentPane.getChildren().add(view);
-//
-//    } catch (IOException e) {
-//        e.printStackTrace();
-//        showPlaceholder("Lỗi khi tải giao diện",
-//                "Không thể tải file: " + fxmlFile + "\n\n"
-//                + "Chi tiết lỗi: " + e.getMessage());
-//    }
-//    }
-    
-    // --- HÀM LOAD CONTENT (ĐÃ NÂNG CẤP CACHING) ---
     public void loadContent(String fxmlFile) {
         try {
             Node view = null;
@@ -222,6 +179,7 @@ public class BanVeController {
 
             // 2. Nếu chưa có trong Cache -> Load mới
             if (view == null) {
+                // Kiểm tra file tồn tại không
                 if (getClass().getResource("/views/" + fxmlFile) == null) {
                     showPlaceholder("Chức năng chưa được tạo", "Trang này đang được phát triển.\nVui lòng quay lại sau!");
                     return;
@@ -230,51 +188,48 @@ public class BanVeController {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/" + fxmlFile));
                 view = loader.load();
                 controller = loader.getController();
-
-                // Lưu vào Cache tương ứng
+                
                 if (fxmlFile.equals("step-1.fxml")) {
                     step1View = view;
                     step1ControllerInstance = (Step1Controller) controller;
                     step1ControllerInstance.setMainController(this);
-                    // Init lần đầu
                     step1ControllerInstance.initData(); 
                 } else if (fxmlFile.equals("step-2.fxml")) {
                     step2View = view;
                     step2ControllerInstance = (Step2Controller_update) controller;
                     step2ControllerInstance.setMainController(this);
-                    // Init lần đầu
                     step2ControllerInstance.initData();
                 } else if (fxmlFile.equals("step-3.fxml")) {
                     step3View = view;
                     step3ControllerInstance = (Step3Controller) controller;
                     step3ControllerInstance.setMainController(this);
-                    // Init lần đầu
                     step3ControllerInstance.initData();
                 } else if (fxmlFile.equals("step-4.fxml")) {
                     step4View = view;
                     step4ControllerInstance = (Step4Controller) controller;
                     step4ControllerInstance.setMainController(this);
-                    // Init lần đầu
                     step4ControllerInstance.initData();
                 }
-            } else {
-                // ĐÃ LẤY TỪ CACHE RA
                 
-                // Trường hợp 1: Vào Step 4 -> Luôn phải tính tiền lại
+                else if (fxmlFile.equals("tra-ve.fxml")) {
+                    TraVeController traVeCtrl = (TraVeController) controller;
+                    traVeCtrl.setMainController(this); // Truyền instance BanVeController vào
+                }
+
+            } else {
+                // 3. ĐÃ LẤY TỪ CACHE RA (Xử lý reload dữ liệu nếu cần)
                 if (controller instanceof Step4Controller) {
                      ((Step4Controller) controller).initData(); 
                 }
-                
-                // Trường hợp 2: Vào Step 3 -> Cần load lại danh sách vé mới nếu Step 2 có thay đổi
                 else if (controller instanceof Step3Controller) {
                      ((Step3Controller) controller).initData();
                 }
-
-                // Trường hợp 3: Quay lại Step 2 -> KHÔNG GỌI initData()
-                // Để giữ nguyên trạng thái ghế ngồi và giỏ hàng đang chọn dở
+                else if (controller instanceof Step1Controller) {
+                     ((Step1Controller) controller).initData();
+                }
+                // Step 2 không reload để giữ trạng thái ghế
                 else if (controller instanceof Step2Controller_update) {
-                    // Không làm gì cả, giữ nguyên hiện trường
-                    // Trừ khi bạn muốn refresh lại tổng tiền (nếu có logic hủy vé ngầm từ step 3)
+                    // Do nothing
                 }
             }
 
@@ -287,7 +242,7 @@ public class BanVeController {
             showPlaceholder("Lỗi khi tải giao diện", "Không thể tải file: " + fxmlFile + "\n\n" + "Chi tiết lỗi: " + e.getMessage());
         }
     }
-   
+    
     // Hàm xóa cache (dùng khi hoàn tất bán vé hoặc logout)
     private void clearAllCache() {
         step1View = null; step1ControllerInstance = null;
@@ -310,12 +265,33 @@ public class BanVeController {
         // 4. Load lại Step 1
         loadContent("step-1.fxml");
     }
-    public void setNhanVien(NhanVien nhanVien) {
-        this.nhanVien = nhanVien;
-    }   
+    
+    /**
+     * Hàm này được gọi khi bắt đầu quy trình Đổi Vé từ màn hình Tra Cứu.
+     * Mục đích: Xóa sạch cache giao diện cũ (Step 1, 2, 3, 4) để không bị dính dữ liệu của lần thao tác trước.
+     */
+    public void prepareForNewDoiVeTransaction() {
+        // 1. Xóa Cache View & Controller (Để lần sau load nó sẽ new mới lại)
+        step1View = null; step1ControllerInstance = null;
+        step2View = null; step2ControllerInstance = null;
+        step3View = null; step3ControllerInstance = null;
+        step4View = null; step4ControllerInstance = null;
 
-    public NhanVien getNhanVien() {
-        return nhanVien;
+        // 2. Xóa các dữ liệu rác trong session (Trừ thông tin user đăng nhập)
+        // Lưu ý: Không xóa "transactionType" vì đang cần dùng nó
+        userData.remove("lichTrinhChieuDi");
+        userData.remove("lichTrinhChieuVe");
+        userData.remove("gioHang_Di");
+        userData.remove("gioHang_Ve");
+        userData.remove("danhSachHanhKhachDaNhap");
+        userData.remove("thongTinNguoiMua");
+        userData.remove("tongThanhTien");
+        
+        // Xóa data form step 1
+        userData.remove("step1_gaDi");
+        userData.remove("step1_gaDen");
+        userData.remove("step1_ngayDi");
+        userData.remove("step1_isKhuHoi");
     }
 
     @FXML

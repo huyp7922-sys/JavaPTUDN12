@@ -260,7 +260,7 @@ public class Step2Controller_update {
                  populateGridPane(gridSeats, refreshSeats, danhSachChoDaBan, isChieuDi, lichTrinh);
             }
         });
-
+        
         blockBox.getChildren().addAll(lblTitle, comboContainer, legendBox, gridSeats);
         return blockBox;
     }

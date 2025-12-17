@@ -87,18 +87,17 @@
                                <RowConstraints minHeight="10.0" vgrow="SOMETIMES" /> <!-- Tổng -->
                            </rowConstraints>
                             <children>
-                                <!-- Dữ liệu sẽ được điền bằng code -->
-                               <Label text="Tổng tiền vé:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
-                               <Label fx:id="lblDetailTongTienVe" text="0 VNĐ" GridPane.columnIndex="1" GridPane.rowIndex="0" alignment="CENTER_RIGHT"/>
-                               
-                               <Label text="Giảm giá theo đối tượng:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
-                               <Label fx:id="lblDetailGiamDoiTuong" text="0 VNĐ" GridPane.columnIndex="1" GridPane.rowIndex="1" alignment="CENTER_RIGHT"/>
-                               
-                               <Label text="Giảm giá từ điểm tích lũy:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
-                               <Label fx:id="lblDetailGiamDiem" text="0 VNĐ" GridPane.columnIndex="1" GridPane.rowIndex="2" alignment="CENTER_RIGHT"/>
+                                <Label fx:id="lblTitleTongTien" text="Tổng tiền vé:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                                <Label fx:id="lblDetailTongTienVe" text="0 VNĐ" GridPane.columnIndex="1" GridPane.rowIndex="0" alignment="CENTER_RIGHT"/>
 
-                               <Label text="Bảo hiểm:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
-                               <Label fx:id="lblDetailBaoHiem" text="0 VNĐ" GridPane.columnIndex="1" GridPane.rowIndex="3" alignment="CENTER_RIGHT"/>
+                                <Label fx:id="lblTitleGiamDoiTuong" text="Giảm giá theo đối tượng:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                                <Label fx:id="lblDetailGiamDoiTuong" text="0 VNĐ" GridPane.columnIndex="1" GridPane.rowIndex="1" alignment="CENTER_RIGHT"/>
+
+                                <Label text="Giảm giá từ điểm tích lũy:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+                                <Label fx:id="lblDetailGiamDiem" text="0 VNĐ" GridPane.columnIndex="1" GridPane.rowIndex="2" alignment="CENTER_RIGHT"/>
+
+                                <Label fx:id="lblTitleBaoHiem" text="Bảo hiểm:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+                                <Label fx:id="lblDetailBaoHiem" text="0 VNĐ" GridPane.columnIndex="1" GridPane.rowIndex="3" alignment="CENTER_RIGHT"/>
                                
                                <!-- Dòng kẻ ngang -->
                                <VBox style="-fx-border-color: #ccc; -fx-border-width: 1 0 0 0;" GridPane.columnSpan="2" GridPane.rowIndex="4">
