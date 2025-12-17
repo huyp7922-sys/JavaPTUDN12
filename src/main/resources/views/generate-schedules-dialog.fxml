@@ -9,7 +9,7 @@
       fx:controller="com.ptudn12.main.controller.GenerateSchedulesDialogController"
       spacing="20" style="-fx-padding: 30; -fx-background-color: #f8f9fa;">
 
-    <Label text="Tự Động Gen Lịch Trình" 
+    <Label text="Tự Động Tạo Lịch Trình" 
            style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
     
     <Separator/>

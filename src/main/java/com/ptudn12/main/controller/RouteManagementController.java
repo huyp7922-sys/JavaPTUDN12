@@ -198,7 +198,6 @@ public class RouteManagementController {
             showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể mở form thêm tuyến đường:\n" + e.getMessage());
         }
     }
-    
     @FXML
     private void handleEditRoute() {
         TuyenDuong selected = routeTable.getSelectionModel().getSelectedItem();
@@ -207,15 +206,16 @@ public class RouteManagementController {
             return;
         }
 
-        // Kiểm tra trạng thái Nhap - không cho sửa
-        if (selected.getTrangThai() == TrangThai.Nhap) {
+        // Nếu KHÔNG PHẢI là Nhap (tức là SanSang hoặc TamNgung) -> Chặn lại và return
+        if (selected.getTrangThai() != TrangThai.Nhap) {
             showAlert(Alert.AlertType.WARNING, "Không thể sửa", 
-                     "Tuyến đường đang ở trạng thái Nháp!\n\n" +
-                     "Vui lòng chọn 'Phát triển tuyến đường' để kích hoạt tuyến này trước khi chỉnh sửa.");
+                     "Chỉ được phép chỉnh sửa thông tin các tuyến ở trạng thái 'Nháp'!\n\n" +
+                     "Tuyến hiện tại đang ở trạng thái: " + selected.getTrangThai().getTenTrangThai() + 
+                     ".\nVui lòng không chỉnh sửa các tuyến đã hoạt động.");
             return;
         }
 
-        // Nếu không phải Nhap, cho phép sửa
+        // Nếu là trạng thái Nhap, tiến hành mở form
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/add-route-dialog.fxml"));
             Scene scene = new Scene(loader.load());
@@ -225,7 +225,7 @@ public class RouteManagementController {
             controller.setEditMode(selected);
 
             Stage dialogStage = new Stage();
-            dialogStage.setTitle("Sửa Tuyến Đường");
+            dialogStage.setTitle("Sửa Tuyến Đường (Nháp)");
             dialogStage.initModality(Modality.APPLICATION_MODAL);
             dialogStage.setScene(scene);
             dialogStage.showAndWait();
@@ -236,15 +236,39 @@ public class RouteManagementController {
         }
     }
 
-    @FXML
+  @FXML
     private void handleDeleteRoute() {
         TuyenDuong selected = routeTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
             showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Vui lòng chọn tuyến đường cần xóa!");
             return;
         }
-        
-        // Thông báo rõ ràng hơn
+
+        // Nếu tuyến KHÔNG PHẢI là Nháp (Tức là SanSang hoặc TamNgung)
+        if (selected.getTrangThai() != TrangThai.Nhap) {
+            try {
+                // Gọi DAO kiểm tra xem tuyến này có lịch trình nào không
+                // (Bạn nhớ thêm hàm này vào TuyenDuongDAO nhé)
+                boolean coLichTrinh = tuyenDuongDAO.kiemTraTuyenCoLichTrinh(selected.getMaTuyen());
+
+                if (coLichTrinh) {
+                    showAlert(Alert.AlertType.ERROR, "Không thể xóa/tạm ngưng", 
+                        "Tuyến đường này ĐANG CÓ LỊCH TRÌNH hoạt động!\n\n" +
+                        "Để đảm bảo toàn vẹn dữ liệu, bạn không thể xóa hoặc tạm ngưng tuyến đường đã được gán lịch trình.\n" +
+                        "Vui lòng xóa hết các lịch trình thuộc tuyến này trước.");
+                    return; // CHẶN LUÔN, KHÔNG LÀM GÌ CẢ
+                }
+                
+                // Nếu chạy xuống đây nghĩa là: Không phải Nháp + Không có lịch trình
+                // -> Cho phép chuyển sang Tạm Ngưng
+                
+            } catch (Exception e) {
+                e.printStackTrace();
+                showAlert(Alert.AlertType.ERROR, "Lỗi Database", "Không thể kiểm tra ràng buộc dữ liệu!");
+                return;
+            }
+        }
+
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Xác nhận xóa");
         confirm.setHeaderText("Xóa tuyến đường");
@@ -255,16 +279,18 @@ public class RouteManagementController {
                          selected.getTenDiemDi() + " → " + selected.getTenDiemDen() + "\n\n" +
                          "Tuyến ở trạng thái Nháp sẽ bị XÓA HOÀN TOÀN khỏi hệ thống!";
         } else {
-            contentText = "Bạn có chắc muốn xóa tuyến:\n\n" + 
-                         selected.getTenDiemDi() + " → " + selected.getTenDiemDen() + "\n\n" +
-                         "Tuyến đang hoạt động sẽ chuyển sang trạng thái TẠM NGƯNG\n" +
-                         "(không xóa hoàn toàn).";
+            contentText = "Tuyến đường này chưa có lịch trình.\n" +
+                         "Bạn có chắc muốn chuyển sang trạng thái TẠM NGƯNG?\n\n" + 
+                         selected.getTenDiemDi() + " → " + selected.getTenDiemDen();
         }
         
         confirm.setContentText(contentText);
         
         if (confirm.showAndWait().get() == ButtonType.OK) {
             try {
+                // Hàm xoaTuyenDuong trong DAO của bạn nên được thiết kế:
+                // - Nếu Nhap -> Delete row
+                // - Nếu !Nhap -> Update status = TamNgung
                 boolean success = tuyenDuongDAO.xoaTuyenDuong(Integer.parseInt(selected.getMaTuyen()));
                 
                 if (success) {

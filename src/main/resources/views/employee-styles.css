@@ -1,82 +1,216 @@
+/* Root Styles */
 .root {
-    -fx-font-family: "Arial";
-    -fx-background-color: #ffffff;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-background-color: #f8f9fa;
 }
 
 .label {
-    -fx-text-fill: #333333;
+    -fx-text-fill: #2c3e50;
 }
 
-/* Mặc định của các button */
+/* Header Section */
+.header-box {
+    -fx-background-color: linear-gradient(to right, #56ab2f 0%, #a8e063 100%);
+    -fx-background-radius: 10px;
+    -fx-padding: 20px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 2);
+}
+
+.header-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 2, 0, 0, 1);
+}
+
+/* Action Buttons */
 .button {
     -fx-font-weight: bold;
-    -fx-padding: 6 12;
-    -fx-border-radius: 4;
-    -fx-background-radius: 4;
+    -fx-font-size: 13px;
+    -fx-padding: 10 20;
+    -fx-background-radius: 20px;
+    -fx-border-radius: 20px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 8, 0, 0, 2);
     -fx-text-fill: white;
 }
 
-/* Nút Thêm: Xanh dương */
+/* Nút Thêm: Xanh lá */
 .button-add {
-    -fx-background-color: #0d6efd;
+    -fx-background-color: linear-gradient(to bottom, #56ab2f 0%, #a8e063 100%);
+    -fx-border-color: #56ab2f;
+    -fx-border-width: 0;
 }
 
 .button-add:hover {
-    -fx-background-color: #0b5ed7;
+    -fx-background-color: linear-gradient(to bottom, #4a9428 0%, #8bc34a 100%);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
 }
 
-/* Nút Sửa: Xám */
+.button-add:pressed {
+    -fx-scale-x: 0.95;
+    -fx-scale-y: 0.95;
+}
+
+/* Nút Sửa: Cam */
 .button-edit {
-    -fx-background-color: #6c757d;
+    -fx-background-color: linear-gradient(to bottom, #f39c12 0%, #f1c40f 100%);
+    -fx-border-color: #f39c12;
+    -fx-border-width: 0;
 }
 
 .button-edit:hover {
-    -fx-background-color: #5c636a;
+    -fx-background-color: linear-gradient(to bottom, #e67e22 0%, #f39c12 100%);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+}
+
+.button-edit:pressed {
+    -fx-scale-x: 0.95;
+    -fx-scale-y: 0.95;
 }
 
 /* Nút Xóa: Đỏ */
 .button-delete {
-    -fx-background-color: #dc3545;
+    -fx-background-color: linear-gradient(to bottom, #e74c3c 0%, #c0392b 100%);
+    -fx-border-color: #e74c3c;
+    -fx-border-width: 0;
 }
 
 .button-delete:hover {
-    -fx-background-color: #bb2d3b;
+    -fx-background-color: linear-gradient(to bottom, #c0392b 0%, #a93226 100%);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
 }
 
+.button-delete:pressed {
+    -fx-scale-x: 0.95;
+    -fx-scale-y: 0.95;
+}
+
+/* Search/Filter Field */
 .text-field {
-    -fx-border-color: #ced4da;
-    -fx-padding: 6;
-    -fx-border-radius: 4;
+    -fx-background-color: white;
+    -fx-background-radius: 20px;
+    -fx-border-radius: 20px;
+    -fx-border-color: #dfe6e9;
+    -fx-border-width: 1px;
+    -fx-padding: 8 16;
+    -fx-font-size: 13px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 1);
 }
 
+.text-field:focused {
+    -fx-border-color: #56ab2f;
+    -fx-border-width: 2px;
+}
+
+/* Table View */
 .table-view {
-    -fx-border-color: #dddddd;
-    -fx-border-width: 1;
+    -fx-background-color: white;
+    -fx-background-radius: 10px;
+    -fx-border-radius: 10px;
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 1px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 2);
+    -fx-font-size: 13px;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: linear-gradient(to bottom, #56ab2f 0%, #a8e063 100%);
+    -fx-background-radius: 10px 10px 0 0;
 }
 
 .table-view .column-header {
-    -fx-background-color: #f8f9fa;
-    -fx-font-weight: bold;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-padding: 12px;
 }
 
-/* Trạng thái trong bảng */
+.table-view .column-header .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+}
+
+.table-view .table-cell {
+    -fx-padding: 10px;
+    -fx-border-color: #f0f0f0;
+    -fx-border-width: 0 0 1 0;
+}
+
+.table-view .table-row-cell {
+    -fx-background-color: white;
+}
+
+.table-view .table-row-cell:odd {
+    -fx-background-color: #f8f9fa;
+}
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: linear-gradient(to right, #56ab2f 0%, #a8e063 100%);
+    -fx-text-fill: white;
+}
+
+.table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: white;
+}
+
+.table-view .table-row-cell:hover {
+    -fx-background-color: #e8f5e9;
+    -fx-cursor: hand;
+}
+
+.table-view .table-row-cell:selected:hover {
+    -fx-background-color: linear-gradient(to right, #56ab2f 0%, #a8e063 100%);
+    -fx-text-fill: white;
+}
+
+.table-view .table-row-cell:selected:hover .table-cell {
+    -fx-text-fill: white;
+}
+
+/* Scrollbar Styling */
+.table-view .scroll-bar:vertical {
+    -fx-background-color: transparent;
+}
+
+.table-view .scroll-bar:vertical .thumb {
+    -fx-background-color: #56ab2f;
+    -fx-background-radius: 5px;
+}
+
+.table-view .scroll-bar:vertical .track {
+    -fx-background-color: #f0f0f0;
+    -fx-background-radius: 5px;
+}
+
+/* Trạng thái trong bảng - Enhanced */
 .status-green {
-    -fx-background-color: #28a745;
-    -fx-text-fill: #ffffff;
-    -fx-padding: 4 8;
-    -fx-background-radius: 4;
+    -fx-background-color: linear-gradient(to right, #11998e 0%, #38ef7d 100%);
+    -fx-text-fill: white;
+    -fx-padding: 5 12;
+    -fx-background-radius: 15px;
+    -fx-font-weight: bold;
+    -fx-font-size: 11px;
 }
 
 .status-yellow {
-    -fx-background-color: #ffc107;
-    -fx-text-fill: #000000;
-    -fx-padding: 4 8;
-    -fx-background-radius: 4;
+    -fx-background-color: linear-gradient(to right, #f39c12 0%, #f1c40f 100%);
+    -fx-text-fill: white;
+    -fx-padding: 5 12;
+    -fx-background-radius: 15px;
+    -fx-font-weight: bold;
+    -fx-font-size: 11px;
 }
 
 .status-gray {
-    -fx-background-color: #6c757d;
-    -fx-text-fill: #ffffff;
-    -fx-padding: 4 8;
-    -fx-background-radius: 4;
+    -fx-background-color: linear-gradient(to right, #bdc3c7 0%, #95a5a6 100%);
+    -fx-text-fill: white;
+    -fx-padding: 5 12;
+    -fx-background-radius: 15px;
+    -fx-font-weight: bold;
+    -fx-font-size: 11px;
 }

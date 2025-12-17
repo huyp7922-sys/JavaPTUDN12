@@ -10,8 +10,11 @@ public class EmployeeDashboardDAO {
     // Lấy số vé bán trong ngày hôm nay
     public int getTicketsSoldToday() throws Exception {
         Connection con = DatabaseConnection.getConnection();
-        String sql = "SELECT COUNT(*) FROM VeTau WHERE trangThai IN ('DaBan', 'DaSuDung') " +
-                     "AND CAST(ngayDat AS DATE) = CAST(GETDATE() AS DATE)";
+        String sql = "SELECT COUNT(*) FROM VeTau vt " +
+                     "JOIN ChiTietLichTrinh ctlt ON vt.chiTietLichTrinhId = ctlt.maChiTietLichTrinh " +
+                     "JOIN LichTrinh lt ON ctlt.maLichTrinh = lt.maLichTrinh " +
+                     "WHERE vt.trangThai IN ('DaBan', 'DaSuDung') " +
+                     "AND CAST(lt.ngayKhoiHanh AS DATE) = CAST(GETDATE() AS DATE)";
         PreparedStatement ps = con.prepareStatement(sql);
         ResultSet rs = ps.executeQuery();
         if (rs.next()) {
@@ -38,8 +41,9 @@ public class EmployeeDashboardDAO {
         String sql = "SELECT ISNULL(SUM(ctlt.giaChoNgoi), 0) " +
                      "FROM VeTau vt " +
                      "JOIN ChiTietLichTrinh ctlt ON vt.chiTietLichTrinhId = ctlt.maChiTietLichTrinh " +
+                     "JOIN LichTrinh lt ON ctlt.maLichTrinh = lt.maLichTrinh " +
                      "WHERE vt.trangThai IN ('DaBan', 'DaSuDung') " +
-                     "AND CAST(vt.ngayDat AS DATE) = CAST(GETDATE() AS DATE)";
+                     "AND CAST(lt.ngayKhoiHanh AS DATE) = CAST(GETDATE() AS DATE)";
         PreparedStatement ps = con.prepareStatement(sql);
         ResultSet rs = ps.executeQuery();
         if (rs.next()) {
@@ -80,7 +84,7 @@ public class EmployeeDashboardDAO {
             "LEFT JOIN TuyenDuong td ON lt.maTuyenDuong = td.maTuyen " +
             "LEFT JOIN Ga g1 ON td.diemDi = g1.maGa " +
             "LEFT JOIN Ga g2 ON td.diemDen = g2.maGa " +
-            "ORDER BY CASE WHEN vt.trangThai = 'DaDat' THEN 0 ELSE 1 END, vt.ngayDat DESC, vt.maVe DESC";
+            "ORDER BY CASE WHEN vt.trangThai = 'DaDat' THEN 0 ELSE 1 END, lt.ngayKhoiHanh DESC, vt.maVe DESC";
         
         PreparedStatement ps = con.prepareStatement(sql);
         ResultSet rs = ps.executeQuery();
@@ -164,7 +168,7 @@ public class EmployeeDashboardDAO {
             "LEFT JOIN Ga g1 ON td.diemDi = g1.maGa " +
             "LEFT JOIN Ga g2 ON td.diemDen = g2.maGa " +
             "WHERE vt.trangThai = 'DaDat' " +
-            "ORDER BY vt.ngayDat DESC";
+            "ORDER BY lt.ngayKhoiHanh DESC";
         
         PreparedStatement ps = con.prepareStatement(sql);
         ResultSet rs = ps.executeQuery();
