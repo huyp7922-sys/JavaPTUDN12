@@ -9,19 +9,18 @@
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.ptudn12.main.controller.DashboardStatisticsController"
       stylesheets="@dashboard-statistics.css"
-      spacing="25" styleClass="main-content">
+      spacing="25"
+      styleClass="main-content">
 
     <padding>
         <Insets top="30" right="30" bottom="30" left="30"/>
     </padding>
 
-    <!-- Welcome Section -->
-    <VBox spacing="10" alignment="CENTER_LEFT">
-        <Label text="Chào mừng trở lại! 👋" styleClass="welcome-title"/>
+    <VBox spacing="8" alignment="CENTER_LEFT">
+        <Label text="Chào mừng trở lại" styleClass="welcome-title"/>
         <Label fx:id="welcomeSubtitle" text="Dưới đây là tổng quan hệ thống của bạn" styleClass="welcome-subtitle"/>
     </VBox>
 
-    <!-- Statistics Cards -->
     <GridPane hgap="20" vgap="20">
         <columnConstraints>
             <ColumnConstraints percentWidth="25"/>
@@ -30,85 +29,55 @@
             <ColumnConstraints percentWidth="25"/>
         </columnConstraints>
 
-        <!-- Card 1: Tổng số tuyến đường -->
-        <VBox styleClass="stat-card, card-blue" spacing="10" GridPane.columnIndex="0">
-            <padding>
-                <Insets top="20" right="20" bottom="20" left="20"/>
-            </padding>
-            <Label text="🚆" style="-fx-font-size: 40px;"/>
+        <VBox styleClass="stat-card" spacing="10" GridPane.columnIndex="0">
+            <padding><Insets top="18" right="18" bottom="18" left="18"/></padding>
             <Label text="Tổng Tuyến Đường" styleClass="stat-label"/>
             <Label fx:id="totalRoutesLabel" text="24" styleClass="stat-value"/>
-            <Label text="+3 so với tháng trước" styleClass="stat-change"/>
+            <Label text="+3 so với tháng trước" styleClass="stat-note"/>
         </VBox>
 
-        <!-- Card 2: Lịch trình hôm nay -->
-        <VBox styleClass="stat-card, card-green" spacing="10" GridPane.columnIndex="1">
-            <padding>
-                <Insets top="20" right="20" bottom="20" left="20"/>
-            </padding>
-            <Label text="📅" style="-fx-font-size: 40px;"/>
+        <VBox styleClass="stat-card" spacing="10" GridPane.columnIndex="1">
+            <padding><Insets top="18" right="18" bottom="18" left="18"/></padding>
             <Label text="Lịch Trình Hôm Nay" styleClass="stat-label"/>
             <Label fx:id="todaySchedulesLabel" text="12" styleClass="stat-value"/>
-            <Label text="8 đang chạy, 4 chờ khởi hành" styleClass="stat-change"/>
+            <Label text="8 đang chạy, 4 chờ khởi hành" styleClass="stat-note"/>
         </VBox>
 
-        <!-- Card 3: Tổng số tàu -->
-        <VBox styleClass="stat-card, card-orange" spacing="10" GridPane.columnIndex="2">
-            <padding>
-                <Insets top="20" right="20" bottom="20" left="20"/>
-            </padding>
-            <Label text="🚂" style="-fx-font-size: 40px;"/>
+        <VBox styleClass="stat-card" spacing="10" GridPane.columnIndex="2">
+            <padding><Insets top="18" right="18" bottom="18" left="18"/></padding>
             <Label text="Tổng Số Tàu" styleClass="stat-label"/>
             <Label fx:id="totalTrainsLabel" text="45" styleClass="stat-value"/>
-            <Label text="42 hoạt động, 3 bảo trì" styleClass="stat-change"/>
+            <Label text="42 hoạt động, 3 bảo trì" styleClass="stat-note"/>
         </VBox>
 
-        <!-- Card 4: Doanh thu tháng -->
-        <VBox styleClass="stat-card, card-purple" spacing="10" GridPane.columnIndex="3">
-            <padding>
-                <Insets top="20" right="20" bottom="20" left="20"/>
-            </padding>
-            <Label text="💰" style="-fx-font-size: 40px;"/>
+        <VBox styleClass="stat-card" spacing="10" GridPane.columnIndex="3">
+            <padding><Insets top="18" right="18" bottom="18" left="18"/></padding>
             <Label text="Doanh Thu Tháng" styleClass="stat-label"/>
             <Label fx:id="revenueLabel" text="2.5 tỷ" styleClass="stat-value"/>
-            <Label text="+15% so với tháng trước" styleClass="stat-change"/>
+            <Label text="+15% so với tháng trước" styleClass="stat-note"/>
         </VBox>
     </GridPane>
 
-    <!-- Charts Section -->
     <HBox spacing="20" VBox.vgrow="ALWAYS">
-        <!-- Revenue Chart -->
-        <VBox spacing="15" styleClass="chart-container" HBox.hgrow="ALWAYS">
-            <padding>
-                <Insets top="20" right="20" bottom="20" left="20"/>
-            </padding>
-            <Label text="Doanh Thu 7 Ngày Qua" styleClass="chart-title"/>
-            <BarChart fx:id="revenueChart" VBox.vgrow="ALWAYS" legendVisible="false">
-                <xAxis>
-                    <CategoryAxis side="BOTTOM"/>
-                </xAxis>
-                <yAxis>
-                    <NumberAxis side="LEFT" label="Triệu đồng"/>
-                </yAxis>
+        <VBox spacing="12" styleClass="panel" HBox.hgrow="ALWAYS">
+            <padding><Insets top="18" right="18" bottom="18" left="18"/></padding>
+            <Label text="Doanh Thu 7 Ngày Qua" styleClass="panel-title"/>
+            <BarChart fx:id="revenueChart" VBox.vgrow="ALWAYS" legendVisible="false" animated="false">
+                <xAxis><CategoryAxis side="BOTTOM"/></xAxis>
+                <yAxis><NumberAxis side="LEFT" label="Triệu đồng"/></yAxis>
             </BarChart>
         </VBox>
 
-        <!-- Schedule Status Chart -->
-        <VBox spacing="15" styleClass="chart-container" minWidth="350" maxWidth="400">
-            <padding>
-                <Insets top="20" right="20" bottom="20" left="20"/>
-            </padding>
-            <Label text="Trạng Thái Lịch Trình" styleClass="chart-title"/>
-            <PieChart fx:id="scheduleStatusChart" VBox.vgrow="ALWAYS"/>
+        <VBox spacing="12" styleClass="panel" minWidth="350" maxWidth="400">
+            <padding><Insets top="18" right="18" bottom="18" left="18"/></padding>
+            <Label text="Trạng Thái Lịch Trình" styleClass="panel-title"/>
+            <PieChart fx:id="scheduleStatusChart" VBox.vgrow="ALWAYS" legendVisible="true" labelsVisible="true" animated="false"/>
         </VBox>
     </HBox>
 
-    <!-- Recent Activities -->
-    <VBox spacing="15" styleClass="activities-container">
-        <padding>
-            <Insets top="20" right="20" bottom="20" left="20"/>
-        </padding>
-        <Label text="Hoạt Động Gần Đây" styleClass="section-title"/>
+    <VBox spacing="12" styleClass="panel">
+        <padding><Insets top="18" right="18" bottom="18" left="18"/></padding>
+        <Label text="Hoạt Động Gần Đây" styleClass="panel-title"/>
         <ListView fx:id="activitiesList" prefHeight="200" styleClass="activities-list"/>
     </VBox>
 

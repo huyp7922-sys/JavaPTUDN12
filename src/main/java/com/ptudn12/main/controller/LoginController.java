@@ -4,177 +4,142 @@ import com.ptudn12.main.dao.NhanVienDAO;
 import com.ptudn12.main.dao.TaiKhoanDAO;
 import com.ptudn12.main.entity.NhanVien;
 import com.ptudn12.main.entity.TaiKhoan;
-import com.ptudn12.main.utils.SessionManager;
 import com.ptudn12.main.utils.EmailService;
-
-import java.io.IOException;
-import java.util.Optional;
+import com.ptudn12.main.utils.PasswordUtils;
+import com.ptudn12.main.utils.SessionManager;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TextInputDialog;
-import javafx.stage.Stage;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.ButtonBar;
+import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
-import javafx.scene.control.Label;
-import javafx.geometry.Insets;
+import javafx.stage.Stage;
+
+import java.io.IOException;
+import java.util.Optional;
 
 public class LoginController {
 
     @FXML private TextField usernameField;
     @FXML private PasswordField passwordField;
-    
-    private NhanVienDAO nhanVienDAO = new NhanVienDAO();
-    private TaiKhoanDAO taiKhoanDAO = new TaiKhoanDAO();
+
+    private final NhanVienDAO nhanVienDAO = new NhanVienDAO();
+    private final TaiKhoanDAO taiKhoanDAO = new TaiKhoanDAO();
 
     @FXML
     private void handleLogin(ActionEvent event) {
-        String username = usernameField.getText().trim();
-        String password = passwordField.getText().trim();
+        String username = safeTrim(usernameField.getText());
+        String password = safeTrim(passwordField.getText());
 
         if (username.isEmpty() || password.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Vui lòng nhập đầy đủ thông tin!");
             return;
         }
 
-        // Kiểm tra tài khoản từ database
-        if (authenticateDatabase(username, password)) {
-            return; // Đã xử lý trong hàm
-        }
+        authenticateDatabase(username, password);
     }
 
-    /**
-     * Xác thực tài khoản từ database
-     */
     private boolean authenticateDatabase(String username, String password) {
         try {
-            // Tìm tài khoản
             TaiKhoan taiKhoan = taiKhoanDAO.findById(username);
-            
             if (taiKhoan == null) {
-                System.out.println("Không tìm thấy tài khoản: " + username);
-                showAlert(Alert.AlertType.ERROR, "Lỗi", "Tên đăng nhập hoặc mật khẩu không đúng");
-                return false;
-            }
-            
-            // Kiểm tra mật khẩu
-            if (!taiKhoan.getMatKhau().equals(password)) {
                 showAlert(Alert.AlertType.ERROR, "Lỗi", "Tên đăng nhập hoặc mật khẩu không đúng");
                 return false;
             }
 
-            // Nếu là mật khẩu tạm (ví dụ vừa reset), bắt buộc phải đổi
-            if (taiKhoan.isMatKhauTam()) { // Đảm bảo Entity TaiKhoan đã có hàm này
-                boolean doiThanhCong = showForceChangePasswordDialog(taiKhoan);
-                
-                if (!doiThanhCong) {
-                    // Nếu người dùng tắt hộp thoại hoặc đổi thất bại thì không cho đăng nhập
+            if (!verifyAndMaybeMigratePassword(taiKhoan, username, password)) {
+                showAlert(Alert.AlertType.ERROR, "Lỗi", "Tên đăng nhập hoặc mật khẩu không đúng");
+                return false;
+            }
+
+            if (taiKhoan.isMatKhauTam()) {
+                if (!showForceChangePasswordDialog(taiKhoan)) {
                     showAlert(Alert.AlertType.WARNING, "Yêu cầu", "Bạn bắt buộc phải đổi mật khẩu để tiếp tục sử dụng hệ thống!");
                     return false;
                 }
-                // Nếu đổi thành công, biến taiKhoan lúc này đã có mật khẩu mới và matKhauTam = false (do tham chiếu)
-                // Code sẽ chạy tiếp xuống dưới để login bình thường
+                taiKhoan = taiKhoanDAO.findById(username);
+                if (taiKhoan == null) {
+                    showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể tải lại thông tin tài khoản sau khi đổi mật khẩu.");
+                    return false;
+                }
             }
-            // Lấy thông tin nhân viên
+
             NhanVien nhanVien = taiKhoan.getNhanVien();
-            
             if (nhanVien == null) {
                 showAlert(Alert.AlertType.ERROR, "Lỗi", "Không tìm thấy thông tin nhân viên!");
                 return false;
             }
-            
-            String trangThaiTK = taiKhoan.getTrangThaiTK().trim().toLowerCase();
-            String tinhTrangCV = nhanVien.getTinhTrangCV().trim().toLowerCase();
-            
-            // Tài khoản bị ngừng hoạt động (KHÔNG CHO ĐĂNG NHẬP)
+
+            String trangThaiTK = safeLower(taiKhoan.getTrangThaiTK());
+            String tinhTrangCV = safeLower(nhanVien.getTinhTrangCV());
+
             if (trangThaiTK.equals("ngunghan")) {
-                showAlert(Alert.AlertType.ERROR, "Tài khoản đã ngừng hoạt động", 
-                    "Tài khoản của bạn đã bị ngừng hoạt động!\n" +
-                    "Vui lòng liên hệ quản trị viên để được hỗ trợ.");
+                showAlert(Alert.AlertType.ERROR, "Tài khoản đã ngừng hoạt động",
+                        "Tài khoản của bạn đã bị ngừng hoạt động!\nVui lòng liên hệ quản trị viên để được hỗ trợ.");
                 return false;
             }
-            
-            // Nhân viên đã nghỉ việc (KHÔNG CHO ĐĂNG NHẬP)
+
             if (tinhTrangCV.equals("đã nghỉ")) {
-                showAlert(Alert.AlertType.ERROR, "Nhân viên đã nghỉ việc", 
-                    "Bạn đã nghỉ việc và không thể đăng nhập vào hệ thống!\n" +
-                    "Vui lòng liên hệ phòng nhân sự để biết thêm chi tiết.");
+                showAlert(Alert.AlertType.ERROR, "Nhân viên đã nghỉ việc",
+                        "Bạn đã nghỉ việc và không thể đăng nhập vào hệ thống!\nVui lòng liên hệ phòng nhân sự để biết thêm chi tiết.");
                 return false;
             }
-            
-            // Tài khoản tạm ngưng HOẶC Nhân viên tạm nghỉ (CHO ĐĂNG NHẬP VỚI XÁC NHẬN)
+
             if (trangThaiTK.equals("tamngung") || tinhTrangCV.equals("tạm nghỉ")) {
                 boolean shouldActivate = showConfirmationDialog(
-                    "Tài khoản/Nhân viên đang tạm ngưng",
-                    "Thông tin trạng thái:",
-                    "Bạn có muốn mở lại tài khoản và tiếp tục làm việc không?"
+                        "Tài khoản/Nhân viên đang tạm ngưng",
+                        "Thông tin trạng thái:",
+                        "Bạn có muốn mở lại tài khoản và tiếp tục làm việc không?"
                 );
-                
-                if (shouldActivate) {
-                    // Cập nhật trạng thái về bình thường
-                    boolean updateSuccess = activateAccountAndEmployee(taiKhoan, nhanVien);
-                    
-                    if (!updateSuccess) {
-                        showAlert(Alert.AlertType.ERROR, "Lỗi", 
-                            "Không thể cập nhật trạng thái tài khoản!\n" +
-                            "Vui lòng liên hệ quản trị viên.");
-                        return false;
-                    }
-                    
-                    // Reload lại thông tin sau khi cập nhật
-                    taiKhoan = taiKhoanDAO.findById(username);
-                    nhanVien = taiKhoan.getNhanVien();
-                    
-                    showAlert(Alert.AlertType.INFORMATION, "Thành công", 
-                        "Đã mở lại tài khoản và kích hoạt trạng thái làm việc!");
-                    
-                } else {
-                    // Người dùng chọn Hủy - không đăng nhập
+
+                if (!shouldActivate) return false;
+
+                if (!activateAccountAndEmployee(taiKhoan, nhanVien)) {
+                    showAlert(Alert.AlertType.ERROR, "Lỗi",
+                            "Không thể cập nhật trạng thái tài khoản!\nVui lòng liên hệ quản trị viên.");
                     return false;
                 }
+
+                taiKhoan = taiKhoanDAO.findById(username);
+                if (taiKhoan == null || taiKhoan.getNhanVien() == null) {
+                    showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể tải lại thông tin sau khi cập nhật trạng thái.");
+                    return false;
+                }
+                nhanVien = taiKhoan.getNhanVien();
+
+                trangThaiTK = safeLower(taiKhoan.getTrangThaiTK());
+                tinhTrangCV = safeLower(nhanVien.getTinhTrangCV());
+
+                showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã mở lại tài khoản và kích hoạt trạng thái làm việc!");
             }
-            
-            // Kiểm tra tài khoản đang hoạt động bình thường
+
             if (!trangThaiTK.equals("danghoatdong")) {
-                showAlert(Alert.AlertType.ERROR, "Lỗi", 
-                    "Tài khoản không hoạt động!\n" +
-                    "Trạng thái hiện tại: " + taiKhoan.getTrangThaiTK());
+                showAlert(Alert.AlertType.ERROR, "Lỗi",
+                        "Tài khoản không hoạt động!\nTrạng thái hiện tại: " + taiKhoan.getTrangThaiTK());
                 return false;
             }
-            
-            // Kiểm tra nhân viên đang làm việc
+
             if (!tinhTrangCV.equals("đang làm")) {
-                showAlert(Alert.AlertType.ERROR, "Lỗi", 
-                    "Nhân viên không thể làm việc!\n" +
-                    "Trạng thái: " + nhanVien.getTinhTrangCV());
+                showAlert(Alert.AlertType.ERROR, "Lỗi",
+                        "Nhân viên không thể làm việc!\nTrạng thái: " + nhanVien.getTinhTrangCV());
                 return false;
             }
-            
-            // Lưu session
+
             SessionManager.getInstance().login(username, nhanVien, taiKhoan);
-            
-            // Lấy quyền từ SessionManager
             boolean isAdmin = SessionManager.getInstance().isAdmin();
-            
-            // Load dashboard tương ứng
+
             loadDashboard(nhanVien.getTenNhanVien(), isAdmin);
-            
-            // Hiển thị thông báo thành công
-            showAlert(Alert.AlertType.INFORMATION, "Thành công", 
-                "Đăng nhập thành công!\n" +
-                "Chào mừng: " + nhanVien.getTenNhanVien() + "\n" +
-                "Vai trò: " + SessionManager.getInstance().getRole());
-            
-            return true; 
-            
+
+            showAlert(Alert.AlertType.INFORMATION, "Thành công",
+                    "Đăng nhập thành công!\n" +
+                            "Chào mừng: " + nhanVien.getTenNhanVien() + "\n" +
+                            "Vai trò: " + SessionManager.getInstance().getRole());
+
+            return true;
+
         } catch (Exception e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Lỗi", "Lỗi khi đăng nhập: " + e.getMessage());
@@ -182,61 +147,73 @@ public class LoginController {
         }
     }
 
-    /**
-     * Kích hoạt lại tài khoản và nhân viên
-     */
+    private boolean verifyAndMaybeMigratePassword(TaiKhoan taiKhoan, String username, String password) {
+        String stored = taiKhoan.getMatKhau();
+        if (stored == null) return false;
+
+        if (PasswordUtils.looksLikeBCrypt(stored)) {
+            return PasswordUtils.verify(password, stored);
+        }
+
+        if (!stored.equals(password)) return false;
+
+        try {
+            taiKhoan.setMatKhau(PasswordUtils.hash(password));
+            taiKhoanDAO.update(taiKhoan);
+            TaiKhoan reloaded = taiKhoanDAO.findById(username);
+            if (reloaded != null) {
+                taiKhoan.setMatKhau(reloaded.getMatKhau());
+                taiKhoan.setMatKhauTam(reloaded.isMatKhauTam());
+                taiKhoan.setTrangThaiTK(reloaded.getTrangThaiTK());
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return true;
+    }
+
     private boolean activateAccountAndEmployee(TaiKhoan taiKhoan, NhanVien nhanVien) {
         try {
             boolean success = true;
-            
-            // Cập nhật trạng thái tài khoản về DangHoatDong
-            if (taiKhoan.getTrangThaiTK().trim().equalsIgnoreCase("tamngung")) {
+
+            if ("tamngung".equalsIgnoreCase(safeTrim(taiKhoan.getTrangThaiTK()))) {
                 taiKhoan.setTrangThaiTK("DangHoatDong");
                 success = success && taiKhoanDAO.update(taiKhoan);
             }
-            
-            // Cập nhật tình trạng nhân viên về Đang làm
-            if (nhanVien.getTinhTrangCV().trim().equalsIgnoreCase("tạm nghỉ")) {
+
+            if ("tạm nghỉ".equalsIgnoreCase(safeTrim(nhanVien.getTinhTrangCV()))) {
                 nhanVien.setTinhTrangCV("Đang làm");
                 success = success && nhanVienDAO.update(nhanVien);
             }
-            
+
             return success;
-            
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
     }
 
-    /**
-     * Hiển thị dialog xác nhận với nút Xác nhận và Hủy
-     */
     private boolean showConfirmationDialog(String title, String header, String content) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle(title);
         alert.setHeaderText(header);
         alert.setContentText(content);
-        
-        // Custom button text
+
         ButtonType btnXacNhan = new ButtonType("Xác nhận mở tài khoản");
         ButtonType btnHuy = new ButtonType("Hủy");
-        
         alert.getButtonTypes().setAll(btnXacNhan, btnHuy);
-        
+
         Optional<ButtonType> result = alert.showAndWait();
         return result.isPresent() && result.get() == btnXacNhan;
     }
 
-    /**
-     * Load giao diện Dashboard theo quyền
-     */
     private void loadDashboard(String displayName, boolean isAdmin) {
         try {
             FXMLLoader loader;
-            String title;
             String role = isAdmin ? "Quản Lý" : "Nhân Viên";
-            
+            String title;
+
             if (isAdmin) {
                 loader = new FXMLLoader(getClass().getResource("/views/dashboard.fxml"));
                 title = "Hệ Thống Quản Lý Bán Vé Tàu - " + role + " (" + displayName + ")";
@@ -244,10 +221,9 @@ public class LoginController {
                 loader = new FXMLLoader(getClass().getResource("/views/ban-ve.fxml"));
                 title = "Hệ Thống Quản Lý Bán Vé Tàu - " + role + " (" + displayName + ")";
             }
-            
+
             Parent root = loader.load();
-            
-            // Set username cho controller tương ứng
+
             if (isAdmin) {
                 DashboardController controller = loader.getController();
                 controller.setUsername(displayName);
@@ -256,12 +232,11 @@ public class LoginController {
                 controller.setUsername(displayName);
             }
 
-            // Chuyển scene
             Stage stage = (Stage) usernameField.getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.setTitle(title);
-            stage.setResizable(true);   // cho phép chỉnh kích thước
-            stage.setMaximized(true);   // mở ra ở trạng thái to nhất
+            stage.setResizable(true);
+            stage.setMaximized(true);
         } catch (IOException e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể tải giao diện: " + e.getMessage());
@@ -270,138 +245,103 @@ public class LoginController {
 
     @FXML
     private void handleForgotPassword() {
-        // Tạo dialog nhập mã nhân viên
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Quên mật khẩu");
         dialog.setHeaderText("Khôi phục mật khẩu");
         dialog.setContentText("Nhập mã nhân viên của bạn:");
-        
+
         Optional<String> result = dialog.showAndWait();
-        
-        if (result.isPresent()) {
-            String maNhanVien = result.get().trim();
-            
-            if (maNhanVien.isEmpty()) {
-                showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Vui lòng nhập mã nhân viên!");
-                return;
-            }
-            
-            // Show loading trước
-            Alert loadingAlert = new Alert(Alert.AlertType.INFORMATION);
-            loadingAlert.setTitle("Đang xử lý");
-            loadingAlert.setHeaderText(null);
-            loadingAlert.setContentText("Đang gửi email khôi phục mật khẩu...");
-            loadingAlert.show();
-            
-            // Xử lý trong background thread
-            Task<Boolean> task = new Task<>() {
-                @Override
-                protected Boolean call() throws Exception {
-                    return processPasswordReset(maNhanVien);
-                }
-            };
-            
-            task.setOnSucceeded(e -> {
-                loadingAlert.close();
-                if (task.getValue()) {
-                    showAlert(Alert.AlertType.INFORMATION, "Thành công", 
-                        "Mật khẩu TẠM THỜI đã được gửi về email của bạn!\n" +
-                        "Bạn sẽ phải đổi mật khẩu ngay trong lần đăng nhập tới.");
-                } else {
-                    showAlert(Alert.AlertType.ERROR, "Lỗi", 
-                        "Không thể khôi phục mật khẩu!\n" +
-                        "Vui lòng kiểm tra lại mã nhân viên hoặc liên hệ quản trị viên.");
-                }
-            });
-            
-            task.setOnFailed(e -> {
-                loadingAlert.close();
-                showAlert(Alert.AlertType.ERROR, "Lỗi", "Có lỗi xảy ra: " + task.getException().getMessage());
-            });
-            
-            new Thread(task).start();
+        if (result.isEmpty()) return;
+
+        String maNhanVien = safeTrim(result.get());
+        if (maNhanVien.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Vui lòng nhập mã nhân viên!");
+            return;
         }
+
+        Alert loadingAlert = new Alert(Alert.AlertType.INFORMATION);
+        loadingAlert.setTitle("Đang xử lý");
+        loadingAlert.setHeaderText(null);
+        loadingAlert.setContentText("Đang gửi email khôi phục mật khẩu...");
+        loadingAlert.show();
+
+        Task<Boolean> task = new Task<>() {
+            @Override
+            protected Boolean call() {
+                return processPasswordReset(maNhanVien);
+            }
+        };
+
+        task.setOnSucceeded(e -> {
+            loadingAlert.close();
+            if (Boolean.TRUE.equals(task.getValue())) {
+                showAlert(Alert.AlertType.INFORMATION, "Thành công",
+                        "Mật khẩu TẠM THỜI đã được gửi về email của bạn!\nBạn sẽ phải đổi mật khẩu ngay trong lần đăng nhập tới.");
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Lỗi",
+                        "Không thể khôi phục mật khẩu!\nVui lòng kiểm tra lại mã nhân viên hoặc liên hệ quản trị viên.");
+            }
+        });
+
+        task.setOnFailed(e -> {
+            loadingAlert.close();
+            Throwable ex = task.getException();
+            showAlert(Alert.AlertType.ERROR, "Lỗi", "Có lỗi xảy ra: " + (ex == null ? "Unknown" : ex.getMessage()));
+        });
+
+        Thread t = new Thread(task);
+        t.setDaemon(true);
+        t.start();
     }
 
-    /**
-     * Xử lý reset mật khẩu
-     */
     private boolean processPasswordReset(String maNhanVien) {
         try {
-            // Tìm tài khoản
             TaiKhoan taiKhoan = taiKhoanDAO.findById(maNhanVien);
-            
-            if (taiKhoan == null) {
-                System.err.println("Không tìm thấy tài khoản: " + maNhanVien);
-                return false;
-            }
-            
-            // Chỉ cho phép reset nếu tài khoản đang hoạt động hoặc tạm ngưng
-            String trangThai = taiKhoan.getTrangThaiTK().trim().toLowerCase();
-            if (!trangThai.equals("danghoatdong") && !trangThai.equals("tamngung")) {
-                System.err.println("Tài khoản không thể reset mật khẩu. Trạng thái: " + trangThai);
-                return false;
-            }
-            
-            // Lấy thông tin nhân viên
+            if (taiKhoan == null) return false;
+
+            String trangThai = safeLower(taiKhoan.getTrangThaiTK());
+            if (!trangThai.equals("danghoatdong") && !trangThai.equals("tamngung")) return false;
+
             NhanVien nhanVien = taiKhoan.getNhanVien();
-            if (nhanVien == null || nhanVien.getEmail() == null || nhanVien.getEmail().isEmpty()) {
-                System.err.println("Không tìm thấy email nhân viên");
-                return false;
-            }
-            
-            // Tạo mật khẩu mới
+            if (nhanVien == null) return false;
+
+            String email = safeTrim(nhanVien.getEmail());
+            if (email.isEmpty()) return false;
+
             String newPassword = EmailService.generateRandomPassword();
-            
-            // Gửi email
+
             boolean emailSent = EmailService.sendPasswordResetEmail(
-                nhanVien.getEmail(), 
-                newPassword, 
-                nhanVien.getTenNhanVien()
+                    email,
+                    newPassword,
+                    nhanVien.getTenNhanVien()
             );
-            
-            if (!emailSent) {
-                System.err.println("Gửi email thất bại");
-                return false;
-            }
-            
-            // === [MỚI] CẬP NHẬT TRẠNG THÁI MẬT KHẨU TẠM ===
-            taiKhoan.setMatKhau(newPassword);
-            taiKhoan.setMatKhauTam(true); // Đánh dấu đây là mật khẩu tạm
-            
+
+            if (!emailSent) return false;
+
+            taiKhoan.setMatKhau(PasswordUtils.hash(newPassword));
+            taiKhoan.setMatKhauTam(true);
+
             boolean updated = taiKhoanDAO.update(taiKhoan);
-            // =============================================
-            
             if (updated) {
                 System.out.println("Đã cập nhật mật khẩu mới (TẠM) cho: " + maNhanVien);
                 return true;
-            } else {
-                System.err.println("Cập nhật mật khẩu thất bại");
             }
-            
             return false;
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
     }
-    
-    /**
-     * 
-     * Trả về true nếu đổi thành công
-     */
+
     private boolean showForceChangePasswordDialog(TaiKhoan taiKhoan) {
-        // Tạo Dialog
         Dialog<String> dialog = new Dialog<>();
         dialog.setTitle("Yêu cầu đổi mật khẩu");
         dialog.setHeaderText("Bạn đang sử dụng mật khẩu tạm thời.\nVui lòng đổi mật khẩu mới để tiếp tục.");
 
-        // Tạo nút xác nhận
-        ButtonType loginButtonType = new ButtonType("Đổi & Đăng nhập", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(loginButtonType, ButtonType.CANCEL);
+        ButtonType okType = new ButtonType("Đổi & Đăng nhập", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(okType, ButtonType.CANCEL);
 
-        // Tạo giao diện form
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
@@ -409,6 +349,7 @@ public class LoginController {
 
         PasswordField newPass = new PasswordField();
         newPass.setPromptText("Mật khẩu mới");
+
         PasswordField confirmPass = new PasswordField();
         confirmPass.setPromptText("Nhập lại mật khẩu mới");
 
@@ -419,72 +360,75 @@ public class LoginController {
 
         dialog.getDialogPane().setContent(grid);
 
-        // Validate trước khi đóng dialog
-        final javafx.scene.control.Button btnOk = (javafx.scene.control.Button) dialog.getDialogPane().lookupButton(loginButtonType);
+        Button btnOk = (Button) dialog.getDialogPane().lookupButton(okType);
         btnOk.addEventFilter(ActionEvent.ACTION, event -> {
-            String p1 = newPass.getText();
-            String p2 = confirmPass.getText();
-            
+            String p1 = safeTrim(newPass.getText());
+            String p2 = safeTrim(confirmPass.getText());
+
             if (p1.isEmpty() || p2.isEmpty()) {
                 showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Vui lòng nhập đầy đủ thông tin!");
-                event.consume(); // Chặn đóng dialog
+                event.consume();
                 return;
             }
-            
+
             if (!p1.equals(p2)) {
                 showAlert(Alert.AlertType.ERROR, "Lỗi", "Mật khẩu xác nhận không khớp!");
-                event.consume(); // Chặn đóng dialog
+                event.consume();
                 return;
             }
-            
-            if (p1.equals(taiKhoan.getMatKhau())) {
-                 showAlert(Alert.AlertType.ERROR, "Lỗi", "Mật khẩu mới không được trùng với mật khẩu tạm!");
-                 event.consume();
-                 return;
+
+            String stored = taiKhoan.getMatKhau();
+            boolean sameAsTemp = PasswordUtils.looksLikeBCrypt(stored)
+                    ? PasswordUtils.verify(p1, stored)
+                    : (stored != null && p1.equals(stored));
+
+            if (sameAsTemp) {
+                showAlert(Alert.AlertType.ERROR, "Lỗi", "Mật khẩu mới không được trùng với mật khẩu tạm!");
+                event.consume();
             }
         });
 
-        
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == loginButtonType) {
-                return newPass.getText();
-            }
-            return null;
-        });
+        dialog.setResultConverter(btn -> btn == okType ? safeTrim(newPass.getText()) : null);
 
         Optional<String> result = dialog.showAndWait();
+        if (result.isEmpty()) return false;
 
-        if (result.isPresent()) {
-            String newPasswordToSave = result.get();
-            try {
-                taiKhoan.setMatKhau(newPasswordToSave);
-                taiKhoan.setMatKhauTam(false);
-                
-                boolean success = taiKhoanDAO.update(taiKhoan);
-                if (success) {
-                    showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đổi mật khẩu thành công!");
-                    return true;
-                } else {
-                    showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể cập nhật mật khẩu vào CSDL.");
-                    return false;
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
+        String newPasswordToSave = safeTrim(result.get());
+        if (newPasswordToSave.isEmpty()) return false;
+
+        try {
+            taiKhoan.setMatKhau(PasswordUtils.hash(newPasswordToSave));
+            taiKhoan.setMatKhauTam(false);
+
+            boolean success = taiKhoanDAO.update(taiKhoan);
+            if (success) {
+                showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đổi mật khẩu thành công!");
+                return true;
             }
-        }
 
-        return false;
+            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể cập nhật mật khẩu vào CSDL.");
+            return false;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Lỗi", "Có lỗi xảy ra khi đổi mật khẩu: " + e.getMessage());
+            return false;
+        }
     }
 
-    /**
-     * Hiển thị alert dialog
-     */
     private void showAlert(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    private String safeTrim(String s) {
+        return s == null ? "" : s.trim();
+    }
+
+    private String safeLower(String s) {
+        return safeTrim(s).toLowerCase();
     }
 }

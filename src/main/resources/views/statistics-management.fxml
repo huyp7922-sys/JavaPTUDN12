@@ -8,64 +8,58 @@
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.ptudn12.main.controller.StatisticsManagementController"
       stylesheets="@statistics-management-styles.css"
-      spacing="20" style="-fx-background-color: #f8f9fa;">
+      spacing="20">
     
     <padding>
         <Insets top="20" right="20" bottom="20" left="20"/>
     </padding>
     
-    <!-- Header Section -->
-    <HBox alignment="CENTER_LEFT" spacing="15" styleClass="header-box">
-        <Label text="📊 Thống Kê Chi Tiết Theo Tuyến Đường" styleClass="header-title"/>
+    <HBox alignment="CENTER_LEFT" spacing="15">
+        <Label text="Thống kê chi tiết theo tuyến đường" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
         <Region HBox.hgrow="ALWAYS"/>
-        <Button text="📥 Xuất PDF" onAction="#handleExportPDF" styleClass="filter-button" fx:id="btnExportPDF"/>
+        <Button text="Xuất PDF" onAction="#handleExportPDF" fx:id="btnExportPDF"/>
     </HBox>
 
-    <!-- Filter Section -->
-    <TitledPane text="🔍 Bộ Lọc Nâng Cao" animated="true" collapsible="true" expanded="false">
-        <VBox spacing="15" style="-fx-padding: 20;">
+    <TitledPane text="Bộ lọc tìm kiếm" animated="true" collapsible="true" expanded="false">
+        <VBox spacing="10">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
             <GridPane hgap="15" vgap="10">
-                <!-- Row 1: Search by name -->
-                <Label text="Tìm kiếm tuyến:" GridPane.columnIndex="0" GridPane.rowIndex="0" style="-fx-font-weight: bold;"/>
+                <Label text="Tên tuyến:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                 <TextField fx:id="txtSearch" promptText="Nhập tên tuyến..." 
-                           onKeyReleased="#handleSearch" styleClass="search-field"
-                           GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="200"/>
+                           onKeyReleased="#handleSearch"
+                           GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="250"/>
                 
-                <!-- Row 2: Filter by code -->
-                <Label text="Lọc theo mã tuyến:" GridPane.columnIndex="0" GridPane.rowIndex="1" style="-fx-font-weight: bold;"/>
+                <Label text="Mã tuyến:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
                 <TextField fx:id="txtMaTuyen" promptText="Nhập mã tuyến..." 
-                           onKeyReleased="#handleFilterByCode" styleClass="search-field"
-                           GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="200"/>
+                           onKeyReleased="#handleFilterByCode"
+                           GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="250"/>
                 
-                <!-- Row 3: Filter by ratio -->
-                <Label text="Lọc theo tỷ lệ lắp đầy (%):" GridPane.columnIndex="0" GridPane.rowIndex="2" style="-fx-font-weight: bold;"/>
-                <TextField fx:id="txtTiLe" promptText="Nhập tỷ lệ tối thiểu (0-100)..." 
-                           onKeyReleased="#handleFilterByRatio" styleClass="search-field"
-                           GridPane.columnIndex="1" GridPane.rowIndex="2" prefWidth="200"/>
+                <Label text="Tỷ lệ lấp đầy tối thiểu (%):" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                <TextField fx:id="txtTiLe" promptText="Ví dụ: 50" 
+                           onKeyReleased="#handleFilterByRatio"
+                           GridPane.columnIndex="1" GridPane.rowIndex="2" prefWidth="250"/>
 
-                <!-- Action Buttons -->
-                <HBox spacing="10" GridPane.columnIndex="0" GridPane.rowIndex="3" GridPane.columnSpan="2">
-                    <Button text="✅ Lọc" onAction="#handleApplyFilters"
-                        style="-fx-background-color: linear-gradient(to right, #6a11cb, #2575fc); -fx-text-fill: white; -fx-font-size: 13px; -fx-padding: 8 16; -fx-background-radius: 20; -fx-cursor: hand;"/>
-                    <Button text="🔄 Xóa Bộ Lọc" onAction="#handleResetFilters" 
-                        style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-size: 13px; -fx-padding: 8 15; -fx-background-radius: 20; -fx-cursor: hand;"/>
+                <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="3" style="-fx-padding: 10 0 0 0;">
+                    <Button text="Áp dụng" onAction="#handleApplyFilters" defaultButton="true" prefWidth="80"/>
+                    <Button text="Làm mới" onAction="#handleResetFilters" prefWidth="80"/>
                 </HBox>
             </GridPane>
         </VBox>
     </TitledPane>
 
-    <!-- Table Section -->
     <TableView fx:id="tableStats" VBox.vgrow="ALWAYS">
         <columnResizePolicy>
             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
         </columnResizePolicy>
         <columns>
-            <TableColumn text="Mã Tuyến" prefWidth="-1" fx:id="colMaTuyen"/>
-            <TableColumn text="Tên Tuyến" prefWidth="-1" fx:id="colTenTuyen"/>
-            <TableColumn text="Tổng Vé Bán" prefWidth="-1" fx:id="colTongVe"/>
-            <TableColumn text="Tỷ Lệ Lấp Đầy" prefWidth="-1" fx:id="colTiLe"/>
-            <TableColumn text="Chuyến Khởi Hành" prefWidth="-1" fx:id="colSoChuyen"/>
-            <TableColumn text="Doanh Thu Ước Tính" prefWidth="-1" fx:id="colDoanhThu"/>
+            <TableColumn text="Mã tuyến" fx:id="colMaTuyen"/>
+            <TableColumn text="Tên tuyến" fx:id="colTenTuyen"/>
+            <TableColumn text="Tổng vé bán" fx:id="colTongVe"/>
+            <TableColumn text="Tỷ lệ lấp đầy" fx:id="colTiLe"/>
+            <TableColumn text="Số chuyến" fx:id="colSoChuyen"/>
+            <TableColumn text="Doanh thu (VND)" fx:id="colDoanhThu"/>
         </columns>
     </TableView>
 </VBox>

@@ -10,30 +10,28 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/11.0.1" 
-      xmlns:fx="http://javafx.com/fxml/1" 
+<VBox xmlns="http://javafx.com/javafx/11.0.1"
+      xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.ptudn12.main.controller.EmployeeManagementController"
-      stylesheets="@employee-styles.css" 
-      spacing="20" 
+      stylesheets="@employee-styles.css"
+      spacing="20"
       style="-fx-background-color: #f8f9fa;"
-      prefHeight="600.0" 
+      prefHeight="600.0"
       prefWidth="1000.0">
-    
+
     <padding>
         <Insets top="20" right="20" bottom="20" left="20"/>
     </padding>
 
-    <!-- Header Section -->
     <HBox alignment="CENTER_LEFT" spacing="15" styleClass="header-box">
-        <Label text="👥 Quản Lý Nhân Viên" styleClass="header-title"/>
+        <Label text="Quản Lý Nhân Viên" styleClass="header-title"/>
         <Region HBox.hgrow="ALWAYS" />
-        <Button onAction="#addEmployee" styleClass="button-add" text="➕ Thêm Mới" />
-        <Button onAction="#editEmployee" styleClass="button-edit" text="✏️ Chỉnh Sửa" />
-        <Button onAction="#deleteEmployee" styleClass="button-delete" text="🗑️ Xóa" />
-        <TextField fx:id="filterField" promptText="🔍 Tìm kiếm nhân viên..." prefWidth="250"/>
+        <Button onAction="#addEmployee" styleClass="button-add" text="Thêm Mới" />
+        <Button onAction="#editEmployee" styleClass="button-edit" text="Chỉnh Sửa" />
+        <Button onAction="#deleteEmployee" styleClass="button-delete" text="Xóa" />
+        <TextField fx:id="filterField" promptText="Tìm kiếm nhân viên..." prefWidth="250"/>
     </HBox>
 
-    <!-- Table Section -->
     <TableView fx:id="employeeTable" VBox.vgrow="ALWAYS">
         <columns>
             <TableColumn fx:id="maNVCol" text="Mã NV" prefWidth="80"/>
