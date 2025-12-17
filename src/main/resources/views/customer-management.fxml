@@ -5,8 +5,10 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
@@ -17,17 +19,22 @@
 
     <!-- Main Content -->
     <center>
-        <VBox spacing="20" styleClass="main-content">
+        <VBox spacing="15">
             <padding>
                 <Insets top="30" right="30" bottom="30" left="30"/>
             </padding>
 
-            <!-- Header -->
-            <HBox alignment="CENTER">
+            <!-- ================== PHẦN HEADER ĐÃ ĐƯỢC SỬA LẠI ================== -->
+            <HBox alignment="CENTER_LEFT" spacing="15">
                 <Label text="Quản Lý Khách Hàng" styleClass="page-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <TextField fx:id="searchField" promptText="Tìm theo tên, CCCD, điểm..." prefWidth="250"/>
+                <Button text="Tìm kiếm" styleClass="primary-button" onAction="#handleSearch"/>
+                <!-- Lưu ý: Tôi đã đổi tên nút từ "hóa đơn" sang "khách hàng" cho đúng ngữ cảnh -->
+                <Button text="Hiển thị tất cả" styleClass="secondary-button" onAction="#handleShowAll"/>
             </HBox>
 
-            <!-- Table -->
+            <!-- Table (giữ nguyên) -->
             <TableView fx:id="customerTable" VBox.vgrow="ALWAYS">
                 <columnResizePolicy>
                     <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
@@ -42,13 +49,16 @@
                 </columns>
             </TableView>
 
-            <!-- Action Buttons -->
-            <HBox spacing="15" alignment="CENTER_RIGHT">
+            <!-- ================== PHẦN FOOTER ĐÃ ĐƯỢC SỬA LẠI ================== -->
+            <HBox alignment="CENTER_LEFT" spacing="15">
+                <Label fx:id="customerCountLabel" styleClass="field-label-bold"/>
+                <Region HBox.hgrow="ALWAYS"/>
                 <Button text="Làm mới" styleClass="secondary-button" onAction="#handleRefresh"/>
                 <Button text="Xem lịch sử mua vé" styleClass="secondary-button" onAction="#handleViewHistory"/>
                 <Button text="Thêm" styleClass="add-button" onAction="#handleAddCustomer"/>
                 <Button text="Sửa" styleClass="primary-button" onAction="#handleEditCustomer"/>
             </HBox>
+
         </VBox>
     </center>
 </BorderPane>

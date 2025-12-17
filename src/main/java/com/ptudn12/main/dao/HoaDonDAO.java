@@ -30,13 +30,12 @@ public class HoaDonDAO {
 
 		try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
-
-            ps.setString(1, maHoaDon);
-            ps.setInt(2, khachHangId);
-            ps.setString(3, maNhanVien);
-            ps.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now()));
-            ps.setDouble(5, tongThanhToan);
-            ps.setString(6, "BanVe");
+			ps.setString(1, maHoaDon);
+			ps.setInt(2, khachHangId);
+			ps.setString(3, maNhanVien);
+			ps.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now()));
+			ps.setDouble(5, tongThanhToan);
+			ps.setString(6, "BanVe");
 
 			int affectedRows = ps.executeUpdate();
 			return affectedRows > 0;
@@ -184,6 +183,36 @@ public class HoaDonDAO {
 			e.printStackTrace();
 		}
 		return listItems;
+	}
+
+	/**
+	 * Lấy đầy đủ thông tin của một hóa đơn dựa vào mã hóa đơn.
+	 * 
+	 * @param maHoaDon Mã của hóa đơn cần tìm.
+	 * @return Một đối tượng HoaDon hoàn chỉnh, hoặc null nếu không tìm thấy.
+	 */
+	public HoaDon layHoaDonTheoMa(String maHoaDon) {
+		// SỬA LỖI TẠI ĐÂY: Thay "hd.khachHangId" bằng "kh.maKhachHang" để nhất quán
+		String sql = "SELECT " + "    hd.maHoaDon, hd.ngayLap, hd.loaiHoaDon, "
+				+ "    kh.maKhachHang, kh.tenKhachHang, kh.soDienThoai, " + "    nv.maNhanVien, nv.tenNhanVien "
+				+ "FROM HoaDon hd " + "JOIN KhachHang kh ON hd.khachHangId = kh.maKhachHang "
+				+ "JOIN NhanVien nv ON hd.nhanVienId = nv.maNhanVien " + "WHERE hd.maHoaDon = ?";
+
+		try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+			ps.setString(1, maHoaDon);
+			ResultSet rs = ps.executeQuery();
+
+			if (rs.next()) {
+				// Bây giờ ResultSet đã chứa cột "maKhachHang" mà phương thức map mong đợi
+				return mapResultSetToHoaDon(rs);
+			}
+
+		} catch (SQLException e) {
+			System.err.println("Lỗi khi lấy hóa đơn theo mã '" + maHoaDon + "': " + e.getMessage());
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	/**
