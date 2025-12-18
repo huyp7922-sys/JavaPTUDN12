@@ -1,175 +1,172 @@
-// File: src/main/java/com/ptudn12/main/controller/CustomerManagementController.java
 package com.ptudn12.main.controller;
 
 import java.io.IOException;
 import java.util.List;
-
 import com.ptudn12.main.dao.KhachHangDAO;
 import com.ptudn12.main.entity.KhachHang;
-
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 public class CustomerManagementController {
 
-	@FXML
-	private TableView<KhachHang> customerTable;
-	@FXML
-	private TableColumn<KhachHang, String> idColumn;
-	@FXML
-	private TableColumn<KhachHang, String> nameColumn;
-	@FXML
-	private TableColumn<KhachHang, String> cccdColumn;
-	@FXML
-	private TableColumn<KhachHang, String> passportColumn;
-	@FXML
-	private TableColumn<KhachHang, String> phoneColumn;
-	@FXML
-	private TableColumn<KhachHang, Integer> pointsColumn;
+    @FXML private TableView<KhachHang> customerTable;
+    @FXML private TableColumn<KhachHang, String> idColumn;
+    @FXML private TableColumn<KhachHang, String> nameColumn;
+    @FXML private TableColumn<KhachHang, String> cccdColumn;
+    @FXML private TableColumn<KhachHang, String> passportColumn;
+    @FXML private TableColumn<KhachHang, String> phoneColumn;
+    @FXML private TableColumn<KhachHang, Integer> pointsColumn;
+    @FXML private TextField searchField;
+    @FXML private Label customerCountLabel;
 
-	private final KhachHangDAO khachHangDAO = new KhachHangDAO();
+    private final KhachHangDAO khachHangDAO = new KhachHangDAO();
+    private ObservableList<KhachHang> masterData = FXCollections.observableArrayList();
+    private FilteredList<KhachHang> filteredData;
 
-	// Danh sách dữ liệu khách hàng
-	private ObservableList<KhachHang> customerData = FXCollections.observableArrayList();
+    @FXML
+    public void initialize() {
+        // Cấu hình cột
+        idColumn.setCellValueFactory(new PropertyValueFactory<>("maKhachHang"));
+        nameColumn.setCellValueFactory(new PropertyValueFactory<>("tenKhachHang"));
+        cccdColumn.setCellValueFactory(new PropertyValueFactory<>("soCCCD"));
+        passportColumn.setCellValueFactory(new PropertyValueFactory<>("hoChieu"));
+        phoneColumn.setCellValueFactory(new PropertyValueFactory<>("soDienThoai"));
+        pointsColumn.setCellValueFactory(new PropertyValueFactory<>("diemTich"));
 
-	@FXML
-	public void initialize() {
-		// Liên kết các cột với thuộc tính của đối tượng KhachHang
-		idColumn.setCellValueFactory(new PropertyValueFactory<>("maKhachHang"));
-		nameColumn.setCellValueFactory(new PropertyValueFactory<>("tenKhachHang"));
-		cccdColumn.setCellValueFactory(new PropertyValueFactory<>("soCCCD"));
-		passportColumn.setCellValueFactory(new PropertyValueFactory<>("hoChieu"));
-		phoneColumn.setCellValueFactory(new PropertyValueFactory<>("soDienThoai"));
-		pointsColumn.setCellValueFactory(new PropertyValueFactory<>("diemTich"));
+        // Thiết lập danh sách lọc
+        filteredData = new FilteredList<>(masterData, p -> true);
+        customerTable.setItems(filteredData);
 
-		// Tải dữ liệu mẫu
-		loadDataFromDatabase();
-	}
+        loadDataFromDatabase();
+    }
 
-	private void loadDataFromDatabase() {
-		customerData.clear();
+    private void loadDataFromDatabase() {
+        List<KhachHang> danhSach = khachHangDAO.layTatCaKhachHang();
+        masterData.setAll(danhSach);
+        updateCount();
+    }
 
-		// Gọi DAO để lấy danh sách khách hàng từ DB
-		List<KhachHang> danhSach = khachHangDAO.layTatCaKhachHang();
+    @FXML
+    private void handleSearch() {
+        String keyword = searchField.getText().toLowerCase().trim();
+        
+        filteredData.setPredicate(kh -> {
+            if (keyword.isEmpty()) return true;
 
-		// Thêm danh sách lấy được vào ObservableList để hiển thị
-		customerData.addAll(danhSach);
+            return kh.getTenKhachHang().toLowerCase().contains(keyword) ||
+                   (kh.getSoCCCD() != null && kh.getSoCCCD().contains(keyword)) ||
+                   (kh.getHoChieu() != null && kh.getHoChieu().toLowerCase().contains(keyword)) ||
+                   (kh.getSoDienThoai() != null && kh.getSoDienThoai().contains(keyword));
+        });
+        updateCount();
+    }
 
-		// Dòng này không bắt buộc nếu bạn đã set một lần trong initialize()
-		// nhưng để đây để đảm bảo bảng luôn được cập nhật.
-		customerTable.setItems(customerData);
-	}
+    @FXML
+    private void handleShowAll() {
+        searchField.clear();
+        handleSearch();
+    }
 
-	@FXML
-	private void handleAddCustomer() {
-		try {
-			FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/add-customer-dialog.fxml"));
-			Scene scene = new Scene(loader.load());
+    @FXML
+    private void handleRefresh() {
+        loadDataFromDatabase();
+        searchField.clear();
+        handleSearch();
+        showAlert(Alert.AlertType.INFORMATION, "Thông báo", "Đã tải lại danh sách khách hàng!");
+    }
 
-			// Lấy controller của dialog
-			AddCustomerDialogController controller = loader.getController();
+    @FXML
+    private void handleAddCustomer() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/add-customer-dialog.fxml"));
+            Scene scene = new Scene(loader.load());
+            AddCustomerDialogController controller = loader.getController();
 
-			Stage dialogStage = new Stage();
-			dialogStage.setTitle("Thêm Khách Hàng Mới");
-			dialogStage.initModality(Modality.APPLICATION_MODAL);
-			dialogStage.setScene(scene);
+            Stage stage = new Stage();
+            stage.setTitle("Thêm Khách Hàng Mới");
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setScene(scene);
+            stage.showAndWait();
 
-			// Hiển thị và chờ cho đến khi dialog được đóng
-			dialogStage.showAndWait();
+            if (controller.isSaveClicked()) loadDataFromDatabase();
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể mở form thêm!");
+        }
+    }
 
-			// CHỈ làm mới dữ liệu nếu người dùng đã bấm LƯU thành công
-			if (controller.isSaveClicked()) {
-				handleRefresh();
-			}
+    @FXML
+    private void handleEditCustomer() {
+        KhachHang selected = customerTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Vui lòng chọn khách hàng cần sửa!");
+            return;
+        }
 
-		} catch (IOException e) {
-			e.printStackTrace();
-			showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể mở form thêm khách hàng!");
-		}
-	}
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/add-customer-dialog.fxml"));
+            Scene scene = new Scene(loader.load());
+            AddCustomerDialogController controller = loader.getController();
+            controller.loadCustomerForEdit(selected);
 
-	@FXML
-	private void handleEditCustomer() {
-		KhachHang selected = customerTable.getSelectionModel().getSelectedItem();
-		if (selected == null) {
-			showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Vui lòng chọn khách hàng cần sửa!");
-			return;
-		}
+            Stage stage = new Stage();
+            stage.setTitle("Sửa Thông Tin");
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setScene(scene);
+            stage.showAndWait();
 
-		try {
-			FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/add-customer-dialog.fxml"));
-			Scene scene = new Scene(loader.load());
+            if (controller.isSaveClicked()) {
+                loadDataFromDatabase();
+                customerTable.refresh();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-			// Lấy controller của dialog và truyền dữ liệu khách hàng qua
-			AddCustomerDialogController controller = loader.getController();
-			controller.loadCustomerForEdit(selected);
+    @FXML
+    private void handleViewHistory() {
+        KhachHang selected = customerTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Vui lòng chọn khách hàng!");
+            return;
+        }
 
-			Stage dialogStage = new Stage();
-			dialogStage.setTitle("Sửa Thông Tin Khách Hàng");
-			dialogStage.initModality(Modality.APPLICATION_MODAL);
-			dialogStage.setScene(scene);
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/customer-history-view.fxml"));
+            Scene scene = new Scene(loader.load());
+            CustomerHistoryController controller = loader.getController();
+            controller.loadCustomerData(selected);
 
-			// Hiển thị và chờ
-			dialogStage.showAndWait();
+            Stage stage = new Stage();
+            stage.setTitle("Lịch Sử: " + selected.getTenKhachHang());
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setScene(scene);
+            stage.showAndWait();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-			// CHỈ làm mới bảng nếu người dùng đã bấm LƯU thành công
-			if (controller.isSaveClicked()) {
-				customerTable.refresh(); // .refresh() hiệu quả hơn là load lại toàn bộ
-			}
+    private void updateCount() {
+        if (customerCountLabel != null) {
+            customerCountLabel.setText("Hiển thị: " + filteredData.size() + " / Tổng: " + masterData.size());
+        }
+    }
 
-		} catch (IOException e) {
-			e.printStackTrace();
-			showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể mở form sửa thông tin khách hàng!");
-		}
-	}
-
-	@FXML
-	private void handleRefresh() {
-		loadDataFromDatabase();
-		customerTable.refresh();
-		showAlert(Alert.AlertType.INFORMATION, "Thông báo", "Đã tải lại danh sách khách hàng!");
-	}
-
-	@FXML
-	private void handleViewHistory() {
-		KhachHang selected = customerTable.getSelectionModel().getSelectedItem();
-		if (selected == null) {
-			showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Vui lòng chọn một khách hàng để xem lịch sử!");
-			return;
-		}
-
-		try {
-			FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/customer-history-view.fxml"));
-			Scene scene = new Scene(loader.load());
-
-			CustomerHistoryController controller = loader.getController();
-			controller.loadCustomerData(selected);
-
-			Stage dialogStage = new Stage();
-			dialogStage.setTitle("Lịch Sử Mua Vé của " + selected.getTenKhachHang());
-			dialogStage.initModality(Modality.APPLICATION_MODAL);
-			dialogStage.setScene(scene);
-			dialogStage.showAndWait();
-		} catch (IOException e) {
-			e.printStackTrace();
-			showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể mở cửa sổ xem lịch sử mua vé!");
-		}
-	}
-
-	private void showAlert(Alert.AlertType type, String title, String message) {
-		Alert alert = new Alert(type);
-		alert.setTitle(title);
-		alert.setHeaderText(null);
-		alert.setContentText(message);
-		alert.showAndWait();
-	}
+    private void showAlert(Alert.AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
 }

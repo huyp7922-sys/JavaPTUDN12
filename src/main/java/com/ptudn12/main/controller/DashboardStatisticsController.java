@@ -3,15 +3,14 @@ package com.ptudn12.main.controller;
 import com.ptudn12.main.dao.DashboardDAO;
 import com.ptudn12.main.entity.DailyRevenue;
 import com.ptudn12.main.entity.ScheduleStatus;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.chart.BarChart;
-import javafx.scene.chart.PieChart;
-import javafx.scene.chart.XYChart;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
+
+import javafx.scene.Node;
+import javafx.scene.chart.*;
+import javafx.scene.control.*;
 
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
@@ -21,26 +20,34 @@ import java.util.Locale;
 
 public class DashboardStatisticsController {
 
-    
+    /* ===== LABEL KPI ===== */
     @FXML private Label welcomeSubtitle;
     @FXML private Label totalRoutesLabel;
     @FXML private Label todaySchedulesLabel;
     @FXML private Label totalTrainsLabel;
     @FXML private Label revenueLabel;
-    
+
     @FXML private BarChart<String, Number> revenueChart;
     @FXML private PieChart scheduleStatusChart;
+
     @FXML private ListView<String> activitiesList;
 
-    private DashboardDAO dashboardDAO;
+    private final DashboardDAO dashboardDAO = new DashboardDAO();
 
+  
     @FXML
     public void initialize() {
-        dashboardDAO = new DashboardDAO();
-        
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm, dd/MM/yyyy");
-        welcomeSubtitle.setText("Dưới đây là tổng quan hệ thống - Cập nhật lúc " + 
-                               LocalDateTime.now().format(formatter));
+        refreshAllData();
+    }
+
+    @FXML
+    private void handleRefresh() {
+        refreshAllData();
+    }
+
+    private void refreshAllData() {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss - dd/MM/yyyy");
+        welcomeSubtitle.setText("Cập nhật lần cuối: " + LocalDateTime.now().format(dtf));
 
         loadStatistics();
         loadRevenueChart();
@@ -48,101 +55,112 @@ public class DashboardStatisticsController {
         loadRecentActivities();
     }
 
+
     private void loadStatistics() {
         try {
-            int totalRoutes = dashboardDAO.getTotalRoutes();
-            int todaySchedules = dashboardDAO.getTodaySchedules();
-            int totalTrains = dashboardDAO.getTotalTrains();
-            long monthlyRevenue = dashboardDAO.getMonthlyRevenue();
-
-            totalRoutesLabel.setText(String.valueOf(totalRoutes));
-            todaySchedulesLabel.setText(String.valueOf(todaySchedules));
-            totalTrainsLabel.setText(String.valueOf(totalTrains));
-            
-            // Format revenue to display in billions or millions
-            revenueLabel.setText(formatCurrency(monthlyRevenue));
+            totalRoutesLabel.setText(String.valueOf(dashboardDAO.getTotalRoutes()));
+            todaySchedulesLabel.setText(String.valueOf(dashboardDAO.getTodaySchedules()));
+            totalTrainsLabel.setText(String.valueOf(dashboardDAO.getTotalTrains()));
+            revenueLabel.setText(formatCurrency(dashboardDAO.getMonthlyRevenue()));
         } catch (Exception e) {
             e.printStackTrace();
-            showError("Lỗi khi tải thống kê: " + e.getMessage());
+            showError("Không thể tải thống kê tổng quan");
         }
     }
 
+
     private void loadRevenueChart() {
         try {
-            List<DailyRevenue> dailyRevenues = dashboardDAO.getDailyRevenueLastWeek();
-            
-            System.out.println("=== DEBUG: Doanh thu 7 ngày ===");
-            System.out.println("Số ngày: " + dailyRevenues.size());
-            
             revenueChart.getData().clear();
-            
+
             XYChart.Series<String, Number> series = new XYChart.Series<>();
             series.setName("Doanh thu (triệu đồng)");
 
+            List<DailyRevenue> dailyRevenues = dashboardDAO.getDailyRevenueLastWeek();
+
             for (DailyRevenue dr : dailyRevenues) {
-                // Format ngày dd-MM
-                String dateLabel = dr.getNgay().substring(5); // Lấy MM-dd từ yyyy-MM-dd
-                
-                // Convert to millions for display
-                double revenue = dr.getDoanhThu() / 1_000_000.0;
-                System.out.println(dr.getNgay() + " (" + dateLabel + ") -> " + revenue + " triệu");
-                
-                XYChart.Data<String, Number> data = new XYChart.Data<>(dateLabel, revenue);
+                String dateLabel =
+                        dr.getNgay().substring(8) + "/" + dr.getNgay().substring(5, 7);
+
+                double displayValue = dr.getDoanhThu() / 1_000_000.0;
+
+                XYChart.Data<String, Number> data =
+                        new XYChart.Data<>(dateLabel, displayValue);
+
                 series.getData().add(data);
             }
 
             revenueChart.getData().add(series);
-            
-            // Force chart to show all categories
-            revenueChart.setAnimated(false);
-            revenueChart.layout();
-            
+
+            for (XYChart.Data<String, Number> data : series.getData()) {
+                Node node = data.getNode();
+
+                long originalValue =
+                        (long) (data.getYValue().doubleValue() * 1_000_000);
+
+                String exactMoney =
+                        NumberFormat.getCurrencyInstance(new Locale("vi", "VN"))
+                                .format(originalValue);
+
+                Tooltip tooltip = new Tooltip("Doanh thu: " + exactMoney);
+                tooltip.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+                Tooltip.install(node, tooltip);
+
+                node.setOnMouseEntered(e ->
+                        node.setStyle("-fx-bar-fill: #2980b9; -fx-cursor: hand;"));
+                node.setOnMouseExited(e ->
+                        node.setStyle(""));
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
-            showError("Lỗi khi tải biểu đồ doanh thu: " + e.getMessage());
+            showError("Không thể tải biểu đồ doanh thu");
         }
     }
 
     private void loadScheduleStatusChart() {
         try {
             List<ScheduleStatus> statuses = dashboardDAO.getScheduleStatus();
-            ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList();
-            
-            for (ScheduleStatus status : statuses) {
-                String viName = status.getTrangThaiVi();
-                int count = status.getSoLuong();
-                pieChartData.add(new PieChart.Data(viName + " (" + count + ")", count));
+            ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList();
+
+            for (ScheduleStatus s : statuses) {
+                pieData.add(new PieChart.Data(
+                        s.getTrangThaiVi() + " (" + s.getSoLuong() + ")",
+                        s.getSoLuong()
+                ));
             }
 
-            scheduleStatusChart.setData(pieChartData);
+            scheduleStatusChart.setData(pieData);
             scheduleStatusChart.setLegendVisible(true);
+
         } catch (Exception e) {
             e.printStackTrace();
-            showError("Lỗi khi tải biểu đồ trạng thái: " + e.getMessage());
+            showError("Không thể tải biểu đồ trạng thái");
         }
     }
 
+ 
     private void loadRecentActivities() {
         try {
-            List<String> activities = dashboardDAO.getRecentActivities();
-            ObservableList<String> activityList = FXCollections.observableArrayList(activities);
-            activitiesList.setItems(activityList);
+            activitiesList.setItems(
+                    FXCollections.observableArrayList(
+                            dashboardDAO.getRecentActivities()
+                    )
+            );
         } catch (Exception e) {
             e.printStackTrace();
-            showError("Lỗi khi tải hoạt động gần đây: " + e.getMessage());
+            showError("Không thể tải hoạt động gần đây");
         }
     }
 
+  
     private String formatCurrency(long amount) {
-        NumberFormat nf = NumberFormat.getInstance(new Locale("vi", "VN"));
-        
-        if (amount >= 1_000_000_000) {
-            return String.format("%.1f tỷ", amount / 1_000_000_000.0);
-        } else if (amount >= 1_000_000) {
-            return String.format("%.1f tr", amount / 1_000_000.0);
-        } else {
-            return nf.format(amount);
-        }
+        if (amount >= 1_000_000_000)
+            return String.format("%.2f Tỷ", amount / 1_000_000_000.0);
+        if (amount >= 1_000_000)
+            return String.format("%.1f Tr", amount / 1_000_000.0);
+        return NumberFormat.getInstance(new Locale("vi", "VN"))
+                .format(amount) + " đ";
     }
 
     private void showError(String message) {
