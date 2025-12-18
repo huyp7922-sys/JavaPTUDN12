@@ -62,7 +62,8 @@ public class BanVeController {
     @FXML private Button btnHoaDon;
     @FXML private Button btnThongKe;
     @FXML private Button btnLogout;
-    
+    @FXML private Button btnDashboard;
+
     private String currentUser;
     
     // Hàm để set nhân viên (Gọi từ LoginController khi đăng nhập thành công)
@@ -80,7 +81,6 @@ public class BanVeController {
 
     @FXML
     public void initialize() {
-        // Update đồng hồ
         Timeline clock = new Timeline(new KeyFrame(Duration.ZERO, e -> {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             dateTimeLabel.setText(LocalDateTime.now().format(formatter));
@@ -88,16 +88,21 @@ public class BanVeController {
         clock.setCycleCount(Timeline.INDEFINITE);
         clock.play();
 
-        // Mặc định tải trang Bán vé (Step 1)
-        showBanVe();
-        menuVeTau.setExpanded(true); // Mở sẵn menu vé
+        showDashboard(); 
+        
+        menuVeTau.setExpanded(false); 
     }
 
     public void setUsername(String username) {
         this.currentUser = username;
     }
-    
-    // --- Các hàm xử lý menu ---
+    @FXML
+    private void showDashboard() {
+        resetMenuButtons();
+        btnDashboard.getStyleClass().add("menu-item-active");
+        loadContent("employee-dashboard-content.fxml");
+    }
+   
     @FXML
     private void showBanVe() {
         resetMenuButtons();
@@ -108,6 +113,7 @@ public class BanVeController {
         userData.clear(); // Xóa data cũ
         loadContent("step-1.fxml");
     }
+   
 
     @FXML
     private void showDoiVe() {
@@ -346,6 +352,8 @@ public class BanVeController {
 
     private void resetMenuButtons() {
         String activeClass = "menu-item-active";
+        btnDashboard.getStyleClass().remove(activeClass); 
+        
         btnBanVe.getStyleClass().remove(activeClass);
         btnDoiVe.getStyleClass().remove(activeClass);
         btnTraVe.getStyleClass().remove(activeClass);

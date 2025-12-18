@@ -126,6 +126,7 @@
                     <appVersion>1.0.0</appVersion>
 
                     <addModules>
+                        <!-- Java SE modules -->
                         <addModule>java.sql</addModule>
                         <addModule>java.naming</addModule>
                         <addModule>java.desktop</addModule>
@@ -133,6 +134,15 @@
                         <addModule>java.scripting</addModule>
                         <addModule>java.management</addModule>
                         <addModule>jdk.unsupported</addModule>
+                        
+                        <!-- JavaFX modules - REQUIRED! -->
+                        <addModule>javafx.controls</addModule>
+                        <addModule>javafx.fxml</addModule>
+                        <addModule>javafx.graphics</addModule>
+                        <addModule>javafx.base</addModule>
+                        <addModule>javafx.web</addModule>
+                        <addModule>javafx.swing</addModule>
+                        <addModule>javafx.media</addModule>
                     </addModules>
 
                     <modulePaths>
@@ -150,6 +160,7 @@
                     <winShortcut>true</winShortcut>
                     <winDirChooser>true</winDirChooser>
                     <winPerUserInstall>false</winPerUserInstall>
+                    <winConsole>true</winConsole>
                     <removeDestination>true</removeDestination>
                 </configuration>
             </plugin>

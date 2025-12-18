@@ -24,6 +24,15 @@ public class LoginApp extends Application {
 
     @Override
     public void start(Stage stage) {
+        System.out.println("\n========================================");
+        System.out.println("=== APPLICATION STARTING ===");
+        System.out.println("========================================");
+        System.out.println("Time: " + getCurrentTime());
+        System.out.println("Java Version: " + System.getProperty("java.version"));
+        System.out.println("JavaFX Version: " + System.getProperty("javafx.version"));
+        System.out.println("Working Directory: " + System.getProperty("user.dir"));
+        System.out.println("========================================\n");
+        
         writeStartupLog("=== APPLICATION STARTING ===");
         writeStartupLog("Time: " + getCurrentTime());
         writeStartupLog("Java Version: " + System.getProperty("java.version"));
@@ -31,16 +40,19 @@ public class LoginApp extends Application {
         writeStartupLog("Working Directory: " + System.getProperty("user.dir"));
         
         try {
-            
+            System.out.println("[Step 1] Locating FXML resource...");
             var fxmlUrl = LoginApp.class.getResource("/views/loading.fxml");
             if (fxmlUrl == null) {
                 throw new RuntimeException("Không tìm thấy resource: /views/loading.fxml");
             }
+            System.out.println("[Step 2] Resource found: " + fxmlUrl);
 
             FXMLLoader loader = new FXMLLoader(fxmlUrl);
             writeStartupLog("Step 3: Loading FXML content...");
+            System.out.println("[Step 3] Loading FXML content...");
             Parent root = loader.load();
             writeStartupLog("Step 4: FXML loaded successfully");
+            System.out.println("[Step 4] FXML loaded successfully");
 
             LoadingController controller = loader.getController();
             if (controller == null) {
@@ -48,6 +60,7 @@ public class LoginApp extends Application {
             }
             controller.setStage(stage);
             writeStartupLog("Step 5: Controller initialized");
+            System.out.println("[Step 5] Controller initialized");
 
             Scene scene = new Scene(root, 600, 400);
             stage.setTitle("Đang tải...");
@@ -55,10 +68,15 @@ public class LoginApp extends Application {
             stage.setResizable(false);
             stage.initStyle(StageStyle.UNDECORATED);
             writeStartupLog("Step 6: Showing window...");
+            System.out.println("[Step 6] Showing window...");
             stage.show();
             
             writeStartupLog("Step 7: Window shown successfully!");
             writeStartupLog("=== APPLICATION STARTED SUCCESSFULLY ===");
+            System.out.println("[Step 7] Window shown successfully!");
+            System.out.println("\n========================================");
+            System.out.println("=== APPLICATION STARTED SUCCESSFULLY ===");
+            System.out.println("========================================\n");
 
         } catch (Throwable e) {
             handleStartupError(e, stage);
@@ -67,7 +85,13 @@ public class LoginApp extends Application {
     
     private void handleStartupError(Throwable e, Stage stage) {
         try {
-            // In ra console
+            // In ra console với format rõ ràng hơn
+            System.err.println("\n========================================");
+            System.err.println("!!! ERROR OCCURRED !!!");
+            System.err.println("========================================");
+            System.err.println("Error Type: " + e.getClass().getName());
+            System.err.println("Error Message: " + e.getMessage());
+            System.err.println("========================================");
             e.printStackTrace();
             
             // Ghi vào file log
@@ -164,6 +188,12 @@ public class LoginApp extends Application {
     }
 
     public static void main(String[] args) {
+        System.out.println("\n****************************************************");
+        System.out.println("*                                                  *");
+        System.out.println("*     HE THONG BAN VE TAU - STARTING UP...        *");
+        System.out.println("*                                                  *");
+        System.out.println("****************************************************\n");
+        
         // Tạo file marker trên Desktop để biết app đã được khởi chạy
         try {
             String desktop = System.getProperty("user.home") + "\\Desktop";
@@ -171,10 +201,12 @@ public class LoginApp extends Application {
                 "Application launched at: " + LocalDateTime.now() + "\n" +
                 "Java Version: " + System.getProperty("java.version") + "\n" +
                 "Working Directory: " + System.getProperty("user.dir") + "\n");
+            System.out.println("✓ Launch marker created on Desktop");
         } catch (Exception e) {
-            System.err.println("Cannot create launch marker: " + e.getMessage());
+            System.err.println("✗ Cannot create launch marker: " + e.getMessage());
         }
         
+        System.out.println("\nInitializing JavaFX Application...\n");
         launch(args);
     }
 }
