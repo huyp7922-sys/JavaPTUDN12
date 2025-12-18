@@ -8,8 +8,6 @@ import com.ptudn12.main.controller.VeTamThoi;
 import com.ptudn12.main.dao.KhachHangDAO;
 
 import java.sql.*;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
 public class DoiVeService {
 

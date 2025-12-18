@@ -10,6 +10,7 @@ public enum TrangThai {
     ChuaKhoiHanh("ChuaKhoiHanh"),
     DangChay("DangChay"),
     TamNgung("TamNgung"),
+    TamHoan("TamHoan"),
     SanSang("SanSang"),
     DaKetThuc("DaKetThuc");
 

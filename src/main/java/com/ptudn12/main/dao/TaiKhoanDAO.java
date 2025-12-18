@@ -32,14 +32,15 @@ public class TaiKhoanDAO {
      * Cập nhật thông tin tài khoản
      */
     public boolean update(TaiKhoan tk) {
-        String sql = "UPDATE TaiKhoan SET matKhau = ?, trangThaiTK = ? WHERE maNhanVien = ?";
+        String sql = "UPDATE TaiKhoan SET matKhau = ?, trangThaiTK = ?, isMatKhauTam = ?  WHERE maNhanVien = ? ";
         
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+            PreparedStatement ps = conn.prepareStatement(sql)) {
             
             ps.setString(1, tk.getMatKhau());
             ps.setString(2, tk.getTrangThaiTK());
-            ps.setString(3, tk.getNhanVien().getMaNhanVien());
+            ps.setBoolean(3, tk.isMatKhauTam()); 
+            ps.setString(4, tk.getNhanVien().getMaNhanVien());
             
             return ps.executeUpdate() > 0;
             
@@ -162,7 +163,8 @@ public class TaiKhoanDAO {
         tk.setNhanVien(nv);
         tk.setMatKhau(rs.getString("matKhau"));
         tk.setTrangThaiTK(rs.getString("trangThaiTK"));
+        tk.setMatKhauTam(rs.getBoolean("isMatKhauTam"));
         return tk;
-
     }
+
 }

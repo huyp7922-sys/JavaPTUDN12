@@ -5,6 +5,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -13,7 +14,7 @@
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.ptudn12.main.controller.TrainManagementController"
-            stylesheets="@styles.css"
+            stylesheets="@train-management.css"
             prefWidth="1200" prefHeight="700">
 
     <!-- Main Content -->
@@ -24,9 +25,22 @@
             </padding>
 
             <!-- Header Title -->
-			<HBox alignment="CENTER"> <!-- SỬA Ở ĐÂY: Từ CENTER_LEFT thành CENTER -->
-    			<Label text="Quản Lý Tàu" styleClass="page-title"/>
-			</HBox>
+			<BorderPane>
+                <!-- Tiêu đề "Quản Lý Tàu" ở bên trái -->
+                <left>
+                    <Label text="Quản Lý Tàu" styleClass="page-title" BorderPane.alignment="CENTER_LEFT"/>
+                </left>
+                <!-- Khu vực tìm kiếm ở bên phải -->
+                <right>
+                    <HBox alignment="CENTER_RIGHT" spacing="10.0">
+                        <children>
+                            <TextField fx:id="searchTextField" promptText="Nhập mác tàu cần tìm kiếm" styleClass="search-text-field" minWidth="200"/>
+                            <Button fx:id="searchButton" onAction="#handleSearch" text="Tìm kiếm" styleClass="primary-button"/>
+                            <Button fx:id="showAllButton" onAction="#handleShowAll" text="Hiển thị tất cả" styleClass="secondary-button"/>
+                        </children>
+                    </HBox>
+                </right>
+            </BorderPane>
 
             <!-- Train Table -->
             <TableView fx:id="trainTable" VBox.vgrow="ALWAYS">

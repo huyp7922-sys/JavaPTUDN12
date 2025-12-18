@@ -72,15 +72,15 @@ public class TuyenDuongDAO {
         }
         
         String sql = "SELECT T.*, " +
-                    "G1.maGa AS maGaDi, G1.viTriGa AS viTriGaDi, G1.mocKm AS mocKmDi, " +
-                    "G2.maGa AS maGaDen, G2.viTriGa AS viTriGaDen, G2.mocKm AS mocKmDen " +
-                    "FROM TuyenDuong T " +
-                    "INNER JOIN Ga G1 ON T.diemDi = G1.maGa " +
-                    "INNER JOIN Ga G2 ON T.diemDen = G2.maGa " +
-                    "WHERE T.diemDi = ? AND T.diemDen = ?";
+                     "G1.maGa AS maGaDi, G1.viTriGa AS viTriGaDi, G1.mocKm AS mocKmDi, " +
+                     "G2.maGa AS maGaDen, G2.viTriGa AS viTriGaDen, G2.mocKm AS mocKmDen " +
+                     "FROM TuyenDuong T " +
+                     "INNER JOIN Ga G1 ON T.diemDi = G1.maGa " +
+                     "INNER JOIN Ga G2 ON T.diemDen = G2.maGa " +
+                     "WHERE T.diemDi = ? AND T.diemDen = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setInt(1, tuyenGoc.getDiemDen().getMaGa());
             stmt.setInt(2, tuyenGoc.getDiemDi().getMaGa());
@@ -98,6 +98,28 @@ public class TuyenDuongDAO {
             e.printStackTrace();
             return null; 
         }
+    }
+
+    public boolean kiemTraTuyenCoLichTrinh(String maTuyen) {
+        // Câu lệnh SQL đếm số lịch trình thuộc tuyến này
+        String sql = "SELECT COUNT(*) FROM LichTrinh WHERE maTuyenDuong = ?";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, Integer.parseInt(maTuyen));
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                int count = rs.getInt(1);
+                return count > 0; // Trả về true nếu có ít nhất 1 lịch trình
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Lỗi khi kiểm tra lịch trình của tuyến: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false; // Mặc định trả về false nếu lỗi hoặc không có dữ liệu
     }
 
     public boolean xoaTuyenDuong(int maTuyen) {
@@ -146,12 +168,12 @@ public class TuyenDuongDAO {
 
     public TuyenDuong layTuyenDuongTheoMa(int maTuyen) {
         String sql = "SELECT T.*, " +
-                    "G1.maGa AS maGaDi, G1.viTriGa AS viTriGaDi, G1.mocKm AS mocKmDi, " +
-                    "G2.maGa AS maGaDen, G2.viTriGa AS viTriGaDen, G2.mocKm AS mocKmDen " +
-                    "FROM TuyenDuong T " +
-                    "INNER JOIN Ga G1 ON T.diemDi = G1.maGa " +
-                    "INNER JOIN Ga G2 ON T.diemDen = G2.maGa " +
-                    "WHERE T.maTuyen = ?";
+                     "G1.maGa AS maGaDi, G1.viTriGa AS viTriGaDi, G1.mocKm AS mocKmDi, " +
+                     "G2.maGa AS maGaDen, G2.viTriGa AS viTriGaDen, G2.mocKm AS mocKmDen " +
+                     "FROM TuyenDuong T " +
+                     "INNER JOIN Ga G1 ON T.diemDi = G1.maGa " +
+                     "INNER JOIN Ga G2 ON T.diemDen = G2.maGa " +
+                     "WHERE T.maTuyen = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -174,12 +196,12 @@ public class TuyenDuongDAO {
     public List<TuyenDuong> layTatCaTuyenDuong() {
         List<TuyenDuong> danhSach = new ArrayList<>();
         String sql = "SELECT T.*, " +
-                    "G1.maGa AS maGaDi, G1.viTriGa AS viTriGaDi, G1.mocKm AS mocKmDi, " +
-                    "G2.maGa AS maGaDen, G2.viTriGa AS viTriGaDen, G2.mocKm AS mocKmDen " +
-                    "FROM TuyenDuong T " +
-                    "INNER JOIN Ga G1 ON T.diemDi = G1.maGa " +
-                    "INNER JOIN Ga G2 ON T.diemDen = G2.maGa " +
-                    "ORDER BY T.maTuyen";
+                     "G1.maGa AS maGaDi, G1.viTriGa AS viTriGaDi, G1.mocKm AS mocKmDi, " +
+                     "G2.maGa AS maGaDen, G2.viTriGa AS viTriGaDen, G2.mocKm AS mocKmDen " +
+                     "FROM TuyenDuong T " +
+                     "INNER JOIN Ga G1 ON T.diemDi = G1.maGa " +
+                     "INNER JOIN Ga G2 ON T.diemDen = G2.maGa " +
+                     "ORDER BY T.maTuyen";
         
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
@@ -295,4 +317,4 @@ public class TuyenDuongDAO {
         return layTatCaTuyenDuong();
     }
 
-} // ← Dấu đóng class
+}

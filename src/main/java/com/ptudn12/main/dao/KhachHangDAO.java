@@ -393,4 +393,3 @@ public class KhachHangDAO {
         return null;
     }
 }
-

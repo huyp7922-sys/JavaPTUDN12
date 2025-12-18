@@ -10,102 +10,85 @@
             stylesheets="@dashboard-style.css"
             prefWidth="1200" prefHeight="700">
 
-    <!-- Left Sidebar -->
     <left>
-        <VBox styleClass="sidebar" spacing="0" prefWidth="200">
+        <VBox styleClass="sidebar" spacing="0" prefWidth="220">
             <padding>
-                <Insets top="20" right="0" bottom="20" left="0"/>
+                <Insets top="18" right="0" bottom="18" left="0"/>
             </padding>
 
-            <!-- Header -->
             <VBox alignment="CENTER" styleClass="sidebar-header">
                 <padding>
-                    <Insets top="10" right="10" bottom="20" left="10"/>
+                    <Insets top="12" right="12" bottom="16" left="12"/>
                 </padding>
+
                 <Label text="HỆ THỐNG QUẢN LÝ BÁN" styleClass="sidebar-title" wrapText="true" alignment="CENTER"/>
                 <Label text="VÉ TÀU" styleClass="sidebar-title" wrapText="true" alignment="CENTER"/>
-                
-                <VBox alignment="CENTER" spacing="5" style="-fx-padding: 15 10 10 10; -fx-background-color: rgba(255,255,255,0.1); -fx-background-radius: 8;">
-                    <Label fx:id="lblUsername" text="Username" 
-                           style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: white; -fx-text-alignment: center;"
-                           wrapText="true" maxWidth="180"/>
-                    <Label fx:id="lblRole" text="Vai trò: --" 
-                           style="-fx-font-size: 11px; -fx-text-fill: #ecf0f1; -fx-text-alignment: center;"/>
+
+                <VBox alignment="CENTER" spacing="4" styleClass="sidebar-userbox">
+                    <Label fx:id="lblUsername" text="Username"
+                           styleClass="sidebar-username" wrapText="true" maxWidth="190" alignment="CENTER"/>
+                    <Label fx:id="lblRole" text="Vai trò: --"
+                           styleClass="sidebar-role" alignment="CENTER"/>
                 </VBox>
-                <!-- ===================================== -->
             </VBox>
 
-            <!-- Menu Items -->
-            <VBox spacing="0" VBox.vgrow="ALWAYS">
-                <!-- Thêm nút Trang Chủ -->
-                <Button fx:id="btnHome" text="🏠 Trang Chủ" onAction="#showHome" 
+            <VBox spacing="0" VBox.vgrow="ALWAYS" styleClass="sidebar-menu">
+                <Button fx:id="btnHome" text="Trang Chủ" onAction="#showHome"
                         styleClass="menu-item,menu-item-active" maxWidth="Infinity"/>
-                
-                <Button fx:id="btnInvoice" text="Quản Lý Hóa Đơn" onAction="#showInvoice" 
+
+                <Button fx:id="btnInvoice" text="Quản Lý Hóa Đơn" onAction="#showInvoice"
                         styleClass="menu-item" maxWidth="Infinity"/>
-                
-                <Button fx:id="btnSchedule" text="Quản Lý Lịch Trình" onAction="#showSchedule" 
+
+                <Button fx:id="btnSchedule" text="Quản Lý Lịch Trình" onAction="#showSchedule"
                         styleClass="menu-item" maxWidth="Infinity"/>
-                
-                <Button fx:id="btnRoute" text="Quản Lý Tuyến Đường" onAction="#showRoute" 
+
+                <Button fx:id="btnRoute" text="Quản Lý Tuyến Đường" onAction="#showRoute"
                         styleClass="menu-item" maxWidth="Infinity"/>
-                
-                <Button fx:id="btnTrain" text="Quản Lý Tàu" onAction="#showTrain" 
+
+                <Button fx:id="btnTrain" text="Quản Lý Tàu" onAction="#showTrain"
                         styleClass="menu-item" maxWidth="Infinity"/>
-                
-                <Button fx:id="btnEmployee" text="Quản Lý Nhân Viên" onAction="#showEmployee" 
+
+                <Button fx:id="btnEmployee" text="Quản Lý Nhân Viên" onAction="#showEmployee"
                         styleClass="menu-item" maxWidth="Infinity"/>
-                
-                <Button fx:id="btnStatistics" text="Quản Lý Thống Kê" onAction="#showStatistics" 
+
+                <Button fx:id="btnStatistics" text="Quản Lý Thống Kê" onAction="#showStatistics"
                         styleClass="menu-item" maxWidth="Infinity"/>
 
                 <Region VBox.vgrow="ALWAYS"/>
             </VBox>
 
-            <!-- Logout Button -->
-            <Button fx:id="btnLogout" text="🚪 Đăng Xuất" onAction="#handleLogout" 
+            <Button fx:id="btnLogout" text="Đăng Xuất" onAction="#handleLogout"
                     styleClass="logout-button" maxWidth="Infinity">
                 <VBox.margin>
-                    <Insets top="20" right="10" bottom="0" left="10"/>
+                    <Insets top="14" right="12" bottom="0" left="12"/>
                 </VBox.margin>
             </Button>
         </VBox>
     </left>
 
-    <!-- Main Content Area -->
     <center>
         <VBox styleClass="content-area">
-            <!-- Header with Title and DateTime -->
-            <HBox styleClass="content-header" alignment="CENTER_LEFT" spacing="15">
+            <HBox styleClass="content-header" alignment="CENTER_LEFT" spacing="12">
                 <padding>
-                    <Insets top="20" right="30" bottom="20" left="30"/>
+                    <Insets top="18" right="24" bottom="18" left="24"/>
                 </padding>
 
                 <Region HBox.hgrow="ALWAYS"/>
 
-                <!-- Nút About -->
-                <Button text="💡" onAction="#handleAbout"
-                        style="-fx-background-color: transparent; -fx-font-size: 18; -fx-cursor: hand;">
-                    <tooltip>
-                        <Tooltip text="About"/>
-                    </tooltip>
+                <Button text="About" onAction="#handleAbout" styleClass="icon-button">
+                    <tooltip><Tooltip text="About"/></tooltip>
                 </Button>
 
-                <!-- Nút Help -->
-                <Button text="❓" onAction="#handleHelp"
-                        style="-fx-background-color: transparent; -fx-font-size: 18; -fx-cursor: hand;">
-                    <tooltip>
-                        <Tooltip text="Help"/>
-                    </tooltip>
+                <Button text="Help" onAction="#handleHelp" styleClass="icon-button">
+                    <tooltip><Tooltip text="Help"/></tooltip>
                 </Button>
 
                 <Label fx:id="dateTimeLabel" styleClass="datetime-label"/>
             </HBox>
 
-            <!-- Content Pane -->
             <StackPane fx:id="contentPane" VBox.vgrow="ALWAYS" styleClass="content-pane">
                 <padding>
-                    <Insets top="20" right="30" bottom="30" left="30"/>
+                    <Insets top="18" right="24" bottom="24" left="24"/>
                 </padding>
             </StackPane>
         </VBox>

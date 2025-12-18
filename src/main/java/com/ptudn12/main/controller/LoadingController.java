@@ -85,8 +85,15 @@ public class LoadingController {
 
     private void openLoginScreen() {
         try {
+            System.out.println("[LoadingController] Đang mở màn hình đăng nhập...");
+            
             // Load màn hình login
-            Parent root = FXMLLoader.load(getClass().getResource("/views/login.fxml"));
+            var loginUrl = getClass().getResource("/views/login.fxml");
+            if (loginUrl == null) {
+                throw new RuntimeException("Không tìm thấy /views/login.fxml");
+            }
+            
+            Parent root = FXMLLoader.load(loginUrl);
             Scene scene = new Scene(root, 1040, 585);
             
             // Đóng loading screen và mở login screen
@@ -101,8 +108,23 @@ public class LoadingController {
             // Hiển thị login window
             loginStage.show();
             
+            System.out.println("[LoadingController] Đã mở màn hình đăng nhập thành công!");
+            
         } catch (Exception e) {
+            System.err.println("[LoadingController] LỖI khi mở màn hình đăng nhập:");
             e.printStackTrace();
+            showErrorAndExit(e);
         }
+    }
+    
+    private void showErrorAndExit(Exception e) {
+        Platform.runLater(() -> {
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+            alert.setTitle("Lỗi");
+            alert.setHeaderText("Không thể mở màn hình đăng nhập!");
+            alert.setContentText(e.getMessage());
+            alert.showAndWait();
+            System.exit(1);
+        });
     }
 }

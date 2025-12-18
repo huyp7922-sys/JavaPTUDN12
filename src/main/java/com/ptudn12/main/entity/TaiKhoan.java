@@ -4,7 +4,7 @@ public class TaiKhoan {
     private NhanVien nhanVien;
     private String matKhau;
     private String trangThaiTK; // "danghoatdong", "tamngung", "ngunghan"
-
+    private boolean isMatKhauTam;
     public TaiKhoan() {}
 
     public TaiKhoan(NhanVien nhanVien, String matKhau, String trangThaiTK) {
@@ -37,7 +37,15 @@ public class TaiKhoan {
     public void setTrangThaiTK(String trangThaiTK) {
         this.trangThaiTK = trangThaiTK;
     }
+    // Getter
+    public boolean isMatKhauTam() {
+        return isMatKhauTam;
+    }
 
+    // Setter
+    public void setMatKhauTam(boolean isMatKhauTam) {
+        this.isMatKhauTam = isMatKhauTam;
+    }
     @Override
     public String toString() {
         return "TaiKhoan{" +

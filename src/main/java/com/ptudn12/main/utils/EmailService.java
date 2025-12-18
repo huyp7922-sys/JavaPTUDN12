@@ -9,8 +9,8 @@ public class EmailService {
     
     private static final String SMTP_HOST = "smtp.gmail.com";
     private static final String SMTP_PORT = "587";
-    private static final String EMAIL_FROM = ""; // EMAIL của bản thân 
-    private static final String EMAIL_PASSWORD = ""; // Vào Apppassword authetication gg tạo auth rồi cấp app mật khẩu
+    private static final String EMAIL_FROM = "contact.phamthanhhuy@gmail.com"; // EMAIL của bản thân 
+    private static final String EMAIL_PASSWORD = "dujruwxeuczkhgzt"; // Vào Apppassword authetication gg tạo auth rồi cấp app mật khẩu
     
     /**
      * Gửi mật khẩu mới qua email

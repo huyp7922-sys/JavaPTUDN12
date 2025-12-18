@@ -17,16 +17,16 @@ public enum LoaiToa {
 		return description;
 	}
 
-	public int getSoChoMacDinh(LoaiToa lt) {
-		switch (lt) {
+	public int getSoChoMacDinh(LoaiToa lt) { // Bỏ tham số LoaiToa lt
+		switch (lt) { // Dùng this thay vì lt
 		case NGOI_CUNG:
 			return 72;
 		case NGOI_MEM:
 			return 64;
-		case GIUONG_NAM_KHOANG_4:
-			return 42;
 		case GIUONG_NAM_KHOANG_6:
-			return 28;
+			return 42; // Sửa số chỗ từ 28 -> 42
+		case GIUONG_NAM_KHOANG_4:
+			return 28; // Sửa số chỗ từ 42 -> 28
 		case GIUONG_NAM_VIP:
 			return 14;
 		default:

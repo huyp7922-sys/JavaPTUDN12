@@ -2,13 +2,16 @@ package com.ptudn12.main.controller;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.ptudn12.main.dao.TauDAO; // Import DAO mới
 import com.ptudn12.main.entity.Tau;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -18,6 +21,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -41,11 +45,18 @@ public class TrainManagementController {
 	private Button configureTrainButton;
 	@FXML
 	private Label totalTrainsLabel;
+	@FXML
+	private TextField searchTextField;
+	@FXML
+	private Button searchButton;
+	@FXML
+	private Button showAllButton;
 
 	// --- Data Models ---
 	private ObservableList<Tau> trainData = FXCollections.observableArrayList();
 	// Map lưu trữ danh sách toa của từng tàu: Key là mã tàu (VD: "SE1"), Value là
 	// danh sách Toa
+	private List<Tau> masterTrainData = new ArrayList<>();
 
 	// --- DAO ---
 	private TauDAO tauDAO;
@@ -76,11 +87,15 @@ public class TrainManagementController {
 	 */
 	private void loadDataFromDatabase() {
 		try {
-			trainData.clear();
-			List<Tau> allTrains = tauDAO.layTatCaTau(); // Chỉ cần gọi 1 hàm duy nhất
+			masterTrainData.clear();
+			List<Tau> allTrains = tauDAO.layTatCaTau();
 			if (allTrains != null) {
-				trainData.addAll(allTrains);
+				masterTrainData.addAll(allTrains);
 			}
+
+			// Hiển thị tất cả dữ liệu lên bảng
+			trainData.setAll(masterTrainData);
+
 			trainTable.setItems(trainData);
 			updateTrainCountLabel();
 		} catch (Exception e) {
@@ -91,16 +106,76 @@ public class TrainManagementController {
 	}
 
 	/**
+	 * ✅ THÊM MỚI: Xử lý sự kiện nút "Tìm kiếm".
+	 */
+	@FXML
+	private void handleSearch() {
+		String searchText = searchTextField.getText().trim().toLowerCase();
+		if (searchText.isEmpty()) {
+			// Nếu ô tìm kiếm trống, hiển thị tất cả
+			trainData.setAll(masterTrainData);
+			return;
+		}
+
+		// Lọc danh sách gốc
+		List<Tau> filteredList = masterTrainData.stream()
+				.filter(tau -> tau.getMacTau().toLowerCase().contains(searchText)).collect(Collectors.toList());
+
+		// Cập nhật bảng với kết quả đã lọc
+		trainData.setAll(filteredList);
+	}
+
+	/**
+	 * ✅ THÊM MỚI: Xử lý sự kiện nút "Hiển thị tất cả".
+	 */
+	@FXML
+	private void handleShowAll() {
+		searchTextField.clear(); // Xóa nội dung ô tìm kiếm
+		trainData.setAll(masterTrainData); // Hiển thị lại tất cả dữ liệu
+	}
+
+	/**
 	 * Xử lý sự kiện nút "Làm mới".
 	 */
 	@FXML
 	private void handleRefresh() {
-		loadDataFromDatabase();
-		trainTable.refresh();
-		// Không cần showAlert mỗi lần làm mới, chỉ cần tải lại là đủ.
-		// Nếu muốn có thể uncomment dòng dưới:
-		// showAlert(Alert.AlertType.INFORMATION, "Thông báo", "Đã cập nhật dữ liệu mới
-		// nhất.");
+		// Bước 1: Hiển thị thông báo "Đang tải" ngay lập tức
+		Label loadingLabel = new Label("Đang cập nhật danh sách tàu...");
+		loadingLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: grey;");
+		trainTable.setPlaceholder(loadingLabel);
+		trainData.clear(); // Xóa dữ liệu cũ để placeholder hiện ra
+
+		// Bước 2: Tạo một Task để chạy tác vụ nặng (query DB) trên luồng nền
+		Task<List<Tau>> loadDataTask = new Task<>() {
+			@Override
+			protected List<Tau> call() throws Exception {
+				// Đây là nơi chạy trên luồng nền, không làm lag UI
+				return tauDAO.layTatCaTau();
+			}
+		};
+
+		// Bước 3: Xử lý khi Task thành công (đã lấy được dữ liệu)
+		loadDataTask.setOnSucceeded(event -> {
+			// Lấy kết quả từ luồng nền
+			List<Tau> result = loadDataTask.getValue();
+
+			// Cập nhật UI trên luồng chính JavaFX
+			trainData.setAll(result);
+			updateTrainCountLabel();
+
+			// Set lại placeholder cho trường hợp không có dữ liệu
+			Label emptyLabel = new Label("Không có dữ liệu tàu.");
+			trainTable.setPlaceholder(emptyLabel);
+		});
+
+		// Bước 4: Xử lý khi Task thất bại
+		loadDataTask.setOnFailed(event -> {
+			loadDataTask.getException().printStackTrace();
+			showAlert(Alert.AlertType.ERROR, "Lỗi Tải Dữ Liệu", "Không thể tải dữ liệu. Vui lòng xem console.");
+		});
+
+		// Bước 5: Khởi động Task trên một luồng mới
+		new Thread(loadDataTask).start();
 	}
 
 	// ... (setupSelectionListener và setupStatusColumnCellFactory GIỮ NGUYÊN)
@@ -124,7 +199,6 @@ public class TrainManagementController {
 			@Override
 			protected void updateItem(String status, boolean empty) {
 				super.updateItem(status, empty);
-				// Reset style cũ
 				getStyleClass().removeAll("status-label", "status-ready", "status-inactive", "status-paused",
 						"status-running");
 
@@ -132,28 +206,31 @@ public class TrainManagementController {
 					setText(null);
 					setGraphic(null);
 				} else {
-					Label label = new Label(status);
-					label.getStyleClass().add("status-label");
+					String displayText = status; // Mặc định
+					String styleClass = "status-inactive"; // Mặc định
 
-					// Ánh xạ trạng thái từ DB sang CSS class
-					// Bạn có thể điều chỉnh các case này tùy theo giá trị thực tế trong DB của bạn
-					switch (status) {
-					case "SanSang":
-						label.getStyleClass().add("status-ready");
+					// ✅ THÊM LOGIC CHUYỂN ĐỔI
+					switch (status.toLowerCase()) {
+					case "dangchay":
+						displayText = "Đang chạy";
+						styleClass = "status-running";
 						break;
-					case "DangChay":
-						label.getStyleClass().add("status-running");
-						break; // Cần thêm class này vào CSS nếu muốn màu riêng
-					case "TamNgung":
-						label.getStyleClass().add("status-paused");
-						break; // Cần thêm class này vào CSS nếu muốn màu riêng
-					case "ChuaKhoiHanh":
-						label.getStyleClass().add("status-inactive");
+					case "dungchay":
+						displayText = "Dừng chạy";
+						styleClass = "status-inactive";
 						break;
-					default:
-						label.getStyleClass().add("status-inactive");
+					case "sansang":
+						displayText = "Sẵn sàng";
+						styleClass = "status-ready";
+						break;
+					case "tamngung":
+						displayText = "Tạm ngưng";
+						styleClass = "status-paused";
 						break;
 					}
+
+					Label label = new Label(displayText);
+					label.getStyleClass().addAll("status-label", styleClass);
 
 					setGraphic(label);
 					setText(null);
@@ -197,17 +274,66 @@ public class TrainManagementController {
 		}
 	}
 
+//	@FXML
+//	private void handleCreateTrain() {
+//		showAlert(Alert.AlertType.INFORMATION, "Thông báo", "Chức năng 'Lập tàu mới' đang được phát triển.");
+//	}
 	@FXML
 	private void handleCreateTrain() {
-		showAlert(Alert.AlertType.INFORMATION, "Thông báo", "Chức năng 'Lập tàu mới' đang được phát triển.");
+		openModifyTrainDialog(null, ModifyTrainDialogController.Mode.CREATE);
 	}
 
+//	@FXML
+//	private void handleConfigureTrain() {
+//		Tau selected = trainTable.getSelectionModel().getSelectedItem();
+//		if (selected != null) {
+//			showAlert(Alert.AlertType.INFORMATION, "Thông báo",
+//					"Chức năng 'Cấu hình tàu' cho tàu " + selected.getMacTau() + " đang được phát triển.");
+//		}
+//	}
 	@FXML
 	private void handleConfigureTrain() {
 		Tau selected = trainTable.getSelectionModel().getSelectedItem();
-		if (selected != null) {
-			showAlert(Alert.AlertType.INFORMATION, "Thông báo",
-					"Chức năng 'Cấu hình tàu' cho tàu " + selected.getMacTau() + " đang được phát triển.");
+		if (selected == null) {
+			showAlert(Alert.AlertType.WARNING, "Chưa chọn tàu", "Vui lòng chọn một tàu để cấu hình.");
+			return;
+		}
+		openModifyTrainDialog(selected, ModifyTrainDialogController.Mode.CONFIGURE);
+	}
+
+	/**
+	 * Phương thức chung để mở dialog Cấu hình/Tạo mới tàu.
+	 */
+	private void openModifyTrainDialog(Tau tau, ModifyTrainDialogController.Mode mode) {
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/modify-train-dialog.fxml"));
+			Scene scene = new Scene(loader.load());
+
+			// Lấy controller và truyền dữ liệu vào
+			ModifyTrainDialogController controller = loader.getController();
+			controller.initData(tau, mode);
+
+			Stage dialogStage = new Stage();
+			dialogStage.setTitle(mode == ModifyTrainDialogController.Mode.CREATE ? "Lập Tàu Mới" : "Cấu Hình Tàu");
+			dialogStage.initModality(Modality.APPLICATION_MODAL);
+			dialogStage.setScene(scene);
+
+			// Áp dụng CSS
+			URL cssUrl = getClass().getResource("/views/train-management.css");
+			if (cssUrl != null) {
+				scene.getStylesheets().add(cssUrl.toExternalForm());
+			}
+
+			dialogStage.showAndWait();
+
+			// Sau khi dialog đóng, làm mới lại bảng chính
+			if (controller.isSaveChanges()) {
+				handleRefresh();
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
+			showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể mở cửa sổ Cấu hình tàu.");
 		}
 	}
 

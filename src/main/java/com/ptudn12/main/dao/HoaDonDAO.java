@@ -14,7 +14,9 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class HoaDonDAO {
     public boolean createHoaDon(String maHoaDon, int khachHangId, String maNhanVien, double tongThanhToan) {
@@ -213,5 +215,82 @@ public class HoaDonDAO {
 			e.printStackTrace();
 		}
 		return -1; // Trả về giá trị đặc biệt nếu có lỗi hoặc không có dữ liệu
+	}
+        
+        public List<Map<String, Object>> getChiTietHoaDonById(String maHoaDon) {
+		List<Map<String, Object>> listItems = new ArrayList<>();
+
+		// Cập nhật SQL: Join thêm bảng Cho và Toa
+		String sql = "SELECT " + "  cthd.maVe, " + "  cthd.thanhTien, " + "  cthd.BAO_HIEM, " + "  g1.viTriGa AS gaDi, "
+				+ "  g2.viTriGa AS gaDen, " + "  l.maTau, " + "  l.ngayKhoiHanh, " + "  t2.tenToa, " + // Lấy tên toa
+																										// (VD: NC01)
+				"  t2.loaiToa, " + // Lấy loại toa (VD: Ngồi cứng)
+				"  c.soThuTu AS soCho " + // Lấy số ghế
+				"FROM ChiTietHoaDon cthd " + "JOIN VeTau vt ON cthd.maVe = vt.maVe "
+				+ "JOIN ChiTietLichTrinh ctlt ON vt.chiTietLichTrinhId = ctlt.maChiTietLichTrinh "
+				+ "JOIN LichTrinh l ON ctlt.maLichTrinh = l.maLichTrinh "
+				+ "JOIN TuyenDuong td ON l.maTuyenDuong = td.maTuyen " + "JOIN Ga g1 ON td.diemDi = g1.maGa "
+				+ "JOIN Ga g2 ON td.diemDen = g2.maGa " + "JOIN Cho c ON ctlt.maChoNgoi = c.maCho " + // JOIN MỚI
+				"JOIN Toa t2 ON c.maToa = t2.maToa " + // JOIN MỚI
+				"WHERE cthd.maHoaDon = ?";
+
+		try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+			ps.setString(1, maHoaDon);
+			ResultSet rs = ps.executeQuery();
+
+			while (rs.next()) {
+				Map<String, Object> item = new HashMap<>();
+				item.put("maVe", rs.getString("maVe"));
+
+				// 1. Xử lý Loại Toa -> Mã
+				String loaiToaFull = rs.getString("loaiToa");
+				String maLoaiToa = "K"; // Mặc định
+				if (loaiToaFull != null) {
+					if (loaiToaFull.contains("Ngồi mềm"))
+						maLoaiToa = "NM";
+					else if (loaiToaFull.contains("Ngồi cứng"))
+						maLoaiToa = "NC";
+					else if (loaiToaFull.contains("khoang 4"))
+						maLoaiToa = "G4";
+					else if (loaiToaFull.contains("khoang 6"))
+						maLoaiToa = "G6";
+					else if (loaiToaFull.contains("VIP"))
+						maLoaiToa = "VIP";
+				}
+
+				// 2. Xử lý Số Toa (Lấy số từ tên toa, VD: NC01 -> 1)
+				String tenToa = rs.getString("tenToa");
+				String soToa = tenToa.replaceAll("[^0-9]", ""); // Chỉ giữ lại số
+
+				// 3. Format Ngày
+				String ngayDi = rs.getDate("ngayKhoiHanh").toLocalDate()
+						.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+
+				// 4. Tạo chuỗi Tên Dịch Vụ đầy đủ
+				// Format: [GaDi]-[GaDen]-[Tau]-[Ngay]-[Toa]-[SoCho]-[LoaiToa]
+				String tenDichVu = String.format("Vé HK: %s-%s-%s-%s-%s-%s-%s", rs.getString("gaDi"), // Ga Đi
+						rs.getString("gaDen"), // Ga Đến
+						rs.getString("maTau"), // Tàu
+						ngayDi, // Ngày
+						soToa, // Số toa
+						rs.getString("soCho"), // Số chỗ
+						maLoaiToa // Loại toa
+				);
+
+				item.put("tenDichVu", tenDichVu);
+				item.put("dvt", "Vé");
+				item.put("soLuong", 1.0);
+				item.put("thanhTienGoc", rs.getDouble("thanhTien"));
+				item.put("baoHiem", rs.getDouble("BAO_HIEM"));
+
+				listItems.add(item);
+			}
+
+		} catch (SQLException e) {
+			System.err.println("Lỗi lấy chi tiết hóa đơn: " + e.getMessage());
+			e.printStackTrace();
+		}
+		return listItems;
 	}
 }

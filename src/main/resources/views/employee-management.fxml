@@ -9,45 +9,43 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 
-<VBox xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ptudn12.main.controller.EmployeeManagementController"
-      stylesheets="@employee-styles.css" spacing="10" prefHeight="600.0" prefWidth="1000.0">
+<VBox xmlns="http://javafx.com/javafx/11.0.1"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.ptudn12.main.controller.EmployeeManagementController"
+      stylesheets="@employee-styles.css"
+      spacing="20"
+      style="-fx-background-color: #f8f9fa;"
+      prefHeight="600.0"
+      prefWidth="1000.0">
+
     <padding>
-        <Insets top="15" right="20" bottom="20" left="20"/>
+        <Insets top="20" right="20" bottom="20" left="20"/>
     </padding>
 
-    <children>
-        <HBox alignment="CENTER_LEFT" spacing="10">
-            <children>
-                <Label text="Quản Lý Nhân Viên">
-                    <font>
-                        <Font name="System Bold" size="22.0" />
-                    </font>
-                </Label>
-                <Region HBox.hgrow="ALWAYS" />
-                <Button onAction="#addEmployee" styleClass="button-add" text="Thêm" />
-                <Button onAction="#editEmployee" styleClass="button-edit" text="Sửa" />
-                <Button onAction="#deleteEmployee" styleClass="button-delete" text="Xóa" />
-                <TextField fx:id="filterField" promptText="Lọc..." prefWidth="200"/>
-            </children>
-        </HBox>
+    <HBox alignment="CENTER_LEFT" spacing="15" styleClass="header-box">
+        <Label text="Quản Lý Nhân Viên" styleClass="header-title"/>
+        <Region HBox.hgrow="ALWAYS" />
+        <Button onAction="#addEmployee" styleClass="button-add" text="Thêm Mới" />
+        <Button onAction="#editEmployee" styleClass="button-edit" text="Chỉnh Sửa" />
+        <Button onAction="#deleteEmployee" styleClass="button-delete" text="Xóa" />
+        <TextField fx:id="filterField" promptText="Tìm kiếm nhân viên..." prefWidth="250"/>
+    </HBox>
 
-        <TableView fx:id="employeeTable" VBox.vgrow="ALWAYS">
-            <columns>
-                <TableColumn fx:id="maNVCol" text="Mã NV" prefWidth="75"/>
-                <TableColumn fx:id="hoTenCol" text="Họ Tên" prefWidth="150"/>
-                <TableColumn fx:id="cccdCol" text="CCCD" prefWidth="120"/>
-                <TableColumn fx:id="ngaySinhCol" text="Ngày Sinh" prefWidth="100"/>
-                <TableColumn fx:id="gioiTinhCol" text="Giới Tính" prefWidth="75"/>
-                <TableColumn fx:id="chucVuCol" text="Chức Vụ" prefWidth="120"/>
-                <TableColumn fx:id="sdtCol" text="Số Điện Thoại" prefWidth="120"/>
-                <TableColumn fx:id="emailCol" text="Email" prefWidth="180"/>
-                <TableColumn fx:id="trangThaiCol" text="Trạng Thái" prefWidth="100"/>
-            </columns>
-            <columnResizePolicy>
-                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-            </columnResizePolicy>
-        </TableView>
-    </children>
+    <TableView fx:id="employeeTable" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="maNVCol" text="Mã NV" prefWidth="80"/>
+            <TableColumn fx:id="hoTenCol" text="Họ và Tên" prefWidth="160"/>
+            <TableColumn fx:id="cccdCol" text="CCCD" prefWidth="130"/>
+            <TableColumn fx:id="ngaySinhCol" text="Ngày Sinh" prefWidth="110"/>
+            <TableColumn fx:id="gioiTinhCol" text="Giới Tính" prefWidth="90"/>
+            <TableColumn fx:id="chucVuCol" text="Chức Vụ" prefWidth="130"/>
+            <TableColumn fx:id="sdtCol" text="Điện Thoại" prefWidth="130"/>
+            <TableColumn fx:id="emailCol" text="Email" prefWidth="200"/>
+            <TableColumn fx:id="trangThaiCol" text="Trạng Thái" prefWidth="120"/>
+        </columns>
+        <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+        </columnResizePolicy>
+    </TableView>
 </VBox>
