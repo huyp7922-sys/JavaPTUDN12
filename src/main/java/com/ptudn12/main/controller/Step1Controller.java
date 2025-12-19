@@ -507,16 +507,25 @@ public class Step1Controller {
                 return;
             }
         }
+        
+        if (!radioKhuHoi.isSelected()) {
+            lichTrinhChieuVe = null; // Reset biến local
+            mainController.setUserData("lichTrinhChieuVe", null); // Xóa trong cache
+            mainController.setUserData("gioHang_Ve", null);       // Xóa giỏ hàng chiều về
+            mainController.setUserData("step1_ngayVe", null);
+        }
 
         // --- LƯU TRẠNG THÁI FORM VÀO MAINCONTROLLER ---
         mainController.setUserData("step1_gaDi", comboGaDi.getValue());
         mainController.setUserData("step1_gaDen", comboGaDen.getValue());
         mainController.setUserData("step1_ngayDi", datePickerNgayKhoiHanh.getValue());
         mainController.setUserData("step1_isKhuHoi", radioKhuHoi.isSelected());
-        mainController.setUserData("step1_ngayVe", dateNgayVe.getValue()); // Lưu cả ngày về (nếu có)
+        if (radioKhuHoi.isSelected()) {
+            mainController.setUserData("step1_ngayVe", dateNgayVe.getValue());
+        }
 
         mainController.setUserData("lichTrinhChieuDi", lichTrinhChieuDi);
-        mainController.setUserData("lichTrinhChieuVe", lichTrinhChieuVe); // Sẽ là null nếu không khứ hồi
+        mainController.setUserData("lichTrinhChieuVe", lichTrinhChieuVe);
         
         mainController.loadContent("step-2.fxml");
     }

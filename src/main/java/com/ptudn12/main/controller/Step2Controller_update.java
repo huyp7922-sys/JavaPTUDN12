@@ -91,30 +91,40 @@ public class Step2Controller_update {
     }
 
     public void initData() {
-        // --- FIX VẤN ĐỀ 1: Khôi phục dữ liệu giỏ hàng khi quay lại ---
+        toaSection.getChildren().clear();
+        
+        // 1. Reset sạch sẽ giao diện và dữ liệu cục bộ để tránh trùng lặp
+        toaSection.getChildren().clear();
+        gioHang_Di.clear();
+        danhSachChoDaChon_Di.clear();
+        gioHang_Ve.clear();
+        danhSachChoDaChon_Ve.clear();
+        
+        // 2. Khôi phục dữ liệu giỏ hàng từ MainController (FIX LỖI MẤT GIỎ HÀNG)
         List<VeTamThoi> savedGioHangDi = (List<VeTamThoi>) mainController.getUserData("gioHang_Di");
-        List<VeTamThoi> savedGioHangVe = (List<VeTamThoi>) mainController.getUserData("gioHang_Ve");
-
         if (savedGioHangDi != null) {
             for (VeTamThoi v : savedGioHangDi) {
+                // Put vào Map để quản lý logic
                 gioHang_Di.put(v.getChiTietToa().getCho().getMaCho(), v);
+                // Put vào Set để tí nữa vẽ ghế nó biết đường tô màu xanh (STYLE_DANGCHON)
                 danhSachChoDaChon_Di.add(v.getChiTietToa().getCho().getMaCho());
             }
         }
-        if (savedGioHangVe != null) {
+        
+        LichTrinh lichTrinhVe = (LichTrinh) mainController.getUserData("lichTrinhChieuVe"); 
+        List<VeTamThoi> savedGioHangVe = (List<VeTamThoi>) mainController.getUserData("gioHang_Ve");
+        if (lichTrinhVe != null && savedGioHangVe != null) {
             for (VeTamThoi v : savedGioHangVe) {
                 gioHang_Ve.put(v.getChiTietToa().getCho().getMaCho(), v);
                 danhSachChoDaChon_Ve.add(v.getChiTietToa().getCho().getMaCho());
             }
         }
         
+        // 3. Cập nhật giao diện giỏ hàng bên phải ngay lập tức
+        updateCartUI();
+        
         // -------------------------------------------------------------
         LichTrinh lichTrinhDi = (LichTrinh) mainController.getUserData("lichTrinhChieuDi");
-        LichTrinh lichTrinhVe = (LichTrinh) mainController.getUserData("lichTrinhChieuVe");
-
-        toaSection.getChildren().clear();
-        updateCartUI(); // --- FIX VẤN ĐỀ 2: Tính lại tiền ngay khi load ---
-
         if (lichTrinhDi != null) {
             labelTenTauDi.setText("Chiều đi: Tàu " + lichTrinhDi.getTau().getMacTau());
             labelKhoiHanhDi.setText(lichTrinhDi.getNgayGioKhoiHanh().format(formatter));
@@ -134,17 +144,16 @@ public class Step2Controller_update {
             labelTenTauDi.setText("Lỗi - Không có lịch trình đi");
             boxThongTinVe.setVisible(false);
             boxThongTinVe.setManaged(false);
+            return; // Không có lịch trình thì dừng luôn
         }
-
+        
+        VBox blockChieuDi = createSeatSelectionBlock(lichTrinhDi, true, "Chọn chỗ Chiều đi: Tàu " + lichTrinhDi.getTau().getMacTau());
+        toaSection.getChildren().add(blockChieuDi);
+        
+        // -- Vẽ sơ đồ ghế Chiều về (Nếu có) --
         if (lichTrinhVe != null) {
-            VBox blockChieuDi = createSeatSelectionBlock(lichTrinhDi, true, "Chọn chỗ Chiều đi: Tàu " + lichTrinhDi.getTau().getMacTau());
             VBox blockChieuVe = createSeatSelectionBlock(lichTrinhVe, false, "Chọn chỗ Chiều về: Tàu " + lichTrinhVe.getTau().getMacTau());
-            toaSection.getChildren().addAll(blockChieuDi, blockChieuVe);
-        } else if (lichTrinhDi != null) {
-            VBox blockChieuDi = createSeatSelectionBlock(lichTrinhDi, true, "Chọn chỗ: Tàu " + lichTrinhDi.getTau().getMacTau());
-            toaSection.getChildren().add(blockChieuDi);
-        } else {
-            toaSection.getChildren().add(new Label("Không có thông tin lịch trình để tải sơ đồ ghế."));
+            toaSection.getChildren().add(blockChieuVe);
         }
     }
 
@@ -302,9 +311,6 @@ public class Step2Controller_update {
         }
 
         for (ChiTietToa seat : seatsToSelect) {
-            // Gọi hàm chọn cho từng ghế -> Nó sẽ tự add vào giỏ và update UI
-            // Lưu ý: Không cần truyền Button vào hàm handleChonCho nữa, ta xử lý logic data trước
-            // rồi updateCartUI, sau đó refreshGridPane sẽ lo việc đổi màu nút.
             addToCart(seat, isChieuDi, lichTrinh); 
         }
         updateCartUI(); // Cập nhật giỏ hàng 1 lần cuối
@@ -419,9 +425,6 @@ public class Step2Controller_update {
         
         if (!gioHang.containsKey(maCho)) {
              double giaVe = calculateTicketPrice(lichTrinh, ct);
-             // Lưu ý: Button ở đây tạm để null hoặc tạo fake vì nó sẽ được tạo lại trong updateCartUI
-             // Tuy nhiên VeTamThoi cần button để đổi màu -> Logic cũ phụ thuộc UI.
-             // Giải pháp tốt nhất: VeTamThoi lưu ID, updateCartUI tạo card, populateGridPane tô màu dựa trên ID.
              VeTamThoi ve = new VeTamThoi(lichTrinh, ct, giaVe, null, isChieuDi);
              gioHang.put(maCho, ve);
              selectedSet.add(maCho);
@@ -445,6 +448,15 @@ public class Step2Controller_update {
                 showAlert(Alert.AlertType.WARNING, "Bạn chỉ được chọn tối đa 10 vé cho " + chieu + ".");
                 return;
             }
+            
+            String mode = (String) mainController.getUserData("transactionType");
+            if (BanVeController.MODE_DOI_VE.equals(mode)) {
+                if (!gioHang.isEmpty()) {
+                    showAlert(Alert.AlertType.WARNING, "Chế độ Đổi vé chỉ cho phép chọn 1 ghế mới.");
+                    return;
+                }
+            }
+            
             double giaVe = calculateTicketPrice(lichTrinh, ct);
             VeTamThoi ve = new VeTamThoi(lichTrinh, ct, giaVe, btn, isChieuDi);
             // ve.setSeatButton(btn); // Lưu button để đổi màu khi hủy từ giỏ

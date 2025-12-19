@@ -234,7 +234,7 @@ public class BanVeController {
                 }
                 // Step 2 không reload để giữ trạng thái ghế
                 else if (controller instanceof Step2Controller_update) {
-                    // Do nothing
+                    ((Step2Controller_update) controller).initData();
                 }
             }
 

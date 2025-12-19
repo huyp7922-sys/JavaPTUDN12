@@ -89,15 +89,23 @@ public class Step4Controller {
 
     @FXML
     public void initialize() {
-        // Listener cho ô nhập tiền khách đưa
-        txtTienKhachDua.textProperty().addListener((obs, oldVal, newVal) -> calculateChange());
+        txtTienKhachDua.textProperty().addListener((obs, oldVal, newVal) -> {
+            // Chặn nhập chữ
+            if (!newVal.matches("\\d*")) {
+                txtTienKhachDua.setText(oldVal);
+                return;
+            }
+            
+            // Giới hạn 10 chữ số (tỷ đồng)
+            if (newVal.length() > 10) { 
+                txtTienKhachDua.setText(oldVal);
+                return;
+            }
 
-        // Chỉ cho phép nhập số
-        txtTienKhachDua.setTextFormatter(new TextFormatter<>(change ->
-            change.getControlNewText().matches("\\d*") ? change : null
-        ));
+            calculateChange();
+        });
 
-         // Disable nút xác nhận ban đầu
+        // Disable nút xác nhận ban đầu
         btnXacNhanVaIn.setDisable(true);
         if (btnHoanTat != null) {
             btnHoanTat.setVisible(false);
@@ -199,12 +207,12 @@ public class Step4Controller {
             }
 
             // Set lại text chuẩn cho bán vé
-            lblDetailTongTienVe.setText("Tổng tiền vé: " + moneyFormatter.format(tongTienVeGoc));
-            lblDetailGiamDoiTuong.setText("Giảm đối tượng: -" + moneyFormatter.format(tongGiamDoiTuong));
+            lblDetailTongTienVe.setText(moneyFormatter.format(tongTienVeGoc));
+            lblDetailGiamDoiTuong.setText(moneyFormatter.format(tongGiamDoiTuong));
             lblDetailGiamDoiTuong.setStyle("-fx-text-fill: #e74c3c;"); // Reset style nếu cần
-            lblDetailBaoHiem.setText("Bảo hiểm du lịch: " + moneyFormatter.format(tongBaoHiem));
+            lblDetailBaoHiem.setText(moneyFormatter.format(tongBaoHiem));
             lblDetailBaoHiem.setStyle("-fx-text-fill: #333;");
-            lblDetailGiamDiem.setText("Giảm điểm tích lũy: 0 VND"); // Reset
+//            lblDetailGiamDiem.setText("Giảm điểm tích lũy: 0 VND"); // Reset
             btnXacNhanVaIn.setText("THANH TOÁN & IN VÉ");
         }
         

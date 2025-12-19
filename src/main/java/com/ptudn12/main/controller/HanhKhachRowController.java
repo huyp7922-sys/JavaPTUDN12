@@ -207,13 +207,13 @@ public class HanhKhachRowController {
                 requiresAdultTicket = true;
                 boxMaVeNguoiLon.setVisible(true); boxMaVeNguoiLon.setManaged(true);
             } else {
-                showAlert(Alert.AlertType.WARNING, "Tuổi không phù hợp", "Vui lòng kiểm tra lại");
+                showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Vui lòng kiểm tra độ tuổi!");
                 resetComboBox = true;
             }
         } else if (currentLoaiVe == LoaiVe.VE_NGUOI_LON_TUOI) {
             if (age >= 60) ageIsValidForDiscount = true;
             else {
-                showAlert(Alert.AlertType.WARNING, "Tuổi không phù hợp", "Vui lòng kiểm tra lại");
+                showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Vui lòng kiểm tra độ tuổi!");
                 resetComboBox = true;
             }
         }
@@ -348,6 +348,22 @@ public class HanhKhachRowController {
     
     public ComboBox<LoaiVe> getComboDoiTuong() {
         return this.comboDoiTuong;
+    }
+    
+    public void setNgaySinh(LocalDate date) {
+        this.ngaySinh = date;
+        
+        // Nếu đã có loại vé (được set từ trước) và có ngày sinh, hãy chạy lại validation
+        // để hiển thị đúng các nút chức năng (ví dụ: hiện ô nhập mã vé người lớn nếu là trẻ em 6-10t)
+        if (this.comboDoiTuong.getValue() != null && date != null) {
+            LoaiVe loaiVe = this.comboDoiTuong.getValue();
+            if (loaiVe == LoaiVe.VE_TRE_EM || loaiVe == LoaiVe.VE_NGUOI_LON_TUOI) {
+                btnChonNgaySinh.setVisible(true);
+                btnChonNgaySinh.setManaged(true);
+            }
+            
+            validateAgeAndApplyPolicy();
+        }
     }
 
     private void showAlert(Alert.AlertType type, String title, String message) {

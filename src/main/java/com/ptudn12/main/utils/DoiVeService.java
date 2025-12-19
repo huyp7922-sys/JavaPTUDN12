@@ -25,10 +25,7 @@ public class DoiVeService {
             conn = DatabaseConnection.getConnection();
             conn.setAutoCommit(false); // --- BẮT ĐẦU TRANSACTION ---
 
-            // ========================================================================
             // PHẦN 1: XỬ LÝ VÉ CŨ
-            // ========================================================================
-
             // 1.1. Cập nhật vé cũ -> 'DaHuy' (Thay vì DaHuy để phân biệt)
             String sqlUpdateVeCu = "UPDATE VeTau SET trangThai = ? WHERE maVe = ?";
             try (PreparedStatement ps = conn.prepareStatement(sqlUpdateVeCu)) {
@@ -58,10 +55,7 @@ public class DoiVeService {
                 throw new SQLException("Không tìm thấy thông tin chỗ ngồi của vé cũ.");
             }
 
-            // ========================================================================
             // PHẦN 2: TẠO HÓA ĐƠN ĐỔI VÉ
-            // ========================================================================
-            
             // 2.1. Tự sinh mã hóa đơn (Logic giống HoaDonDAO nhưng chạy trên conn này)
             String maHoaDon = hoaDonDAO.generateUniqueHoaDonId();
 
@@ -91,10 +85,7 @@ public class DoiVeService {
                 ps.executeUpdate();
             }
 
-            // ========================================================================
             // PHẦN 3: TẠO VÉ MỚI (Logic của processVe tái sử dụng tại đây)
-            // ========================================================================
-
             double giaChoNgoiMoi = veMoi.getGiaVe() - PHI_BAO_HIEM;
 
             // 3.1. Insert Chi Tiết Lịch Trình (Đặt chỗ mới)
@@ -133,7 +124,7 @@ public class DoiVeService {
                     ps.setString(4, moTaLoaiVe);
                     
                     ps.setBoolean(5, false); // Vé đổi tính là 1 chiều
-                    ps.setString(6, "DaBan");
+                    ps.setString(6, "DaDoi");
                     ps.setString(7, maQR);
                     
                     ps.executeUpdate();

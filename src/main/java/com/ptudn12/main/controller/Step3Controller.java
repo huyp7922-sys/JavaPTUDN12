@@ -16,6 +16,7 @@ import javafx.scene.layout.*;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -82,7 +83,7 @@ public class Step3Controller {
         // 1. Dọn dẹp
         containerHanhKhach.getChildren().clear();
         rowControllers.clear();
-        isSyncFromFirstPassenger = true; // Reset cờ khi vào lại màn hình
+        isSyncFromFirstPassenger = true; 
 
         // 2. Lấy dữ liệu giỏ hàng từ Step 2
         List<VeTamThoi> gioHangDi = (List<VeTamThoi>) mainController.getUserData("gioHang_Di");
@@ -98,11 +99,24 @@ public class Step3Controller {
         int passengerCount = gioHangDi.size();
 
         if (isRoundTrip && gioHangDi.size() != gioHangVe.size()) {
-             showAlert(Alert.AlertType.WARNING, "Cảnh báo: Số lượng vé đi (" + gioHangDi.size() + ") và vé về (" + gioHangVe.size() + ") không khớp.");
+             showAlert(Alert.AlertType.WARNING, "Cảnh báo: Số lượng vé đi và vé về không khớp.");
              btnTiepTheo.setDisable(true);
              return;
         } else {
              btnTiepTheo.setDisable(false);
+        }
+        
+        // Lấy dữ liệu tạm
+        List<Map<String, Object>> tempData = (List<Map<String, Object>>) mainController.getUserData("TEMP_STEP3_DATA");
+        Map<String, String> tempBuyer = (Map<String, String>) mainController.getUserData("TEMP_STEP3_BUYER");
+
+        // Khôi phục người mua
+        if (tempBuyer != null) {
+            txtNguoiMuaHoTen.setText(tempBuyer.get("ten"));
+            txtNguoiMuaSoGiayTo.setText(tempBuyer.get("cccd"));
+            txtNguoiMuaSDT.setText(tempBuyer.get("sdt"));
+            txtNguoiMuaEmail.setText(tempBuyer.get("email"));
+            isSyncFromFirstPassenger = false; 
         }
 
         // 4. Tạo các hàng hành khách
@@ -117,42 +131,43 @@ public class Step3Controller {
                 HanhKhachRowController rowController = loader.getController();
 
                 rowController.setData(veDi, veVe, this);
+                
+                // Khôi phục dữ liệu cho từng dòng
+                if (tempData != null && i < tempData.size()) {
+                    Map<String, Object> data = tempData.get(i);
+
+                    // Khôi phục Tên & ID
+                    if (data.get("hoTen") != null) rowController.getTxtHoTen().setText((String) data.get("hoTen"));
+                    if (data.get("soGiayTo") != null) rowController.getTxtSoGiayTo().setText((String) data.get("soGiayTo"));
+
+                    // Khôi phục Loại Vé (Đối tượng)
+                    if (data.get("doiTuong") != null) {
+                        LoaiVe savedLoaiVe = (LoaiVe) data.get("doiTuong");
+                        rowController.getComboDoiTuong().setValue(savedLoaiVe);
+                    }
+
+                    if (data.get("ngaySinh") != null) {
+                        LocalDate savedDob = (LocalDate) data.get("ngaySinh");
+                        rowController.setNgaySinh(savedDob);
+                    }
+                }
 
                 // --- LOGIC AUTO-FILL CẢI TIẾN (FINAL VERSION) ---
                 if (i == 0) {
-                    // 1. Listener cho HỌ TÊN: Gõ đến đâu, dưới nhảy đến đó (An toàn vì không query DB)
                     rowController.getTxtHoTen().textProperty().addListener((obs, oldVal, newVal) -> {
-                        if (isSyncFromFirstPassenger) {
-                            txtNguoiMuaHoTen.setText(newVal);
-                        }
+                        if (isSyncFromFirstPassenger) txtNguoiMuaHoTen.setText(newVal);
                     });
-
-                    // 2. Listener cho SỐ GIẤY TỜ (CCCD): CHỈ COPY CHỮ, KHÔNG TRA CỨU
                     rowController.getTxtSoGiayTo().textProperty().addListener((obs, oldVal, newVal) -> {
-                        if (isSyncFromFirstPassenger) {
-                            txtNguoiMuaSoGiayTo.setText(newVal);
-                        }
+                        if (isSyncFromFirstPassenger) txtNguoiMuaSoGiayTo.setText(newVal);
                     });
-
-                    // 3. Sự kiện ENTER: Lúc này mới tra cứu DB và điền SĐT/Email
                     rowController.getTxtSoGiayTo().setOnKeyPressed(event -> {
                         if (event.getCode() == KeyCode.ENTER) {
                             String currentId = rowController.getTxtSoGiayTo().getText().trim();
                             KhachHang kh = khachHangDAO.timKhachHangTheoGiayTo(currentId);
-                            if (kh != null) {
-                                // Điền tên khách tìm được vào ô Họ tên của dòng 1
-                                rowController.getTxtHoTen().setText(kh.getTenKhachHang());
-                            }
-
-                            if (isSyncFromFirstPassenger) {
-                                // Tìm kiếm chủ đích cho người mua
-                                timThongTinNguoiMua(false); 
-                            }
+                            if (kh != null) rowController.getTxtHoTen().setText(kh.getTenKhachHang());
+                            if (isSyncFromFirstPassenger) timThongTinNguoiMua(false); 
                         }
                     });
-                    
-
-                    // Đồng bộ lần đầu (nếu có sẵn dữ liệu từ vé đã chọn)
                     syncFirstPassengerToBuyer(rowController);
                 }
 
@@ -170,9 +185,8 @@ public class Step3Controller {
             }
         }
         
-        // --- LOGIC ĐỔI VÉ: FILL VÀ KHÓA THÔNG TIN ---
+        // --- LOGIC ĐỔI VÉ ---
         String mode = (String) mainController.getUserData("transactionType");
-        
         if (BanVeController.MODE_DOI_VE.equals(mode)) {
             VeTau veCu = (VeTau) mainController.getUserData("veCuCanDoi");
             
@@ -221,7 +235,7 @@ public class Step3Controller {
                 // Tìm người mua gốc (A)
                 KhachHang nguoiMua = khachHangDAO.getNguoiMuaByMaVe(veCu.getMaVe());
                 
-                // Fallback: Nếu ko tìm thấy người mua gốc thì lấy chính người đi
+                // Nếu ko tìm thấy người mua gốc thì lấy chính người đi
                 if (nguoiMua == null) nguoiMua = veCu.getKhachHang();
 
                 if (nguoiMua != null) {
@@ -370,18 +384,74 @@ public class Step3Controller {
 
     @FXML
     private void handleTiepTheo() {
-        // 1. Validation
+        // 1. VALIDATION DANH SÁCH HÀNH KHÁCH
         for (HanhKhachRowController row : rowControllers) {
-            if (row.getHoTen().isEmpty() || row.getSoGiayTo().isEmpty()) {
+            String hoTenHK = row.getHoTen().trim();
+            String giayToHK = row.getSoGiayTo().trim();
+
+            // 1.1 Check rỗng
+            if (hoTenHK.isEmpty() || giayToHK.isEmpty()) {
                 showAlert(Alert.AlertType.WARNING, "Vui lòng nhập đầy đủ thông tin (Họ tên, Số giấy tờ) cho tất cả hành khách.");
+                return;
+            }
+
+            // 1.2 Check định dạng Tên Hành Khách (Chỉ chữ và khoảng trắng)
+            if (!hoTenHK.matches("^[\\p{L}\\s]+$")) {
+                showAlert(Alert.AlertType.WARNING, "Họ tên hành khách không hợp lệ (chứa số hoặc ký tự đặc biệt):\n" + hoTenHK);
+                return;
+            }
+            
+            // 1.3 Check định dạng Giấy tờ Hành Khách (Chỉ số, 9-12 ký tự)
+            // (Nếu chấp nhận Hộ chiếu có chữ thì sửa regex này, ở đây giả sử là CCCD/CMND)
+            boolean isCMND = giayToHK.matches("\\d{9}");
+            boolean isCCCD = giayToHK.matches("\\d{12}");
+            boolean isPassport = giayToHK.matches("^[a-zA-Z0-9]{6,15}$");
+            if (!isCMND && !isCCCD && !isPassport) {
+                showAlert(Alert.AlertType.WARNING, "Giấy tờ hành khách không hợp lệ!\nPhải là:\n- CMND (9 số)\n- CCCD (12 số)\n- Hoặc Hộ chiếu (6-15 ký tự chữ/số)");
                 return;
             }
         }
         
-        if (txtNguoiMuaHoTen.getText().isEmpty() || txtNguoiMuaSoGiayTo.getText().isEmpty() ||
-            txtNguoiMuaSDT.getText().isEmpty()) { // Email có thể optional tùy quy định
-            showAlert(Alert.AlertType.WARNING, "Vui lòng nhập đầy đủ thông tin người mua vé.");
+        // 2. VALIDATION NGƯỜI MUA VÉ
+        String tenMua = txtNguoiMuaHoTen.getText().trim();
+        String cccdMua = txtNguoiMuaSoGiayTo.getText().trim();
+        String sdtMua = txtNguoiMuaSDT.getText().trim();
+        String emailMua = txtNguoiMuaEmail.getText().trim();
+
+        // 2.1 Check rỗng
+        if (tenMua.isEmpty() || cccdMua.isEmpty() || sdtMua.isEmpty()) { 
+            showAlert(Alert.AlertType.WARNING, "Vui lòng nhập đầy đủ thông tin người mua vé (Họ tên, CCCD, SĐT).");
             return;
+        }
+
+        // 2.2 Check Tên Người Mua
+        if (!tenMua.matches("^[\\p{L}\\s]+$")) {
+             showAlert(Alert.AlertType.WARNING, "Họ tên người mua không được chứa số hoặc ký tự đặc biệt.");
+             return;
+        }
+
+        // 2.3 Check CCCD Người Mua (9 hoặc 12 số)
+        if (!cccdMua.matches("\\d{9}") && !cccdMua.matches("\\d{12}")) {
+            showAlert(Alert.AlertType.WARNING, "Số giấy tờ người mua phải là 9 hoặc 12 số.");
+            txtNguoiMuaSoGiayTo.requestFocus();
+            return;
+        }
+
+        // 2.4 Check Số Điện Thoại (Bắt đầu bằng 0, 10 số)
+        if (!sdtMua.matches("^0\\d{9}$")) {
+            showAlert(Alert.AlertType.WARNING, "Số điện thoại không hợp lệ (Phải bắt đầu bằng 0 và có 10 số).");
+            txtNguoiMuaSDT.requestFocus();
+            return;
+        }
+
+        // 2.5 Check Email
+        if (!emailMua.isEmpty()) {
+            String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
+            if (!emailMua.matches(emailRegex)) {
+                showAlert(Alert.AlertType.WARNING, "Email không đúng định dạng (Ví dụ: abc@gmail.com).");
+                txtNguoiMuaEmail.requestFocus();
+                return;
+            }
         }
 
         // 2. Thu thập dữ liệu
@@ -412,7 +482,40 @@ public class Step3Controller {
         mainController.loadContent("step-4.fxml");
     }
     
-    @FXML private void handleQuayLai() { mainController.loadContent("step-2.fxml"); }
+    @FXML
+    private void handleQuayLai() {
+        // --- FIX: Lưu tạm dữ liệu form hiện tại vào cache ---
+        List<Map<String, Object>> tempData = new ArrayList<>();
+
+        for (HanhKhachRowController row : rowControllers) {
+            Map<String, Object> rowData = new HashMap<>();
+            rowData.put("hoTen", row.getHoTen());
+            rowData.put("soGiayTo", row.getSoGiayTo());
+
+            // Lưu Loại Vé (Đối tượng) - Quan trọng!
+            // Lưu ý: row.getDoiTuong() trả về Enum LoaiVe
+            rowData.put("doiTuong", row.getDoiTuong()); 
+
+            // Lưu ngày sinh (nếu có - dùng cho Trẻ em/Người già)
+            if (row.getNgaySinh() != null) {
+                rowData.put("ngaySinh", row.getNgaySinh());
+            }
+
+            tempData.add(rowData);
+        }
+        mainController.setUserData("TEMP_STEP3_DATA", tempData);
+
+        // Lưu thông tin người mua (Giữ nguyên)
+        Map<String, String> tempBuyer = new HashMap<>();
+        tempBuyer.put("ten", txtNguoiMuaHoTen.getText());
+        tempBuyer.put("cccd", txtNguoiMuaSoGiayTo.getText());
+        tempBuyer.put("sdt", txtNguoiMuaSDT.getText());
+        tempBuyer.put("email", txtNguoiMuaEmail.getText());
+        mainController.setUserData("TEMP_STEP3_BUYER", tempBuyer);
+        // ---------------------------------------------------
+
+        mainController.loadContent("step-2.fxml");
+    }
 
     private void showAlert(Alert.AlertType type, String message) {
         Alert alert = new Alert(type);
