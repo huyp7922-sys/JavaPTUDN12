@@ -161,6 +161,10 @@
                     <winDirChooser>true</winDirChooser>
                     <winPerUserInstall>false</winPerUserInstall>
                     <winConsole>true</winConsole>
+                    
+                    <!-- Icon cho ứng dụng -->
+                    <icon>${project.basedir}/src/main/resources/images/logoApp.ico</icon>
+                    
                     <removeDestination>true</removeDestination>
                 </configuration>
             </plugin>

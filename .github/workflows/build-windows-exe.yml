@@ -24,7 +24,7 @@ jobs:
         run: choco install wixtoolset -y
 
       - name: Build bộ cài EXE bằng jpackage
-        run: mvn -B -DskipTests clean package jpackage:jpackage
+        run: mvn clean package jpackage:jpackage
 
       - name: Liệt kê file đã build
         run: dir target\jpackage

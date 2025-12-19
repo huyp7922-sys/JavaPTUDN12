@@ -8,6 +8,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextArea;
+import javafx.scene.image.Image;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.stage.Stage;
@@ -35,6 +36,15 @@ public class LoginApp extends Application {
 
             Scene scene = new Scene(root, 600, 400);
             stage.setTitle("Đang khởi động hệ thống...");
+            
+            // Thêm icon cho ứng dụng
+            try {
+                Image icon = new Image(LoginApp.class.getResourceAsStream("/images/logoApp.png"));
+                stage.getIcons().add(icon);
+            } catch (Exception ex) {
+                System.err.println("⚠ Không thể load icon: " + ex.getMessage());
+            }
+            
             stage.setScene(scene);
             stage.setResizable(false);
             stage.initStyle(StageStyle.UNDECORATED);
