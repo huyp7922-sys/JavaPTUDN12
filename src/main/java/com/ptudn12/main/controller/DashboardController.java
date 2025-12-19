@@ -52,7 +52,6 @@ public class DashboardController {
 
 	@FXML
 	public void initialize() {
-		// Update clock every second
 		Timeline clock = new Timeline(new KeyFrame(Duration.ZERO, e -> {
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 			dateTimeLabel.setText(LocalDateTime.now().format(formatter));
@@ -60,19 +59,13 @@ public class DashboardController {
 		clock.setCycleCount(Timeline.INDEFINITE);
 		clock.play();
 
-		// ===== THÊM DÒNG NÀY =====
 		updateUserInfo();
-		// =========================
-
-		// Load dashboard statistics by default
 		showHome();
 	}
 
 	public void setUsername(String username) {
 		this.currentUser = username;
-		// ===== THÊM DÒNG NÀY =====
 		updateUserInfo();
-		// =========================
 	}
 	/**
 	 * Cập nhật thông tin user trên giao diện

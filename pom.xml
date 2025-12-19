@@ -289,13 +289,6 @@
             <artifactId>json</artifactId>
             <version>20230227</version>
         </dependency>
-        
-        <!-- JB Crypt -->
-        <dependency>
-            <groupId>org.mindrot</groupId>
-            <artifactId>jbcrypt</artifactId>
-            <version>0.4</version>
-        </dependency>
     </dependencies>
 
 </project>

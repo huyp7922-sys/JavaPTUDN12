@@ -3,8 +3,6 @@ package com.ptudn12.main.controller;
 import com.ptudn12.main.dao.KhachHangDAO;
 import com.ptudn12.main.entity.KhachHang;
 import com.ptudn12.main.controller.VeTamThoi;
-import com.ptudn12.main.entity.VeTau;
-import com.ptudn12.main.enums.LoaiVe;
 import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -107,6 +105,7 @@ public class Step3Controller {
 
         // 4. Tạo các hàng hành khách
         boolean isFirstRow = true;
+    
         for (int i = 0; i < passengerCount; i++) { 
             VeTamThoi veDi = gioHangDi.get(i);
             VeTamThoi veVe = isRoundTrip ? gioHangVe.get(i) : null;
@@ -168,88 +167,6 @@ public class Step3Controller {
                 e.printStackTrace();
                 showAlert(Alert.AlertType.ERROR, "Lỗi tải giao diện hàng hành khách: " + e.getMessage());
             }
-        }
-        
-        // --- LOGIC ĐỔI VÉ: FILL VÀ KHÓA THÔNG TIN ---
-        String mode = (String) mainController.getUserData("transactionType");
-        
-        if (BanVeController.MODE_DOI_VE.equals(mode)) {
-            VeTau veCu = (VeTau) mainController.getUserData("veCuCanDoi");
-            
-            if (veCu != null) {
-                // A. FILL THÔNG TIN NGƯỜI ĐI (HÀNH KHÁCH - Dòng đầu tiên)
-                // Vì đổi vé chỉ làm việc với 1 vé (hoặc 1 cặp vé) của 1 người, 
-                // nên ta chỉ fill vào row đầu tiên (index 0)
-                if (!rowControllers.isEmpty()) {
-                    HanhKhachRowController row = rowControllers.get(0);
-                    KhachHang khachDi = veCu.getKhachHang();
-
-                    if (khachDi != null) {
-                        // Fill Họ tên
-                        if (row.getTxtHoTen() != null) {
-                            row.getTxtHoTen().setText(khachDi.getTenKhachHang());
-                            row.getTxtHoTen().setDisable(true); // Khóa
-                        }
-                        
-                        // Fill Giấy tờ
-                        String giayTo = (khachDi.getSoCCCD() != null && !khachDi.getSoCCCD().isEmpty()) 
-                                        ? khachDi.getSoCCCD() 
-                                        : khachDi.getHoChieu();
-                        
-                        if (row.getTxtSoGiayTo() != null) {
-                            row.getTxtSoGiayTo().setText(giayTo);
-                            row.getTxtSoGiayTo().setDisable(true); // Khóa
-                        }
-                        
-                        ComboBox<LoaiVe> comboDoiTuong = row.getComboDoiTuong(); 
-
-                        if (comboDoiTuong != null) {
-                            LoaiVe loaiVeCu = veCu.getLoaiVe();
-
-                            if (loaiVeCu != null) {
-                                comboDoiTuong.setValue(loaiVeCu);
-
-                                // Khóa lại
-                                comboDoiTuong.setDisable(true);
-                                comboDoiTuong.setStyle("-fx-opacity: 1; -fx-text-fill: black;");
-                            }
-                        }
-                    }
-                }
-
-                // B. FILL THÔNG TIN NGƯỜI MUA (NGƯỜI ĐẠI DIỆN)
-                // Tìm người mua gốc (A)
-                KhachHang nguoiMua = khachHangDAO.getNguoiMuaByMaVe(veCu.getMaVe());
-                
-                // Fallback: Nếu ko tìm thấy người mua gốc thì lấy chính người đi
-                if (nguoiMua == null) nguoiMua = veCu.getKhachHang();
-
-                if (nguoiMua != null) {
-                    txtNguoiMuaHoTen.setText(nguoiMua.getTenKhachHang());
-                    
-                    String giayToMua = (nguoiMua.getSoCCCD() != null && !nguoiMua.getSoCCCD().isEmpty()) 
-                                       ? nguoiMua.getSoCCCD() : nguoiMua.getHoChieu();
-                    txtNguoiMuaSoGiayTo.setText(giayToMua);
-                    
-                    // Email
-                    String email = khachHangDAO.getEmailKhachHang(giayToMua);
-                    txtNguoiMuaEmail.setText(email);
-                    txtNguoiMuaSDT.setText(nguoiMua.getSoDienThoai());
-                }
-
-                // --- KHÓA INPUT NGƯỜI MUA ---
-                txtNguoiMuaHoTen.setDisable(true);
-                txtNguoiMuaSoGiayTo.setDisable(true);
-                txtNguoiMuaEmail.setDisable(true);
-                txtNguoiMuaSDT.setDisable(true);
-            }
-        } 
-        else {
-            // --- LOGIC BÁN VÉ THƯỜNG: Mở khóa ---
-            txtNguoiMuaHoTen.setDisable(false);
-            txtNguoiMuaSoGiayTo.setDisable(false);
-            txtNguoiMuaEmail.setDisable(false);
-            txtNguoiMuaSDT.setDisable(false);
         }
 
         updateTongThanhTien();
