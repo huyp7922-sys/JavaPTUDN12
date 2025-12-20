@@ -6,6 +6,7 @@
 
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.ptudn12.main.controller.HelpController"
       spacing="20" styleClass="help-container">
 
     <padding>
@@ -101,6 +102,24 @@
                 
                 <Label text="Hỏi: Doanh thu được tính như thế nào?" style="-fx-font-weight: bold; -fx-text-fill: #2d3748;"/>
                 <Label text="Trả lời: Doanh thu dựa trên các bán vé hoàn thành cho khoảng thời gian được chỉ định." wrapText="true" style="-fx-text-fill: #4a5568; -fx-padding: 0 0 10 20;"/>
+            </VBox>
+
+            <Separator/>
+
+            <!-- User Guides -->
+            <VBox spacing="10">
+                <Label text="Hướng Dẫn Chi Tiết (PDF)" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2d3748;"/>
+                <Label text="Tải và xem các hướng dẫn sử dụng chi tiết từ các tác giả khác nhau:" wrapText="true" style="-fx-text-fill: #4a5568;"/>
+                
+                <HBox spacing="10" style="-fx-padding: 10;">
+                    <Button text="📄 Gia Hào HDSD" onAction="#openGiaHaoPdf" style="-fx-font-size: 12px; -fx-padding: 10 20;"/>
+                    <Button text="📄 Nguyễn Công Huy" onAction="#openNguyenCongHuyPdf" style="-fx-font-size: 12px; -fx-padding: 10 20;"/>
+                </HBox>
+                
+                <HBox spacing="10" style="-fx-padding: 10;">
+                    <Button text="📄 Trịnh Hoàng Kỳ" onAction="#openTrinhHoangKyPdf" style="-fx-font-size: 12px; -fx-padding: 10 20;"/>
+                    <Button text="📄 Phạm Thành Huy" onAction="#openPhamThanhHuyPdf" style="-fx-font-size: 12px; -fx-padding: 10 20;"/>
+                </HBox>
             </VBox>
 
         </VBox>
