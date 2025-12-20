@@ -37,7 +37,7 @@
         <Label text="Nhóm phát triển:" 
                style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
         
-        <Label text="• Đại học Công nghệ Thông tin" 
+        <Label text="• Đại học Công nghiệp Thành phố Hồ Chí Minh" 
                style="-fx-font-size: 13px; -fx-text-fill: #7f8c8d;"/>
         
         <Label text="• Môn: Phát Triển Ứng Dụng Nhóm 12" 
