@@ -1,5 +1,6 @@
 package com.ptudn12.main.controller;
 
+import com.ptudn12.main.dao.ChiTietHoaDonDAO;
 import com.ptudn12.main.dao.ChiTietLichTrinhDAO;
 import com.ptudn12.main.dao.KhachHangDAO;
 import com.ptudn12.main.dao.VeTauDAO;
@@ -85,6 +86,7 @@ public class TraVeController {
     private final VeTauDAO veTauDAO = new VeTauDAO();
     private final KhachHangDAO khachHangDAO = new KhachHangDAO();
     private final ChiTietLichTrinhDAO chiTietLichTrinhDAO = new ChiTietLichTrinhDAO();
+    private final ChiTietHoaDonDAO chiTietHoaDonDAO = new ChiTietHoaDonDAO();
     private final DecimalFormat moneyFormatter = new DecimalFormat("#,##0 'VNĐ'");
     private VeTau selectedVe = null;
     private double calculatedRefundAmount = 0;
@@ -316,8 +318,8 @@ public class TraVeController {
         if (BanVeController.MODE_TRA_VE.equals(mode)) {
             btnXacNhanTra.setDisable(true); // Disable trước khi tính xong
             
-            double giaVeHienTai = ve.getChiTietLichTrinh().getGiaChoNgoi();
-            lblGiaVeGoc.setText(moneyFormatter.format(giaVeHienTai));
+            double giaVeThucTe = chiTietHoaDonDAO.getGiaThucTeDaTra(ve.getMaVe());
+            lblGiaVeGoc.setText(moneyFormatter.format(giaVeThucTe));
 
             // Check điều kiện Trả vé (ví dụ < 4h)
             if (hoursDiff < 4) {
@@ -332,9 +334,9 @@ public class TraVeController {
             double tyLeKhauTru = ("DaDoi".equalsIgnoreCase(ve.getTrangThai())) ? 0.30 : (hoursDiff < 24 ? 0.20 : 0.10);
             String lyDo = ("DaDoi".equalsIgnoreCase(ve.getTrangThai())) ? "Vé đã đổi (30%)" : (hoursDiff < 24 ? "Trước 4h-24h (20%)" : "Trước >24h (10%)");
             
-            double phiTraVe = Math.max(giaVeHienTai * tyLeKhauTru, 10000); // Min 10k
+            double phiTraVe = Math.max(giaVeThucTe * tyLeKhauTru, 10000); // Min 10k
             phiTraVe = Math.ceil(phiTraVe / 1000.0) * 1000;
-            double tienHoanLai = giaVeHienTai - phiTraVe;
+            double tienHoanLai = giaVeThucTe - phiTraVe;
             this.calculatedRefundAmount = tienHoanLai;
 
             lblDieuKienVe.setText(lyDo);

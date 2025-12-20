@@ -17,7 +17,8 @@ import com.ptudn12.main.enums.LoaiToa;
 import com.ptudn12.main.enums.LoaiVe;
 
 import java.sql.*;
-import java.time.LocalDate;
+import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -105,12 +106,7 @@ public class VeTauDAO {
                 
                 // 2. Map Chi Tiết Lịch Trình & Chỗ & Toa
                 ChiTietLichTrinh ctlt = ve.getChiTietLichTrinh();
-                // Set giá từ DB (Quan trọng cho việc hoàn tiền)
                 ctlt.setGiaChoNgoi(rs.getDouble("giaChoNgoi")); 
-                // Set ID để update trạng thái sau này (trong DB là int, entity là String)
-                // Cần truy vấn thêm ID này nếu SP chưa trả về (SP hiện tại chưa trả về maChiTietLichTrinh ID)
-                // Tuy nhiên, logic trả vé cần update trạng thái chỗ.
-                // -> GIẢI PHÁP: Trong TraVeController, ta sẽ dùng hàm getChiTietLichTrinhIdByMaVe để lấy ID chính xác.
                 
                 Cho cho = new Cho();
                 cho.setSoThuTu(rs.getInt("ViTriCho"));
@@ -326,4 +322,59 @@ public class VeTauDAO {
             return null;
         }
     }
+    
+    public List<VeDaMua> layLichSuMuaVeTheoKhachHang(int maKhachHang) {
+    List<VeDaMua> danhSach = new ArrayList<>();
+    String sql = "{call sp_XemVeKhachHang(?)}";
+
+    try (Connection conn = DatabaseConnection.getConnection(); 
+         CallableStatement stmt = conn.prepareCall(sql)) {
+
+        stmt.setInt(1, maKhachHang);
+        ResultSet rs = stmt.executeQuery();
+
+        int sttCounter = 1;
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
+        Locale vietnameseLocale = new Locale("vi", "VN");
+        NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(vietnameseLocale);
+
+        while (rs.next()) {
+            java.sql.Date ngayKhoiHanhSQL = rs.getDate("ngayKhoiHanh");
+            Time gioKhoiHanhSQL = rs.getTime("gioKhoiHanh");
+            
+            int thoiGianDuKienGio = rs.getInt("thoiGianDuKien"); 
+            
+            LocalDateTime thoiGianDi = ngayKhoiHanhSQL.toLocalDate().atTime(gioKhoiHanhSQL.toLocalTime());
+            LocalDateTime thoiGianDen = thoiGianDi.plusHours(thoiGianDuKienGio);
+            String thoiGianDiDenFormatted = thoiGianDi.format(formatter) + " - " + thoiGianDen.format(formatter);
+
+            String tenToa = rs.getString("tenToa");
+            String loaiCho = rs.getString("loaiCho");
+            
+            // Ghép chuỗi: "Toa 1 - Ngồi mềm điều hòa"
+            String toaLoaiChoFormatted = (tenToa != null ? tenToa : "") + " - " + (loaiCho != null ? loaiCho : "");
+
+            String macTau = rs.getString("maTau");
+            java.sql.Date ngayMuaSQL = rs.getDate("NgayMua");
+            String ngayMuaFormatted = new SimpleDateFormat("dd/MM/yyyy").format(ngayMuaSQL);
+            String hanhTrinh = rs.getString("DiemDi") + " - " + rs.getString("DiemDen");
+            
+            // Lưu ý: SQL trả về cột tên là "ViTriCho", code cũ lấy "ViTriCho" là đúng
+            int soCho = rs.getInt("ViTriCho"); 
+            double thanhTien = rs.getDouble("thanhTien");
+
+            VeDaMua ve = new VeDaMua(sttCounter++, ngayMuaFormatted, rs.getString("maVe"), macTau, hanhTrinh,
+                                    thoiGianDiDenFormatted, 
+                                    toaLoaiChoFormatted, // <-- Chuỗi đã sửa
+                                    soCho, currencyFormatter.format(thanhTien));
+            danhSach.add(ve);
+        }
+
+    } catch (SQLException e) {
+        System.err.println("Lỗi khi lấy lịch sử mua vé cho khách hàng " + maKhachHang + ": " + e.getMessage());
+        e.printStackTrace();
+    }
+
+    return danhSach;
+}
 }

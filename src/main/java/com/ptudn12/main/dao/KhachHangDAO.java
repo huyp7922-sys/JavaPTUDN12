@@ -241,10 +241,6 @@ public class KhachHangDAO {
             }
     }
 
-    // Lưu ý: Chức năng "Xem Lịch sử mua vé" sẽ được thực hiện ở một DAO khác,
-    // ví dụ VeTauDAO, bằng cách gọi stored procedure sp_XemVeKhachHang.
-    // Dưới đây chỉ là phương thức hỗ trợ cho lớp này.
-
     /**
      * Phương thức hỗ trợ để chuyển đổi một dòng ResultSet thành đối tượng
      * KhachHang.
@@ -392,4 +388,98 @@ public class KhachHangDAO {
         }
         return null;
     }
+    
+    /**
+    * Lấy điểm tích lũy hiện tại của một khách hàng.
+    * 
+    * @param khachHangId ID của khách hàng.
+    * @return Số điểm tích lũy, hoặc 0 nếu không tìm thấy khách hàng.
+    */
+    public int getDiemTich(int khachHangId) {
+        String sql = "SELECT diemTich FROM KhachHang WHERE maKhachHang = ?";
+        try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, khachHangId);
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                        return rs.getInt("diemTich");
+                }
+        } catch (SQLException e) {
+                System.err.println("Lỗi khi lấy điểm tích lũy: " + e.getMessage());
+                e.printStackTrace();
+        }
+        return 0; // Trả về 0 nếu có lỗi hoặc không tìm thấy
+    }
+    
+    /**
+    * Cập nhật điểm tích lũy cho một khách hàng.
+    * 
+    * @param khachHangId ID của khách hàng.
+    * @param diemMoi     Số điểm mới cần cập nhật.
+    * @return true nếu cập nhật thành công, false nếu thất bại.
+    */
+    public boolean updateDiemTich(int khachHangId, int diemMoi) {
+        String sql = "UPDATE KhachHang SET diemTich = ? WHERE maKhachHang = ?";
+        try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, diemMoi);
+                ps.setInt(2, khachHangId);
+                return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+                System.err.println("Lỗi khi cập nhật điểm tích lũy: " + e.getMessage());
+                e.printStackTrace();
+                return false;
+        }
+    }
+    
+    public List<KhachHang> timKiemKhachHang(String searchTerm) {
+		List<KhachHang> danhSach = new ArrayList<>();
+		String sql;
+
+		// Kiểm tra xem chuỗi có đúng định dạng "KH" + số hay không
+		if (searchTerm.matches("(?i)^KH\\d+$")) {
+			// --- Chế độ tìm kiếm CHÍNH XÁC theo MÃ KHÁCH HÀNG ---
+			sql = "SELECT * FROM KhachHang WHERE maKhachHang = ?";
+			try (Connection conn = DatabaseConnection.getConnection();
+					PreparedStatement ps = conn.prepareStatement(sql)) {
+
+				// Trích xuất phần số từ chuỗi "KH..."
+				int customerId = Integer.parseInt(searchTerm.substring(2));
+				ps.setInt(1, customerId);
+
+				ResultSet rs = ps.executeQuery();
+				if (rs.next()) {
+					danhSach.add(mapResultSetToKhachHang(rs));
+				}
+
+			} catch (SQLException | NumberFormatException e) {
+				System.err.println("Lỗi khi tìm kiếm khách hàng theo mã: " + e.getMessage());
+				e.printStackTrace();
+			}
+		} else {
+			// --- Chế độ tìm kiếm ĐA NĂNG trên nhiều cột ---
+			sql = "SELECT * FROM KhachHang WHERE " + "tenKhachHang LIKE ? OR " + "soCCCD LIKE ? OR "
+					+ "hoChieu LIKE ? OR " + "soDienThoai LIKE ? OR " + "CAST(diemTich AS VARCHAR(20)) LIKE ?";
+
+			String searchPattern = "%" + searchTerm + "%";
+
+			try (Connection conn = DatabaseConnection.getConnection();
+					PreparedStatement ps = conn.prepareStatement(sql)) {
+
+				ps.setString(1, searchPattern);
+				ps.setString(2, searchPattern);
+				ps.setString(3, searchPattern);
+				ps.setString(4, searchPattern);
+				ps.setString(5, searchPattern);
+
+				ResultSet rs = ps.executeQuery();
+				while (rs.next()) {
+					danhSach.add(mapResultSetToKhachHang(rs));
+				}
+
+			} catch (SQLException e) {
+				System.err.println("Lỗi khi tìm kiếm khách hàng đa năng: " + e.getMessage());
+				e.printStackTrace();
+			}
+		}
+		return danhSach;
+	}
 }

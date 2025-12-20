@@ -37,5 +37,35 @@ public class ChiTietHoaDonDAO {
             return false;
         }
     }
+    
+    public String getMaHoaDonByMaVe(String maVe) {
+        String sql = "SELECT maHoaDon FROM ChiTietHoaDon WHERE maVe = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maVe);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getString("maHoaDon");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    public double getGiaThucTeDaTra(String maVe) {
+        String sql = "SELECT thanhTien FROM ChiTietHoaDon WHERE maVe = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, maVe);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getDouble("thanhTien");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0.0; // Mặc định trả về 0 nếu lỗi
+    }
 }
 
