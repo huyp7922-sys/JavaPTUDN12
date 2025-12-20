@@ -2,6 +2,7 @@ package com.ptudn12.main.controller;
 
 import com.ptudn12.main.dao.ThongKeDAO;
 import com.ptudn12.main.entity.ThongKe;
+import com.ptudn12.main.entity.ThongKeKhachHang;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
@@ -12,12 +13,17 @@ import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.font.PdfFontFactory.EmbeddingStrategy;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import javafx.collections.*;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.text.Normalizer;
 import java.util.List;
 import java.util.Locale;
@@ -26,30 +32,53 @@ import java.util.stream.Collectors;
 public class StatisticsManagementController {
 
     @FXML
+    private StackPane loadingPane;
+
+    @FXML
     private TableView<ThongKe> tableStats;
     @FXML
     private TableColumn<ThongKe, String> colMaTuyen, colTenTuyen;
     @FXML
-    private TableColumn<ThongKe, Integer> colTongVe, colSoChuyen;
+    private TableColumn<ThongKe, Integer> colTongVe, colSoChuyen, colSoVeTrong;
     @FXML
     private TableColumn<ThongKe, Double> colTiLe;
     @FXML
-    private TableColumn<ThongKe, Long> colDoanhThu;
+    private TableColumn<ThongKe, Long> colDoanhThu, colDoanhThuTB;
+
+    @FXML
+    private TableView<ThongKeKhachHang> tableTopCustomers;
+    @FXML
+    private TableColumn<ThongKeKhachHang, String> colMaKH, colTenKH, colSDT;
+    @FXML
+    private TableColumn<ThongKeKhachHang, Integer> colSoVeDaMua;
+    @FXML
+    private TableColumn<ThongKeKhachHang, Long> colTongTienKH;
 
     @FXML
     private TextField txtSearch, txtMaTuyen, txtTiLe;
     @FXML
-    private Button btnExportPDF;
+    private Button btnExportPDF, btnExportExcel;
 
     private ObservableList<ThongKe> masterData = FXCollections.observableArrayList();
+    private ObservableList<ThongKeKhachHang> customerData = FXCollections.observableArrayList();
 
     public void initialize() {
+        // Route Stats
         colMaTuyen.setCellValueFactory(new PropertyValueFactory<>("maTuyen"));
         colTenTuyen.setCellValueFactory(new PropertyValueFactory<>("tenTuyen"));
         colTongVe.setCellValueFactory(new PropertyValueFactory<>("tongVe"));
+        colSoVeTrong.setCellValueFactory(new PropertyValueFactory<>("soVeTrong"));
         colTiLe.setCellValueFactory(new PropertyValueFactory<>("tyLe"));
         colSoChuyen.setCellValueFactory(new PropertyValueFactory<>("soChuyen"));
         colDoanhThu.setCellValueFactory(new PropertyValueFactory<>("doanhThu"));
+        colDoanhThuTB.setCellValueFactory(new PropertyValueFactory<>("doanhThuTrungBinh"));
+
+        // Customer Stats
+        colMaKH.setCellValueFactory(new PropertyValueFactory<>("maKH"));
+        colTenKH.setCellValueFactory(new PropertyValueFactory<>("tenKhachHang"));
+        colSDT.setCellValueFactory(new PropertyValueFactory<>("soDienThoai"));
+        colSoVeDaMua.setCellValueFactory(new PropertyValueFactory<>("soVeDaMua"));
+        colTongTienKH.setCellValueFactory(new PropertyValueFactory<>("tongTien"));
 
         // Show full row details on double click
         tableStats.setRowFactory(tv -> {
@@ -58,13 +87,15 @@ public class StatisticsManagementController {
                 if (event.getClickCount() == 2 && !row.isEmpty()) {
                     ThongKe item = row.getItem();
                     String message = String.format(
-                            "Mã tuyến: %s\nTên tuyến: %s\nTổng vé bán: %d\nTỷ lệ lấp đầy: %.2f%%\nChuyến khởi hành: %d\nDoanh thu ước tính: %,d VNĐ",
+                            "Mã tuyến: %s\nTên tuyến: %s\nTổng vé bán: %d\nSố vé trống: %d\nTỷ lệ lấp đầy: %.2f%%\nChuyến khởi hành: %d\nDoanh thu: %,d VNĐ\nDoanh thu TB/Chuyến: %,d VNĐ",
                             item.getMaTuyen(),
                             item.getTenTuyen(),
                             item.getTongVe(),
+                            item.getSoVeTrong(),
                             item.getTyLe(),
                             item.getSoChuyen(),
-                            item.getDoanhThu());
+                            item.getDoanhThu(),
+                            item.getDoanhThuTrungBinh());
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
                     alert.setTitle("Thông tin chuyến");
                     alert.setHeaderText(null);
@@ -75,7 +106,7 @@ public class StatisticsManagementController {
             return row;
         });
 
-        // Format tỉ lệ lắp đầy với ký hiệu %
+        // Format tỉ lệ
         colTiLe.setCellFactory(column -> new TableCell<ThongKe, Double>() {
             @Override
             protected void updateItem(Double item, boolean empty) {
@@ -100,18 +131,67 @@ public class StatisticsManagementController {
                 }
             }
         });
+        
+        colDoanhThuTB.setCellFactory(column -> new TableCell<ThongKe, Long>() {
+            @Override
+            protected void updateItem(Long item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(String.format("%,d VNĐ", item));
+                }
+            }
+        });
+
+        colTongTienKH.setCellFactory(column -> new TableCell<ThongKeKhachHang, Long>() {
+            @Override
+            protected void updateItem(Long item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(String.format("%,d VNĐ", item));
+                }
+            }
+        });
 
         loadData();
     }
 
     private void loadData() {
-        try {
-            ThongKeDAO dao = new ThongKeDAO();
-            masterData.setAll(dao.getAllStatistics());
-            tableStats.setItems(masterData);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        loadingPane.setVisible(true);
+        
+        Task<Void> task = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                ThongKeDAO dao = new ThongKeDAO();
+                List<ThongKe> stats = dao.getAllStatistics();
+                List<ThongKeKhachHang> customers = dao.getTopCustomers(10);
+                
+                javafx.application.Platform.runLater(() -> {
+                    masterData.setAll(stats);
+                    tableStats.setItems(masterData);
+                    
+                    customerData.setAll(customers);
+                    tableTopCustomers.setItems(customerData);
+                });
+                return null;
+            }
+        };
+
+        task.setOnSucceeded(e -> loadingPane.setVisible(false));
+        task.setOnFailed(e -> {
+            loadingPane.setVisible(false);
+            e.getSource().getException().printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Lỗi");
+            alert.setHeaderText("Không thể tải dữ liệu");
+            alert.setContentText(e.getSource().getException().getMessage());
+            alert.showAndWait();
+        });
+
+        new Thread(task).start();
     }
 
     public void handleSearch() {
@@ -126,8 +206,92 @@ public class StatisticsManagementController {
         applyAllFilters(false);
     }
 
-    public void handleApplyFilters() {
-        applyAllFilters(true);
+    @FXML
+    private void handleExportExcel() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Lưu file Excel");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
+        File file = fileChooser.showSaveDialog(tableStats.getScene().getWindow());
+
+        if (file != null) {
+            Task<Void> task = new Task<Void>() {
+                @Override
+                protected Void call() throws Exception {
+                    try (Workbook workbook = new XSSFWorkbook()) {
+                        // Sheet 1: Thống kê tuyến
+                        Sheet sheet1 = workbook.createSheet("Thống kê tuyến");
+                        createHeaderRow(sheet1, new String[]{"Mã Tuyến", "Tên Tuyến", "Tổng Vé", "Số Chuyến", "Số Vé Trống", "Tỉ Lệ Lấp Đầy (%)", "Doanh Thu", "Doanh Thu TB"});
+                        
+                        int rowNum = 1;
+                        for (ThongKe tk : tableStats.getItems()) {
+                            Row row = sheet1.createRow(rowNum++);
+                            row.createCell(0).setCellValue(tk.getMaTuyen());
+                            row.createCell(1).setCellValue(tk.getTenTuyen());
+                            row.createCell(2).setCellValue(tk.getTongVe());
+                            row.createCell(3).setCellValue(tk.getSoChuyen());
+                            row.createCell(4).setCellValue(tk.getSoVeTrong());
+                            row.createCell(5).setCellValue(tk.getTyLe());
+                            row.createCell(6).setCellValue(tk.getDoanhThu());
+                            row.createCell(7).setCellValue(tk.getDoanhThuTrungBinh());
+                        }
+                        for(int i=0; i<8; i++) sheet1.autoSizeColumn(i);
+
+                        // Sheet 2: Top 10 Khách hàng
+                        Sheet sheet2 = workbook.createSheet("Top 10 Khách Hàng");
+                        createHeaderRow(sheet2, new String[]{"Mã KH", "Tên Khách Hàng", "SĐT", "Số Vé Đã Mua", "Tổng Tiền"});
+                        
+                        rowNum = 1;
+                        for (ThongKeKhachHang tk : tableTopCustomers.getItems()) {
+                            Row row = sheet2.createRow(rowNum++);
+                            row.createCell(0).setCellValue(tk.getMaKH());
+                            row.createCell(1).setCellValue(tk.getTenKhachHang());
+                            row.createCell(2).setCellValue(tk.getSoDienThoai());
+                            row.createCell(3).setCellValue(tk.getSoVeDaMua());
+                            row.createCell(4).setCellValue(tk.getTongTien());
+                        }
+                        for(int i=0; i<5; i++) sheet2.autoSizeColumn(i);
+
+                        try (FileOutputStream fileOut = new FileOutputStream(file)) {
+                            workbook.write(fileOut);
+                        }
+                    }
+                    return null;
+                }
+            };
+
+            task.setOnSucceeded(e -> {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Thành công");
+                alert.setHeaderText(null);
+                alert.setContentText("Xuất file Excel thành công!");
+                alert.showAndWait();
+            });
+            
+            task.setOnFailed(e -> {
+                e.getSource().getException().printStackTrace();
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Lỗi");
+                alert.setHeaderText(null);
+                alert.setContentText("Có lỗi xảy ra khi xuất file Excel.");
+                alert.showAndWait();
+            });
+
+            new Thread(task).start();
+        }
+    }
+
+    private void createHeaderRow(Sheet sheet, String[] headers) {
+        Row headerRow = sheet.createRow(0);
+        CellStyle style = sheet.getWorkbook().createCellStyle();
+        org.apache.poi.ss.usermodel.Font font = sheet.getWorkbook().createFont();
+        font.setBold(true);
+        style.setFont(font);
+        
+        for (int i = 0; i < headers.length; i++) {
+            org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+            cell.setCellStyle(style);
+        }
     }
 
     public void handleResetFilters() {
@@ -219,12 +383,12 @@ public class StatisticsManagementController {
         // Add empty line
         document.add(new Paragraph("\n"));
 
-        // Create table with 6 columns
-        Table table = new Table(new float[] { 1.2f, 2.8f, 1.0f, 1.0f, 1.0f, 1.5f });
+        // Create table with 5 columns
+        Table table = new Table(new float[] { 1.2f, 2.8f, 1.0f, 1.0f, 1.5f });
         table.setWidth(com.itextpdf.layout.properties.UnitValue.createPercentValue(100));
 
         // Header row
-        String[] headers = { "Mã Tuyến", "Tên Tuyến", "Tổng Vé", "Tỷ Lệ", "Chuyến", "Doanh Thu" };
+        String[] headers = { "Mã Tuyến", "Tên Tuyến", "Tổng Vé", "Tỷ Lệ", "Doanh Thu" };
         for (String header : headers) {
             Cell cell = new Cell()
                     .add(new Paragraph(header).setFont(fontBold).setBold())
@@ -244,8 +408,6 @@ public class StatisticsManagementController {
                     .setTextAlignment(TextAlignment.CENTER));
             table.addCell(new Cell().add(new Paragraph(String.format("%.2f%%", item.getTyLe())).setFont(fontDefault))
                     .setTextAlignment(TextAlignment.CENTER));
-            table.addCell(new Cell().add(new Paragraph(String.valueOf(item.getSoChuyen())).setFont(fontDefault))
-                    .setTextAlignment(TextAlignment.CENTER));
             table.addCell(new Cell().add(new Paragraph(String.format("%,d", item.getDoanhThu())).setFont(fontDefault))
                     .setTextAlignment(TextAlignment.RIGHT));
 
@@ -261,7 +423,7 @@ public class StatisticsManagementController {
         table.addCell(footerLabel);
 
         // Empty cells in footer
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 2; i++) {
             Cell emptyCell = new Cell()
                     .add(new Paragraph("").setFont(fontDefault))
                     .setBackgroundColor(com.itextpdf.kernel.colors.ColorConstants.LIGHT_GRAY);

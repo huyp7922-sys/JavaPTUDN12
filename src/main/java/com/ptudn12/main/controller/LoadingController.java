@@ -83,10 +83,6 @@ public class LoadingController {
             stage.close();
             loginStage.show();
 
-            System.out.println("App mở lúc: " +
-                    appStartTime.format(DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy"))
-            );
-
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(1);

@@ -323,7 +323,6 @@ public class LoginController {
 
             boolean updated = taiKhoanDAO.update(taiKhoan);
             if (updated) {
-                System.out.println("Đã cập nhật mật khẩu mới (TẠM) cho: " + maNhanVien);
                 return true;
             }
             return false;

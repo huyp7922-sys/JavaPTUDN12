@@ -2,15 +2,16 @@ package com.ptudn12.main.entity;
 
 public class ThongKe {
     private String maTuyen, tenTuyen;
-    private int tongVe, soChuyen;
+    private int tongVe, soChuyen, soVeBan;
     private double tyLe;
     private long doanhThu;
 
-    public ThongKe(String maTuyen, String tenTuyen, int tongVe, double tyLe,
+    public ThongKe(String maTuyen, String tenTuyen, int tongVe, int soVeBan, double tyLe,
                              int soChuyen, long doanhThu) {
         this.maTuyen = maTuyen;
         this.tenTuyen = tenTuyen;
         this.tongVe = tongVe;
+        this.soVeBan = soVeBan;
         this.tyLe = tyLe;
         this.soChuyen = soChuyen;
         this.doanhThu = doanhThu;
@@ -19,7 +20,16 @@ public class ThongKe {
     public String getMaTuyen() { return maTuyen; }
     public String getTenTuyen() { return tenTuyen; }
     public int getTongVe() { return tongVe; }
+    public int getSoVeBan() { return soVeBan; }
     public double getTyLe() { return tyLe; }
     public int getSoChuyen() { return soChuyen; }
     public long getDoanhThu() { return doanhThu; }
+    
+    public int getSoVeTrong() {
+        return tongVe - soVeBan;
+    }
+    
+    public long getDoanhThuTrungBinh() {
+        return soChuyen == 0 ? 0 : doanhThu / soChuyen;
+    }
 }

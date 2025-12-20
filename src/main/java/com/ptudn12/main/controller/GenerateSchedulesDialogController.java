@@ -194,7 +194,6 @@ public class GenerateSchedulesDialogController {
             try {
                 if (lichTrinhDAO.themLichTrinh(lichTrinhDi)) {
                     count++;
-                    System.out.println("✅ [" + (i+1) + "/" + days + "] Tạo lịch trình đi: " + lichTrinhDi.getMaLichTrinh());
                 }
             } catch (Exception e) {
                 System.err.println("❌ Lỗi tạo lịch trình đi ngày " + currentDate + ": " + e.getMessage());
@@ -204,7 +203,6 @@ public class GenerateSchedulesDialogController {
                 TuyenDuong tuyenNguoc = tuyenDuongDAO.findTuyenNguoc(tuyen.getMaTuyen());
                 
                 if (tuyenNguoc == null) {
-                    System.out.println("⚠️ Không tìm thấy tuyến ngược cho ngày " + currentDate);
                     continue;
                 }
                 
@@ -221,7 +219,6 @@ public class GenerateSchedulesDialogController {
                 try {
                     if (lichTrinhDAO.themLichTrinh(lichTrinhVe)) {
                         count++;
-                        System.out.println("[" + (i+1) + "/" + days + "] Tạo lịch trình về: " + lichTrinhVe.getMaLichTrinh());
                     }
                 } catch (Exception e) {
                     System.err.println("Lỗi tạo lịch trình về ngày " + currentDate + ": " + e.getMessage());
