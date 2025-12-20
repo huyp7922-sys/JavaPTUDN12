@@ -67,6 +67,26 @@
                 <Label text="• Lọc thống kê theo thời gian hoặc tên tuyến" 
                        wrapText="true" style="-fx-font-size: 13px; -fx-text-fill: #7f8c8d;"/>
             </VBox>
+
+            <!-- Hướng Dẫn Chi Tiết PDF -->
+            <VBox spacing="5">
+                <Label text="📄 Hướng Dẫn Sử Dụng" 
+                       style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #16a085;"/>
+                <Label text="Tải và xem các hướng dẫn sử dụng chi tiết từ các tác giả:" 
+                       wrapText="true" style="-fx-font-size: 13px; -fx-text-fill: #7f8c8d;"/>
+                <HBox spacing="8" style="-fx-padding: 5;">
+                  <Button text="Chức năng : bán vé, đổi vé, trả vé" onAction="#openGiaHaoPdf"
+                            style="-fx-font-size: 11px; -fx-padding: 6 12; -fx-background-color: #16a085; -fx-text-fill: white; -fx-background-radius: 3; -fx-cursor: hand;"/>
+                  <Button text="Chức năng : Nhân viên, Thống kê" onAction="#openNguyenCongHuyPdf"
+                            style="-fx-font-size: 11px; -fx-padding: 6 12; -fx-background-color: #16a085; -fx-text-fill: white; -fx-background-radius: 3; -fx-cursor: hand;"/>
+                </HBox>
+                <HBox spacing="8" style="-fx-padding: 5;">
+                  <Button text="Chức năng : Quản lí Tàu, Quản lí khách hàng, Quản lí hoá đơn" onAction="#openTrinhHoangKyPdf"
+                            style="-fx-font-size: 11px; -fx-padding: 6 12; -fx-background-color: #16a085; -fx-text-fill: white; -fx-background-radius: 3; -fx-cursor: hand;"/>
+                  <Button text="Chức năng : Đăng nhập, Quản lí lịch trình, Quản lí tuyến đường" onAction="#openPhamThanhHuyPdf"
+                            style="-fx-font-size: 11px; -fx-padding: 6 12; -fx-background-color: #16a085; -fx-text-fill: white; -fx-background-radius: 3; -fx-cursor: hand;"/>
+                </HBox>
+            </VBox>
             
             <!-- Liên hệ hỗ trợ -->
             <VBox spacing="5">

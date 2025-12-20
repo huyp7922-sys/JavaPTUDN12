@@ -24,22 +24,24 @@ public class HelpController {
 
     @FXML
     public void openGiaHaoPdf() {
-        openPdfViewer("documents/GiaHao_HDSD.pdf", "Gia Hào - Hướng Dẫn Sử Dụng");
+        openPdfViewer("documents/HDSD_TranGiaHao.pdf", "Chức năng : bán vé, đổi vé, trả vé");
     }
 
     @FXML
     public void openNguyenCongHuyPdf() {
-        openPdfViewer("documents/HDSD - Nguyễn Công Huy.pdf", "Nguyễn Công Huy - Hướng Dẫn Sử Dụng");
+        openPdfViewer("documents/HDSD_NguyenCongHuy.pdf", "Chức năng : Nhân viên, Thống kê");
     }
 
     @FXML
     public void openTrinhHoangKyPdf() {
-        openPdfViewer("documents/HDSD - Trịnh Hoàng Kỳ.pdf", "Trịnh Hoàng Kỳ - Hướng Dẫn Sử Dụng");
+        openPdfViewer("documents/HDSD_TrinhHoangKy.pdf",
+                "Chức năng : Quản lí Tàu, Quản lí khách hàng, Quản lí hoá đơn");
     }
 
     @FXML
     public void openPhamThanhHuyPdf() {
-        openPdfViewer("documents/HDSD_PhamThanhHuy.pdf", "Phạm Thành Huy - Hướng Dẫn Sử Dụng");
+        openPdfViewer("documents/HDSD_PhamThanhHuy.pdf",
+                "Chức năng : Đăng nhập, Quản lí lịch trình, Quản lí tuyến đường");
     }
 
     private void openPdfViewer(String pdfPath, String windowTitle) {
@@ -47,14 +49,14 @@ public class HelpController {
             // Load PdfViewerController FXML
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/pdf-viewer.fxml"));
             Parent root = loader.load();
-            
+
             // Get the controller
             PdfViewerController controller = loader.getController();
-            
+
             // Load the PDF document from resources
             File pdfFile = new File(getClass().getResource("/" + pdfPath).toURI());
             controller.loadDocument(pdfFile);
-            
+
             // Create a new stage for the PDF viewer
             Stage pdfStage = new Stage();
             pdfStage.setTitle(windowTitle);

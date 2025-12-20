@@ -20,6 +20,8 @@
             <HBox spacing="20">
                 <Label fx:id="lblCurrentTime" text="" styleClass="time-label"/>
                 <Region HBox.hgrow="ALWAYS"/>
+                <Button text="Help" onAction="#handleHelp" styleClass="btn-secondary"/>
+                <Button text="About" onAction="#handleAbout" styleClass="btn-secondary"/>
                 <Label fx:id="lblEmployeeName" text="Tên Nhân Viên" styleClass="employee-label"/>
             </HBox>
         </VBox>

@@ -227,17 +227,17 @@
 
             <!-- PDF User Guides -->
             <VBox spacing="10">
-                <Label text="Hướng Dẫn Chi Tiết (PDF)" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2d3748;"/>
+                <Label text="Hướng Dẫn Sử Dụng" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2d3748;"/>
                 <Label text="Tải và xem các hướng dẫn sử dụng chi tiết từ các tác giả:" wrapText="true" style="-fx-text-fill: #4a5568;"/>
                 
                 <HBox spacing="10" style="-fx-padding: 10;">
-                    <Button text="📄 Gia Hào HDSD" onAction="#openGiaHaoPdf" style="-fx-font-size: 12px; -fx-padding: 8 16; -fx-cursor: hand;"/>
-                    <Button text="📄 Nguyễn Công Huy" onAction="#openNguyenCongHuyPdf" style="-fx-font-size: 12px; -fx-padding: 8 16; -fx-cursor: hand;"/>
+                    <Button text="📄 Chức năng : bán vé, đổi vé, trả vé" onAction="#openGiaHaoPdf" style="-fx-font-size: 12px; -fx-padding: 8 16; -fx-cursor: hand;"/>
+                    <Button text="📄 Chức năng : Nhân viên, Thống kê" onAction="#openNguyenCongHuyPdf" style="-fx-font-size: 12px; -fx-padding: 8 16; -fx-cursor: hand;"/>
                 </HBox>
                 
                 <HBox spacing="10" style="-fx-padding: 10;">
-                    <Button text="📄 Trịnh Hoàng Kỳ" onAction="#openTrinhHoangKyPdf" style="-fx-font-size: 12px; -fx-padding: 8 16; -fx-cursor: hand;"/>
-                    <Button text="📄 Phạm Thành Huy" onAction="#openPhamThanhHuyPdf" style="-fx-font-size: 12px; -fx-padding: 8 16; -fx-cursor: hand;"/>
+                    <Button text="📄 Chức năng : Quản lí Tàu, Quản lí khách hàng, Quản lí hoá đơn" onAction="#openTrinhHoangKyPdf" style="-fx-font-size: 12px; -fx-padding: 8 16; -fx-cursor: hand;"/>
+                    <Button text="📄 Chức năng : Đăng nhập, Quản lí lịch trình, Quản lí tuyến đường" onAction="#openPhamThanhHuyPdf" style="-fx-font-size: 12px; -fx-padding: 8 16; -fx-cursor: hand;"/>
                 </HBox>
             </VBox>
 
