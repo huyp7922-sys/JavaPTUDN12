@@ -4,14 +4,18 @@ import com.ptudn12.main.dao.DashboardDAO;
 import com.ptudn12.main.entity.DailyRevenue;
 import com.ptudn12.main.entity.ScheduleStatus;
 
-
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-
 import javafx.scene.Node;
-import javafx.scene.chart.*;
-import javafx.scene.control.*;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.PieChart;
+import javafx.scene.chart.XYChart;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.control.Tooltip;
 
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
@@ -35,10 +39,12 @@ public class DashboardStatisticsController {
 
 
     private final DashboardDAO dashboardDAO = new DashboardDAO();
+    private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
 
   
     @FXML
     public void initialize() {
+        revenueChart.setAnimated(false); 
         refreshAllData();
     }
 
@@ -48,47 +54,49 @@ public class DashboardStatisticsController {
     }
 
     private void refreshAllData() {
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss - dd/MM/yyyy");
-        welcomeSubtitle.setText("Cập nhật lần cuối: " + LocalDateTime.now().format(dtf));
-        loadStatistics();
+
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm - dd/MM/yyyy");
+        welcomeSubtitle.setText("Cập nhật lúc: " + LocalDateTime.now().format(dtf));
+
+        loadOverviewStatistics();
         loadRevenueChart();
         loadScheduleStatusChart();
         loadRecentActivities();
     }
 
 
-    private void loadStatistics() {
+    private void loadOverviewStatistics() {
         try {
             totalRoutesLabel.setText(String.valueOf(dashboardDAO.getTotalRoutes()));
             todaySchedulesLabel.setText(String.valueOf(dashboardDAO.getTodaySchedules()));
             totalTrainsLabel.setText(String.valueOf(dashboardDAO.getTotalTrains()));
-            revenueLabel.setText(formatCurrency(dashboardDAO.getMonthlyRevenue()));
+
+            
+            long monthlyRev = dashboardDAO.getMonthlyRevenue();
+            revenueLabel.setText(formatCurrencyShort(monthlyRev));
+            
         } catch (Exception e) {
             e.printStackTrace();
-            showError("Không thể tải thống kê tổng quan");
+            showError("Lỗi tải số liệu tổng quan!");
         }
     }
 
 
     private void loadRevenueChart() {
         try {
-            revenueChart.getData().clear();
+
+            revenueChart.getData().clear(); 
 
             XYChart.Series<String, Number> series = new XYChart.Series<>();
-            series.setName("Doanh thu (triệu đồng)");
+            series.setName("Doanh thu ngày");
 
-            List<DailyRevenue> dailyRevenues = dashboardDAO.getDailyRevenueLastWeek();
+            List<DailyRevenue> dataList = dashboardDAO.getDailyRevenueLastWeek();
 
-            for (DailyRevenue dr : dailyRevenues) {
-                String dateLabel =
-                        dr.getNgay().substring(8) + "/" + dr.getNgay().substring(5, 7);
-
-                double displayValue = dr.getDoanhThu() / 1_000_000.0;
-
-                XYChart.Data<String, Number> data =
-                        new XYChart.Data<>(dateLabel, displayValue);
-
-                series.getData().add(data);
+            for (DailyRevenue item : dataList) {
+                String dateStr = item.getNgay(); 
+                String label = dateStr.substring(8, 10) + "/" + dateStr.substring(5, 7);
+                
+                series.getData().add(new XYChart.Data<>(label, item.getDoanhThu()));
             }
 
             revenueChart.getData().add(series);
@@ -96,48 +104,57 @@ public class DashboardStatisticsController {
             for (XYChart.Data<String, Number> data : series.getData()) {
                 Node node = data.getNode();
 
-                long originalValue =
-                        (long) (data.getYValue().doubleValue() * 1_000_000);
+                double value = data.getYValue().doubleValue();
+                
+                String textMoney = currencyFormat.format(value);
 
-                String exactMoney =
-                        NumberFormat.getCurrencyInstance(new Locale("vi", "VN"))
-                                .format(originalValue);
-
-                Tooltip tooltip = new Tooltip("Doanh thu: " + exactMoney);
-                tooltip.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+                Tooltip tooltip = new Tooltip("Doanh thu: " + textMoney);
+                tooltip.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-color: #2d3748; -fx-text-fill: white;");
+                tooltip.setShowDelay(javafx.util.Duration.millis(100)); 
                 Tooltip.install(node, tooltip);
 
-                node.setOnMouseEntered(e ->
-                        node.setStyle("-fx-bar-fill: #2980b9; -fx-cursor: hand;"));
-                node.setOnMouseExited(e ->
-                        node.setStyle(""));
+                node.setOnMouseEntered(e -> {
+                    node.setStyle("-fx-bar-fill: #2b6cb0; -fx-cursor: hand;"); 
+                });
+                
+                node.setOnMouseExited(e -> {
+                    node.setStyle(""); 
+                });
+
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            showError("Không thể tải biểu đồ doanh thu");
+
+            showError("Lỗi tải biểu đồ doanh thu!");
+
         }
     }
 
     private void loadScheduleStatusChart() {
         try {
-            List<ScheduleStatus> statuses = dashboardDAO.getScheduleStatus();
 
+            List<ScheduleStatus> list = dashboardDAO.getScheduleStatus();
             ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList();
 
-            for (ScheduleStatus s : statuses) {
-                pieData.add(new PieChart.Data(
-                        s.getTrangThaiVi() + " (" + s.getSoLuong() + ")",
-                        s.getSoLuong()
-                ));
+            for (ScheduleStatus s : list) {
+                pieData.add(new PieChart.Data(s.getTrangThaiVi() + " (" + s.getSoLuong() + ")", s.getSoLuong()));
             }
 
             scheduleStatusChart.setData(pieData);
-            scheduleStatusChart.setLegendVisible(true);
+            
+            for (PieChart.Data data : scheduleStatusChart.getData()) {
+                Node node = data.getNode();
+                Tooltip tooltip = new Tooltip(data.getName() + ": " + (int)data.getPieValue());
+                tooltip.setStyle("-fx-font-size: 13px;");
+                Tooltip.install(node, tooltip);
+                
+                node.setOnMouseEntered(e -> node.setStyle("-fx-cursor: hand;"));
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
-            showError("Không thể tải biểu đồ trạng thái");
+
         }
     }
 
@@ -145,32 +162,29 @@ public class DashboardStatisticsController {
     private void loadRecentActivities() {
         try {
 
-            activitiesList.setItems(
-                    FXCollections.observableArrayList(
-                            dashboardDAO.getRecentActivities()
-                    )
-            );
+            List<String> acts = dashboardDAO.getRecentActivities();
+            activitiesList.setItems(FXCollections.observableArrayList(acts));
         } catch (Exception e) {
             e.printStackTrace();
-            showError("Không thể tải hoạt động gần đây");
         }
     }
 
-  
-    private String formatCurrency(long amount) {
-        if (amount >= 1_000_000_000)
+
+    private String formatCurrencyShort(long amount) {
+        if (amount >= 1_000_000_000) {
             return String.format("%.2f Tỷ", amount / 1_000_000_000.0);
-        if (amount >= 1_000_000)
+        } else if (amount >= 1_000_000) {
             return String.format("%.1f Tr", amount / 1_000_000.0);
-        return NumberFormat.getInstance(new Locale("vi", "VN"))
-                .format(amount) + " đ";
+        } else {
+            return currencyFormat.format(amount);
+        }
     }
 
-    private void showError(String message) {
+    private void showError(String msg) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Lỗi");
+        alert.setTitle("Lỗi Hệ Thống");
         alert.setHeaderText(null);
-        alert.setContentText(message);
+        alert.setContentText(msg);
         alert.showAndWait();
     }
 }
