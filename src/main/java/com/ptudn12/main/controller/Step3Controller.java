@@ -3,6 +3,7 @@ package com.ptudn12.main.controller;
 import com.ptudn12.main.dao.KhachHangDAO;
 import com.ptudn12.main.entity.KhachHang;
 import com.ptudn12.main.controller.VeTamThoi;
+import com.ptudn12.main.dao.VeTauDAO;
 import com.ptudn12.main.entity.VeTau;
 import com.ptudn12.main.enums.LoaiVe;
 import javafx.beans.value.ChangeListener;
@@ -47,6 +48,7 @@ public class Step3Controller {
     private BanVeController mainController;
     private final DecimalFormat moneyFormatter = new DecimalFormat("#,##0 'VNĐ'");
     private final KhachHangDAO khachHangDAO = new KhachHangDAO();
+    private final VeTauDAO veTauDAO = new VeTauDAO();
     
     // Danh sách các controller của từng hàng
     private final List<HanhKhachRowController> rowControllers = new ArrayList<>();
@@ -384,77 +386,130 @@ public class Step3Controller {
 
     @FXML
     private void handleTiepTheo() {
-        // 1. VALIDATION DANH SÁCH HÀNH KHÁCH
+        // 1. VALIDATION CƠ BẢN (Regex, Rỗng)
         for (HanhKhachRowController row : rowControllers) {
             String hoTenHK = row.getHoTen().trim();
             String giayToHK = row.getSoGiayTo().trim();
 
-            // 1.1 Check rỗng
             if (hoTenHK.isEmpty() || giayToHK.isEmpty()) {
                 showAlert(Alert.AlertType.WARNING, "Vui lòng nhập đầy đủ thông tin (Họ tên, Số giấy tờ) cho tất cả hành khách.");
                 return;
             }
 
-            // 1.2 Check định dạng Tên Hành Khách (Chỉ chữ và khoảng trắng)
             if (!hoTenHK.matches("^[\\p{L}\\s]+$")) {
-                showAlert(Alert.AlertType.WARNING, "Họ tên hành khách không hợp lệ (chứa số hoặc ký tự đặc biệt):\n" + hoTenHK);
+                showAlert(Alert.AlertType.WARNING, "Họ tên hành khách không hợp lệ:\n" + hoTenHK);
                 return;
             }
             
-            // 1.3 Check định dạng Giấy tờ Hành Khách (Chỉ số, 9-12 ký tự)
-            // (Nếu chấp nhận Hộ chiếu có chữ thì sửa regex này, ở đây giả sử là CCCD/CMND)
+            // Check giấy tờ (9-12 số hoặc Hộ chiếu)
             boolean isCMND = giayToHK.matches("\\d{9}");
             boolean isCCCD = giayToHK.matches("\\d{12}");
             boolean isPassport = giayToHK.matches("^[a-zA-Z0-9]{6,15}$");
             if (!isCMND && !isCCCD && !isPassport) {
-                showAlert(Alert.AlertType.WARNING, "Giấy tờ hành khách không hợp lệ!\nPhải là:\n- CMND (9 số)\n- CCCD (12 số)\n- Hoặc Hộ chiếu (6-15 ký tự chữ/số)");
-                return;
+                 showAlert(Alert.AlertType.WARNING, "Giấy tờ hành khách không hợp lệ (CMND, CCCD hoặc Hộ chiếu):\n" + giayToHK);
+                 return;
             }
         }
-        
-        // 2. VALIDATION NGƯỜI MUA VÉ
+
+        // 2. VALIDATION LOGIC: TRẺ EM ĐI KÈM NGƯỜI LỚN
+        // Bước 2.1: Kiểm tra xem trong danh sách hiện tại có người lớn nào không?
+        boolean coNguoiLonTrongDoan = false;
+        for (HanhKhachRowController row : rowControllers) {
+            LoaiVe type = row.getDoiTuong();
+            if (type == LoaiVe.VE_BINH_THUONG || type == LoaiVe.VE_NGUOI_LON_TUOI || type == LoaiVe.VE_HSSV) {
+                coNguoiLonTrongDoan = true;
+                break;
+            }
+        }
+
+        // Bước 2.2: Kiểm tra từng trẻ em
+        for (HanhKhachRowController row : rowControllers) {
+            // Dựa vào biến requiresAdultTicket trong HanhKhachRowController
+            // Biến này = true khi là Trẻ em 6-10 tuổi (Trẻ < 6 tuổi miễn phí thì không cần check)
+            if (row.isRequiresAdultTicket()) { 
+                
+                String maVeBaoLanh = row.getMaVeNguoiLon().trim();
+                boolean coMaBaoLanh = !maVeBaoLanh.isEmpty();
+
+                // Nếu KHÔNG có người lớn đi cùng trong đoàn NÀY
+                // VÀ cũng KHÔNG nhập mã vé người lớn (đã mua trước đó)
+                if (!coNguoiLonTrongDoan && !coMaBaoLanh) {
+                    showAlert(Alert.AlertType.WARNING, 
+                        "Hành khách trẻ em (" + row.getHoTen() + ") cần có người lớn đi cùng.\n" +
+                        "Vui lòng mua cùng vé người lớn trong lượt này,\n" +
+                        "hoặc nhập 'Mã vé người lớn' đã mua trước đó vào ô tương ứng.");
+                    return;
+                }
+
+                // Nếu có nhập mã vé bảo lãnh, kiểm tra xem mã vé đó có thật không
+                if (coMaBaoLanh) {
+                    VeTau veNguoiLon = veTauDAO.getVeTauDetail(maVeBaoLanh);
+                    
+                    // 1. Check tồn tại
+                    if (veNguoiLon == null) {
+                        showAlert(Alert.AlertType.WARNING, "Mã vé người lớn bảo lãnh (" + maVeBaoLanh + ") không tồn tại trong hệ thống!");
+                        return;
+                    }
+
+                    // 2. Check trạng thái vé người lớn (Phải là vé đã bán hoặc đã đổi - tức là vé có giá trị đi)
+                    if (!"DaBan".equals(veNguoiLon.getTrangThai()) && !"DaDoi".equals(veNguoiLon.getTrangThai())) {
+                        showAlert(Alert.AlertType.WARNING, "Vé người lớn này (" + maVeBaoLanh + ") đã bị hủy hoặc không hợp lệ.");
+                        return;
+                    }
+                    
+                    // 3. Check cùng chuyến tàu (So sánh Mã Lịch Trình)
+                    // Lấy mã lịch trình của vé trẻ em đang đặt (Chiều đi)
+                    String maLichTrinhTreEm = row.getVeDi().getLichTrinh().getMaLichTrinh();
+                    
+                    // Lấy mã lịch trình của vé người lớn
+                    String maLichTrinhNguoiLon = "";
+                    if (veNguoiLon.getChiTietLichTrinh() != null && veNguoiLon.getChiTietLichTrinh().getLichTrinh() != null) {
+                        maLichTrinhNguoiLon = veNguoiLon.getChiTietLichTrinh().getLichTrinh().getMaLichTrinh();
+                    }
+
+                    if (!maLichTrinhTreEm.equals(maLichTrinhNguoiLon)) {
+                         String tauNguoiLon = veNguoiLon.getChiTietLichTrinh().getLichTrinh().getTau().getMacTau();
+                         String ngayNguoiLon = veNguoiLon.getChiTietLichTrinh().getLichTrinh().getNgayGioKhoiHanhFormatted();
+                         
+                         showAlert(Alert.AlertType.WARNING, 
+                             "Vé người lớn (" + maVeBaoLanh + ") không cùng chuyến tàu với trẻ em!\n" +
+                             "- Vé người lớn: Tàu " + tauNguoiLon + ", Ngày " + ngayNguoiLon + "\n" +
+                             "- Vé trẻ em đang đặt: Tàu " + row.getVeDi().getLichTrinh().getTau().getMacTau() + 
+                             ", Ngày " + row.getVeDi().getLichTrinh().getNgayGioKhoiHanhFormatted());
+                         return;
+                    }
+                }
+            }
+        }
+
+        // 3. VALIDATION NGƯỜI MUA VÉ - Giữ nguyên
         String tenMua = txtNguoiMuaHoTen.getText().trim();
         String cccdMua = txtNguoiMuaSoGiayTo.getText().trim();
         String sdtMua = txtNguoiMuaSDT.getText().trim();
         String emailMua = txtNguoiMuaEmail.getText().trim();
 
-        // 2.1 Check rỗng
         if (tenMua.isEmpty() || cccdMua.isEmpty() || sdtMua.isEmpty()) { 
-            showAlert(Alert.AlertType.WARNING, "Vui lòng nhập đầy đủ thông tin người mua vé (Họ tên, CCCD, SĐT).");
+            showAlert(Alert.AlertType.WARNING, "Vui lòng nhập đầy đủ thông tin người mua vé.");
             return;
         }
-
-        // 2.2 Check Tên Người Mua
         if (!tenMua.matches("^[\\p{L}\\s]+$")) {
-             showAlert(Alert.AlertType.WARNING, "Họ tên người mua không được chứa số hoặc ký tự đặc biệt.");
+             showAlert(Alert.AlertType.WARNING, "Họ tên người mua không hợp lệ.");
              return;
         }
-
-        // 2.3 Check CCCD Người Mua (9 hoặc 12 số)
-        if (!cccdMua.matches("\\d{9}") && !cccdMua.matches("\\d{12}")) {
-            showAlert(Alert.AlertType.WARNING, "Số giấy tờ người mua phải là 9 hoặc 12 số.");
-            txtNguoiMuaSoGiayTo.requestFocus();
+        if (!cccdMua.matches("\\d{9}") && !cccdMua.matches("\\d{12}") && !cccdMua.matches("^[a-zA-Z0-9]{6,15}$")) {
+            showAlert(Alert.AlertType.WARNING, "Giấy tờ người mua không hợp lệ.");
             return;
         }
-
-        // 2.4 Check Số Điện Thoại (Bắt đầu bằng 0, 10 số)
         if (!sdtMua.matches("^0\\d{9}$")) {
-            showAlert(Alert.AlertType.WARNING, "Số điện thoại không hợp lệ (Phải bắt đầu bằng 0 và có 10 số).");
-            txtNguoiMuaSDT.requestFocus();
+            showAlert(Alert.AlertType.WARNING, "Số điện thoại người mua không hợp lệ (10 số).");
+            return;
+        }
+        if (!emailMua.isEmpty() && !emailMua.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+            showAlert(Alert.AlertType.WARNING, "Email không đúng định dạng.");
             return;
         }
 
-        // 2.5 Check Email
-        if (!emailMua.isEmpty()) {
-            String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
-            if (!emailMua.matches(emailRegex)) {
-                showAlert(Alert.AlertType.WARNING, "Email không đúng định dạng (Ví dụ: abc@gmail.com).");
-                txtNguoiMuaEmail.requestFocus();
-                return;
-            }
-        }
-
-        // 2. Thu thập dữ liệu
+        // 4. CHUYỂN BƯỚC (Thu thập dữ liệu)
         List<Map<String, Object>> danhSachHanhKhach = new ArrayList<>();
         for (HanhKhachRowController row : rowControllers) {
             Map<String, Object> hanhKhach = new HashMap<>();
@@ -464,21 +519,21 @@ public class Step3Controller {
             hanhKhach.put("thanhTien", row.getThanhTien()); 
             hanhKhach.put("veDi", row.getVeDi()); 
             hanhKhach.put("veVe", row.getVeVe()); 
+            hanhKhach.put("ngaySinh", row.getNgaySinh()); 
+            
             danhSachHanhKhach.add(hanhKhach);
         }
 
         Map<String, String> nguoiMuaVe = new HashMap<>();
-        nguoiMuaVe.put("tenKhachHang", txtNguoiMuaHoTen.getText());
-        nguoiMuaVe.put("soGiayToIdentifier", txtNguoiMuaSoGiayTo.getText());
-        nguoiMuaVe.put("email", txtNguoiMuaEmail.getText());
-        nguoiMuaVe.put("soDienThoai", txtNguoiMuaSDT.getText());
+        nguoiMuaVe.put("tenKhachHang", tenMua);
+        nguoiMuaVe.put("soGiayToIdentifier", cccdMua);
+        nguoiMuaVe.put("email", emailMua);
+        nguoiMuaVe.put("soDienThoai", sdtMua);
 
-        // 3. Gửi dữ liệu qua MainController
         mainController.setUserData("danhSachHanhKhachDaNhap", danhSachHanhKhach);
         mainController.setUserData("thongTinNguoiMua", nguoiMuaVe);
         mainController.setUserData("tongThanhTien", lblTongThanhTien.getText());
 
-        // 4. Chuyển bước
         mainController.loadContent("step-4.fxml");
     }
     

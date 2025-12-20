@@ -27,10 +27,11 @@ public class DoiVeService {
 
             // PHẦN 1: XỬ LÝ VÉ CŨ
             // 1.1. Cập nhật vé cũ -> 'DaHuy' (Thay vì DaHuy để phân biệt)
-            String sqlUpdateVeCu = "UPDATE VeTau SET trangThai = ? WHERE maVe = ?";
+            String sqlUpdateVeCu = "UPDATE VeTau SET trangThai = ?, maQR = ? WHERE maVe = ?";
             try (PreparedStatement ps = conn.prepareStatement(sqlUpdateVeCu)) {
                 ps.setString(1, "DaHuy"); 
-                ps.setString(2, veCu.getMaVe());
+                ps.setString(2, "INVALID_" + System.currentTimeMillis());
+                ps.setString(3, veCu.getMaVe());
                 ps.executeUpdate();
             }
 

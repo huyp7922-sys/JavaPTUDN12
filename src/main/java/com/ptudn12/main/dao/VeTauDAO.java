@@ -273,6 +273,26 @@ public class VeTauDAO {
         return ve;
     }
     
+    public int autoInvalidateExpiredTickets() {
+        String sql = """
+            UPDATE VeTau
+            SET maQR = CONCAT('INVALID_', maQR) 
+            FROM VeTau v
+            JOIN ChiTietLichTrinh ct ON v.chiTietLichTrinhId = ct.maChiTietLichTrinh
+            JOIN LichTrinh lt ON ct.maLichTrinh = lt.maLichTrinh
+            WHERE v.trangThai = 'DaBan' 
+              AND lt.ngayGioKhoiHanh < GETDATE()
+              AND v.maQR NOT LIKE 'INVALID_%'
+        """;
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            return ps.executeUpdate();
+        } catch (SQLException e) {
+            return 0;
+        }
+    }
+    
     /**
      * Tạo mã vé: YYMMDD (6 số) + 6 số thứ tự.
      * Ví dụ: 251216000001 (Ngày 16/12/2025, vé số 1)

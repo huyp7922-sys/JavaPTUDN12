@@ -215,32 +215,69 @@ public class TraVeController {
     @FXML
     private void handleTimKiem() {
         String identifier = txtSearchCCCD.getText().trim();
+        String mode = (String) mainController.getUserData("transactionType");
+
         if (identifier.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Vui lòng nhập CCCD/Hộ chiếu.");
+            showAlert(Alert.AlertType.WARNING, "Vui lòng nhập CCCD/Hộ chiếu hoặc Mã vé.");
             return;
         }
 
+        tblDanhSachVe.setItems(FXCollections.emptyObservableList());
+        clearDetailView();
+
+        // --- TÌM THEO MÃ VÉ ---
+        if (identifier.matches("\\d{12}")) {
+            VeTau ve = veTauDAO.getVeTauDetail(identifier);
+            if (ve != null) {
+                // Logic lọc cũ: Chỉ cần khớp trạng thái là hiện
+                boolean isValid = false;
+                if (BanVeController.MODE_DOI_VE.equals(mode)) {
+                    if ("DaBan".equals(ve.getTrangThai())) isValid = true;
+                } else {
+                    if ("DaBan".equals(ve.getTrangThai()) || "DaDoi".equals(ve.getTrangThai())) isValid = true;
+                }
+
+                if (isValid) {
+                    tblDanhSachVe.setItems(FXCollections.observableArrayList(List.of(ve)));
+                    return;
+                }
+            }
+        }
+
+        // --- TÌM THEO KHÁCH HÀNG ---
         KhachHang kh = khachHangDAO.timKhachHangTheoGiayTo(identifier);
         if (kh == null) {
-            tblDanhSachVe.setItems(FXCollections.emptyObservableList());
-            showAlert(Alert.AlertType.INFORMATION, "Không tìm thấy khách hàng.");
+            showAlert(Alert.AlertType.INFORMATION, "Không tìm thấy thông tin phù hợp.");
             return;
         }
 
-        int maKH = Integer.parseInt(kh.getMaKhachHang());
-        List<VeTau> listVe = veTauDAO.getLichSuVeCuaKhachHang(maKH);
+        try {
+            int maKH = Integer.parseInt(kh.getMaKhachHang().replace("KH", ""));
+            List<VeTau> listVe = veTauDAO.getLichSuVeCuaKhachHang(maKH);
 
-        if (listVe == null || listVe.isEmpty()) {
-            tblDanhSachVe.setItems(FXCollections.emptyObservableList());
-            showAlert(Alert.AlertType.INFORMATION, "Khách hàng chưa mua vé nào.");
-        } else {
-            List<VeTau> filteredList = listVe.stream()
-                .filter(v -> "DaBan".equals(v.getTrangThai()) || "DaDoi".equals(v.getTrangThai()))
-                .toList();
-            tblDanhSachVe.setItems(FXCollections.observableArrayList(filteredList));
+            if (listVe != null && !listVe.isEmpty()) {
+                List<VeTau> filteredList = listVe.stream()
+                    .filter(v -> {
+                        if (BanVeController.MODE_DOI_VE.equals(mode)) {
+                            return "DaBan".equals(v.getTrangThai());
+                        } else {
+                            return "DaBan".equals(v.getTrangThai()) || "DaDoi".equals(v.getTrangThai());
+                        }
+                    })
+                    .sorted((v1, v2) -> v2.getMaVe().compareTo(v1.getMaVe()))
+                    .toList();
+
+                if (filteredList.isEmpty()) {
+                    showAlert(Alert.AlertType.INFORMATION, "Khách hàng không có vé phù hợp để thao tác.");
+                } else {
+                    tblDanhSachVe.setItems(FXCollections.observableArrayList(filteredList));
+                }
+            } else {
+                showAlert(Alert.AlertType.INFORMATION, "Khách hàng chưa mua vé nào.");
+            }
+        } catch (Exception e) {
+             showAlert(Alert.AlertType.ERROR, "Lỗi dữ liệu khách hàng.");
         }
-        
-        clearDetailView();
     }
 
     private void handleChonVe(VeTau ve) {

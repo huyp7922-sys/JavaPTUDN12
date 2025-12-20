@@ -39,10 +39,11 @@ public class TraVeService {
             // BƯỚC 1: XỬ LÝ VÉ CŨ (Hủy vé & Trả chỗ)
             // ========================================================================
 
-            String sqlUpdateVe = "UPDATE VeTau SET trangThai = ? WHERE maVe = ?";
-            try (PreparedStatement ps = conn.prepareStatement(sqlUpdateVe)) {
-                ps.setString(1, "DaHuy");
-                ps.setString(2, ve.getMaVe());
+            String sqlUpdateVeCu = "UPDATE VeTau SET trangThai = ?, maQR = ? WHERE maVe = ?";
+            try (PreparedStatement ps = conn.prepareStatement(sqlUpdateVeCu)) {
+                ps.setString(1, "DaHuy"); 
+                ps.setString(2, "INVALID_" + System.currentTimeMillis());
+                ps.setString(3, ve.getMaVe());
                 ps.executeUpdate();
             }
 
