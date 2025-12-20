@@ -4,11 +4,23 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.stage.Stage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 public class HelpController {
+
+    @FXML
+    private void initialize() {
+        // Initialize buttons to open PDF files
+        setupPdfButtons();
+    }
+
+    private void setupPdfButtons() {
+        // This will be called when buttons are clicked via FXML event handlers
+    }
 
     @FXML
     public void openGiaHaoPdf() {
@@ -32,11 +44,11 @@ public class HelpController {
 
     private void openPdfViewer(String pdfPath, String windowTitle) {
         try {
-            // Load PdfViewerController
+            // Load PdfViewerController FXML
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/pdf-viewer.fxml"));
             Parent root = loader.load();
             
-            // Get the controller and set the PDF path
+            // Get the controller
             PdfViewerController controller = loader.getController();
             
             // Load the PDF document from resources
