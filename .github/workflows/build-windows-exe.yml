@@ -1,0 +1,49 @@
+name: Build Windows Installer
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "22"
+
+      - name: Install WiX
+        run: choco install wixtoolset -y
+
+      - name: Build EXE
+        run: mvn clean package jpackage:jpackage
+
+      - name: Get version
+        id: version
+        shell: pwsh
+        run: |
+          [xml]$pom = Get-Content pom.xml
+          echo "v=$($pom.project.version)" >> $env:GITHUB_OUTPUT
+
+      - name: Create tag
+        shell: pwsh
+        run: |
+          $tag = "v${{ steps.version.outputs.v }}"
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git tag -f $tag
+          git push -f origin $tag
+
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.v }}
+          files: target/jpackage/*.exe
