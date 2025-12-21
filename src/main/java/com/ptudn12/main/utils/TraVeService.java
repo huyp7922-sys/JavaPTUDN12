@@ -33,12 +33,9 @@ public class TraVeService {
         Connection conn = null;
         try {
             conn = DatabaseConnection.getConnection();
-            conn.setAutoCommit(false); // --- BẮT ĐẦU TRANSACTION ---
+            conn.setAutoCommit(false);
 
-            // ========================================================================
             // BƯỚC 1: XỬ LÝ VÉ CŨ (Hủy vé & Trả chỗ)
-            // ========================================================================
-
             String sqlUpdateVeCu = "UPDATE VeTau SET trangThai = ?, maQR = ? WHERE maVe = ?";
             try (PreparedStatement ps = conn.prepareStatement(sqlUpdateVeCu)) {
                 ps.setString(1, "DaHuy"); 
@@ -65,10 +62,7 @@ public class TraVeService {
                 throw new SQLException("Không tìm thấy dữ liệu chỗ ngồi của vé: " + ve.getMaVe());
             }
 
-            // ========================================================================
             // BƯỚC 2: TẠO HÓA ĐƠN HOÀN TIỀN
-            // ========================================================================
-
             String maHoaDon = hoaDonDAO.generateUniqueHoaDonId();
             if (maHoaDon == null) maHoaDon = "HD" + System.currentTimeMillis();
 

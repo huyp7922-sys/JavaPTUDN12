@@ -62,9 +62,9 @@
 
             <!-- Pagination Controls -->
             <HBox spacing="15" alignment="CENTER">
-                <Button fx:id="prevButton" text="← Trang trước" styleClass="secondary-button" onAction="#handlePrevPage"/>
+                <Button fx:id="prevButton" text="Trang trước" styleClass="secondary-button" onAction="#handlePrevPage"/>
                 <Label fx:id="pageLabel" text="Trang 1/1" styleClass="page-label" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
-                <Button fx:id="nextButton" text="Trang sau →" styleClass="secondary-button" onAction="#handleNextPage"/>
+                <Button fx:id="nextButton" text="Trang sau" styleClass="secondary-button" onAction="#handleNextPage"/>
             </HBox>
 
             <!-- Action Buttons -->

@@ -31,7 +31,7 @@
         <VBox spacing="20">
             <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
             
-            <!-- Statistics Cards -->
+           <!-- Statistics Cards -->
             <HBox spacing="20" styleClass="stats-container">
                 <!-- Card 1: Doanh số hôm nay -->
                 <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
@@ -42,7 +42,7 @@
                     </Label>
                     <Label text="Vé bán trong ca làm việc hiện tại" styleClass="stat-desc"/>
                 </VBox>
-                
+
                 <!-- Card 2: Tổng vé đã bán -->
                 <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
                     <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
@@ -52,7 +52,7 @@
                     </Label>
                     <Label text="Tổng số vé đã thanh toán" styleClass="stat-desc"/>
                 </VBox>
-                
+
                 <!-- Card 3: Doanh thu ước tính -->
                 <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
                     <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
@@ -62,18 +62,8 @@
                     </Label>
                     <Label text="Tổng doanh thu trong ngày" styleClass="stat-desc"/>
                 </VBox>
-                
-                <!-- Card 4: Chờ xử lý -->
-                <VBox styleClass="stat-card" HBox.hgrow="ALWAYS" onMouseClicked="#showPendingTickets">
-                    <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
-                    <Label text="Chờ xử lý" styleClass="stat-label"/>
-                    <Label fx:id="lblChoXuLy" text="6" styleClass="stat-value">
-                        <font><Font name="System Bold" size="32"/></font>
-                    </Label>
-                    <Label text="Đặt chỗ chưa xác nhận" styleClass="stat-desc"/>
-                </VBox>
             </HBox>
-            
+
             <!-- Tickets Table Section -->
             <VBox styleClass="table-container" VBox.vgrow="ALWAYS">
                 <HBox spacing="10" alignment="CENTER_LEFT">

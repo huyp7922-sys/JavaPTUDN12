@@ -221,7 +221,7 @@ public class DashboardController {
 		placeholder.setStyle("-fx-alignment: center; -fx-padding: 50;");
 
 		// Icon
-		Label icon = new Label("⚠️");
+		Label icon = new Label("!");
 		icon.setStyle("-fx-font-size: 80px;");
 
 		// Title
@@ -235,7 +235,7 @@ public class DashboardController {
 		messageLabel.setMaxWidth(600);
 
 		// Back button
-		Button backButton = new Button("← Về Trang Chủ");
+		Button backButton = new Button("Về Trang Chủ");
 		backButton.setStyle("-fx-background-color: #3498db; " + "-fx-text-fill: white; " + "-fx-font-size: 14px; "
 				+ "-fx-padding: 10 30; " + "-fx-background-radius: 5; " + "-fx-cursor: hand;");
 		backButton.setOnAction(e -> showHome());

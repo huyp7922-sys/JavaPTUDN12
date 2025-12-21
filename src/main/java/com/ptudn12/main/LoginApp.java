@@ -42,7 +42,7 @@ public class LoginApp extends Application {
                 Image icon = new Image(LoginApp.class.getResourceAsStream("/images/logoApp.png"));
                 stage.getIcons().add(icon);
             } catch (Exception ex) {
-                System.err.println("⚠ Không thể load icon: " + ex.getMessage());
+                System.err.println("Không thể load icon: " + ex.getMessage());
             }
             
             stage.setScene(scene);
@@ -69,7 +69,7 @@ public class LoginApp extends Application {
                 "Application launched at: " + LocalDateTime.now() + "\n" +
                 "Java Version: " + System.getProperty("java.version") + "\n" +
                 "Working Directory: " + System.getProperty("user.dir") + "\n");
-            System.out.println("✓ Launch marker created on Desktop");
+            System.out.println("Launch marker created on Desktop");
         } catch (Exception e) {
             System.err.println("✗ Cannot create launch marker: " + e.getMessage());
         }

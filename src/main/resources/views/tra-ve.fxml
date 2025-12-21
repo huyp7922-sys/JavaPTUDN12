@@ -33,7 +33,7 @@
             </Label>
             <Region HBox.hgrow="ALWAYS" />
             <TextField fx:id="txtSearchCCCD" prefWidth="300.0" promptText="Nhập CCCD / Hộ chiếu / Mã vé..." style="-fx-font-size: 14px; -fx-padding: 8;" />
-            <Button fx:id="btnTimKiem" mnemonicParsing="false" onAction="#handleTimKiem" styleClass="action-button" text="🔍 Tìm kiếm" />
+            <Button fx:id="btnTimKiem" mnemonicParsing="false" onAction="#handleTimKiem" styleClass="action-button" text="Tìm kiếm" />
          </children>
       </HBox>
       <Separator prefWidth="200.0" />

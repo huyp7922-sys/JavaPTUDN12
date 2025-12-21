@@ -217,8 +217,7 @@ public class TraVeController {
     @FXML
     private void handleTimKiem() {
         String identifier = txtSearchCCCD.getText().trim();
-        String mode = (String) mainController.getUserData("transactionType");
-
+        
         if (identifier.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Vui lòng nhập CCCD/Hộ chiếu hoặc Mã vé.");
             return;
@@ -227,59 +226,57 @@ public class TraVeController {
         tblDanhSachVe.setItems(FXCollections.emptyObservableList());
         clearDetailView();
 
-        // --- TÌM THEO MÃ VÉ ---
-        if (identifier.matches("\\d{12}")) {
+        boolean isFoundTicket = false;
+        
+        if (identifier.matches("\\d{12}") || identifier.startsWith("QR_")) {
             VeTau ve = veTauDAO.getVeTauDetail(identifier);
+            
             if (ve != null) {
-                // Logic lọc cũ: Chỉ cần khớp trạng thái là hiện
-                boolean isValid = false;
-                if (BanVeController.MODE_DOI_VE.equals(mode)) {
-                    if ("DaBan".equals(ve.getTrangThai())) isValid = true;
-                } else {
-                    if ("DaBan".equals(ve.getTrangThai()) || "DaDoi".equals(ve.getTrangThai())) isValid = true;
-                }
-
-                if (isValid) {
+                String trangThai = (ve.getTrangThai() != null) ? ve.getTrangThai().trim() : "";
+                
+                if ("DaBan".equalsIgnoreCase(trangThai)) {
                     tblDanhSachVe.setItems(FXCollections.observableArrayList(List.of(ve)));
+                    return;
+                } else {
+                    showAlert(Alert.AlertType.WARNING, "Không tìm thấy vé!");
                     return;
                 }
             }
         }
 
-        // --- TÌM THEO KHÁCH HÀNG ---
         KhachHang kh = khachHangDAO.timKhachHangTheoGiayTo(identifier);
-        if (kh == null) {
-            showAlert(Alert.AlertType.INFORMATION, "Không tìm thấy thông tin phù hợp.");
-            return;
-        }
+        
+        if (kh != null) {
+            try {
+                String rawId = kh.getMaKhachHang();
+                int maKH = Integer.parseInt(rawId.toUpperCase().replace("KH", "").trim());
+                List<VeTau> listVe = veTauDAO.getLichSuVeCuaKhachHang(maKH);
 
-        try {
-            int maKH = Integer.parseInt(kh.getMaKhachHang().replace("KH", ""));
-            List<VeTau> listVe = veTauDAO.getLichSuVeCuaKhachHang(maKH);
+                if (listVe != null && !listVe.isEmpty()) {
+                    List<VeTau> filteredList = listVe.stream()
+                        .filter(v -> {
+                            String tt = (v.getTrangThai() != null) ? v.getTrangThai().trim() : "";
+                            return "DaBan".equalsIgnoreCase(tt);
+                        })
+                        .sorted((v1, v2) -> v2.getMaVe().compareTo(v1.getMaVe()))
+                        .toList();
 
-            if (listVe != null && !listVe.isEmpty()) {
-                List<VeTau> filteredList = listVe.stream()
-                    .filter(v -> {
-                        if (BanVeController.MODE_DOI_VE.equals(mode)) {
-                            return "DaBan".equals(v.getTrangThai());
-                        } else {
-                            return "DaBan".equals(v.getTrangThai()) || "DaDoi".equals(v.getTrangThai());
-                        }
-                    })
-                    .sorted((v1, v2) -> v2.getMaVe().compareTo(v1.getMaVe()))
-                    .toList();
-
-                if (filteredList.isEmpty()) {
-                    showAlert(Alert.AlertType.INFORMATION, "Khách hàng không có vé phù hợp để thao tác.");
+                    if (filteredList.isEmpty()) {
+                        showAlert(Alert.AlertType.INFORMATION, "Khách hàng " + kh.getTenKhachHang() + " không có vé nào khả dụng.");
+                    } else {
+                        tblDanhSachVe.setItems(FXCollections.observableArrayList(filteredList));
+                    }
+                    return; // Xong
                 } else {
-                    tblDanhSachVe.setItems(FXCollections.observableArrayList(filteredList));
+                    showAlert(Alert.AlertType.INFORMATION, "Khách hàng " + kh.getTenKhachHang() + " chưa có lịch sử mua vé.");
+                    return;
                 }
-            } else {
-                showAlert(Alert.AlertType.INFORMATION, "Khách hàng chưa mua vé nào.");
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-             showAlert(Alert.AlertType.ERROR, "Lỗi dữ liệu khách hàng.");
         }
+
+        showAlert(Alert.AlertType.ERROR, "Không tìm thấy dữ liệu!\n(Không có Mã vé này và cũng không có Khách hàng nào có giấy tờ này)");
     }
 
     private void handleChonVe(VeTau ve) {
@@ -314,7 +311,6 @@ public class TraVeController {
         String mode = (String) mainController.getUserData("transactionType");
 
         // --- 3. LOGIC RIÊNG CHO TỪNG MODE ---
-        
         if (BanVeController.MODE_TRA_VE.equals(mode)) {
             btnXacNhanTra.setDisable(true); // Disable trước khi tính xong
             
@@ -331,8 +327,26 @@ public class TraVeController {
             }
 
             // Tính phí trả
-            double tyLeKhauTru = ("DaDoi".equalsIgnoreCase(ve.getTrangThai())) ? 0.30 : (hoursDiff < 24 ? 0.20 : 0.10);
-            String lyDo = ("DaDoi".equalsIgnoreCase(ve.getTrangThai())) ? "Vé đã đổi (30%)" : (hoursDiff < 24 ? "Trước 4h-24h (20%)" : "Trước >24h (10%)");
+            double tyLeKhauTru = 0;
+            String lyDo = "";
+            
+            // Kiểm tra xem vé có phải là "Vé đã đổi" không?
+            String ghiChu = (ve.getGhiChu() != null) ? ve.getGhiChu().toLowerCase() : "";
+            boolean isVeDaDoi = ghiChu.contains("vé đã đổi") || ghiChu.contains("ve da doi");
+            
+            if (isVeDaDoi) {
+                tyLeKhauTru = 0.30;
+                lyDo = "Vé đã đổi (Phí 30%)";
+            } else {
+                // Vé thường: Tính theo thời gian
+                if (hoursDiff < 24) {
+                    tyLeKhauTru = 0.20;
+                    lyDo = "Trước 4h-24h (Phí 20%)";
+                } else {
+                    tyLeKhauTru = 0.10;
+                    lyDo = "Trước >24h (Phí 10%)";
+                }
+            }
             
             double phiTraVe = Math.max(giaVeThucTe * tyLeKhauTru, 10000); // Min 10k
             phiTraVe = Math.ceil(phiTraVe / 1000.0) * 1000;
@@ -563,6 +577,7 @@ public class TraVeController {
             KhachHang khachDi = khachHangDAO.getHanhKhachByMaVe(selectedVe.getMaVe());
             if (khachDi != null) {
                 selectedVe.setKhachHang(khachDi);
+                System.out.println("DEBUG: Đã nạp thông tin khách hàng vào vé: " + khachDi.getTenKhachHang());
             } else {
                 System.err.println("ERROR: Không tìm thấy khách hàng cho vé này!");
             }

@@ -24,7 +24,7 @@
                 <Insets bottom="15.0" left="20.0" right="20.0" top="15.0" />
             </padding>
             <center>
-                <!-- ✅ THAY ĐỔI CÁC THUỘC TÍNH CỦA SCROLLPANE -->
+                <!-- THAY ĐỔI CÁC THUỘC TÍNH CỦA SCROLLPANE -->
                 <ScrollPane fx:id="trainTrackScrollPane" 
                 			minHeight="90"
                             fitToHeight="false" 
@@ -33,7 +33,7 @@
                             vbarPolicy="NEVER" 
                             styleClass="edge-to-edge-scrollpane">
                     <content>
-                        <!-- ✅ THAY ĐỔI: Chuyển alignment thành TOP_LEFT -->
+                        <!-- THAY ĐỔI: Chuyển alignment thành TOP_LEFT -->
                         <HBox fx:id="trainTrackContainer" alignment="TOP_LEFT" spacing="5.0" minHeight="70.0">
                             
                         </HBox>
@@ -45,7 +45,7 @@
                 <HBox alignment="CENTER" spacing="5.0" minWidth="200.0" prefWidth="150.0">
                     <children>
                         <Label text="Mác tàu:" style="-fx-font-weight: bold;" />
-                        <!-- ✅ THU NGẮN TEXTFIELD -->
+                        <!-- THU NGẮN TEXTFIELD -->
                         <TextField fx:id="trainIdTextField" promptText="(trống)" prefWidth="90.0" />
                     </children>
                 </HBox>

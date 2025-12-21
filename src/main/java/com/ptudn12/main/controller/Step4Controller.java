@@ -168,10 +168,15 @@ public class Step4Controller {
         if (BanVeController.MODE_DOI_VE.equals(mode)) {
             // CHẾ ĐỘ ĐỔI VÉ
             
-            // Vô hiệu hoá nút tích điểm
+            // Vô hiệu hoá nút tích điểm và đổi điểm
             if (btnTichDiem != null) {
                 btnTichDiem.setDisable(true);
                 btnTichDiem.setVisible(false);
+            }
+            
+            if (btnDoiDiem != null) {
+                btnDoiDiem.setDisable(true);
+                btnDoiDiem.setVisible(false);
             }
             
             VeTau veCu = (VeTau) mainController.getUserData("veCuCanDoi");
@@ -1429,7 +1434,7 @@ public class Step4Controller {
         int chiTietLichTrinhId = chiTietLichTrinhDAO.createChiTietLichTrinh(
                 ve.getLichTrinh().getMaLichTrinh(),
                 ve.getChiTietToa().getCho().getMaCho(),
-                giaChoNgoi, "DaBan"); // Truyền đúng "DaBan" khớp với DB
+                giaChoNgoi, "DaBan");
         
         if (chiTietLichTrinhId != -1) {
             // 2. Tạo mã vé
@@ -1437,7 +1442,7 @@ public class Step4Controller {
             if (maVe != null) {
                 // 3. Tạo Vé Tàu
                 boolean isKhuHoi = !ve.isChieuDi();
-                boolean success = veTauDAO.createVeTau(maVe, khachHangId, chiTietLichTrinhId, loaiVe.getDescription(), isKhuHoi, "DaBan");
+                boolean success = veTauDAO.createVeTau(maVe, khachHangId, chiTietLichTrinhId, loaiVe.getDescription(), isKhuHoi, "DaBan", "");
                 
                 if (success) {
                     // 4. Tạo Chi Tiết Hóa Đơn

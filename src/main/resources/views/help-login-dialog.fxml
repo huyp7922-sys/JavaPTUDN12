@@ -98,8 +98,8 @@
                     <padding>
                         <Insets left="45"/>
                     </padding>
-                    <Label text="• Chuột phải vào 'Databases' → 'Restore Database'" styleClass="step-text"/>
-                    <Label text="• Chọn 'Device' → Add" styleClass="step-text"/>
+                    <Label text="• Chuột phải vào 'Databases' - 'Restore Database'" styleClass="step-text"/>
+                    <Label text="• Chọn 'Device' - Add" styleClass="step-text"/>
                     <Label text="• Chọn file 'data/HeThongVeTau_ver3.bak'" styleClass="step-text"/>
                     <Label text="• Nhấn OK để hoàn tất" styleClass="step-text"/>
                 </VBox>

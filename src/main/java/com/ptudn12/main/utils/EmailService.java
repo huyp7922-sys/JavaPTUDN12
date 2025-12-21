@@ -60,7 +60,7 @@ public class EmailService {
                 "            <p>Chúng tôi đã nhận được yêu cầu khôi phục mật khẩu của bạn.</p>" +
                 "            <p>Mật khẩu mới của bạn là:</p>" +
                 "            <div class='password-box'>" + newPassword + "</div>" +
-                "            <p class='warning'>⚠️ Vui lòng đổi mật khẩu ngay sau khi đăng nhập!</p>" +
+                "            <p class='warning'>LƯU Ý: Vui lòng đổi mật khẩu ngay sau khi đăng nhập!</p>" +
                 "            <p>Nếu bạn không yêu cầu khôi phục mật khẩu, vui lòng liên hệ quản trị viên ngay lập tức.</p>" +
                 "        </div>" +
                 "        <div class='footer'>" +

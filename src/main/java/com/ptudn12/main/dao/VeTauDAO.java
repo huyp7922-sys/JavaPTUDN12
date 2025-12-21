@@ -26,9 +26,10 @@ import java.util.*;
 
 
 public class VeTauDAO {
-    public boolean createVeTau(String maVe, int khachHangId, int chiTietLichTrinhId, String loaiVe, boolean khuHoi, String trangThai) {
-        String sql = "INSERT INTO VeTau (maVe, khachHangId, chiTietLichTrinhId, loaiVe, khuHoi, trangThai, maQR) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        String maQR = "QR_" + maVe + "_" + System.currentTimeMillis(); // Mã QR tạm thời
+    public boolean createVeTau(String maVe, int khachHangId, int chiTietLichTrinhId, String loaiVe, boolean khuHoi, String trangThai, String ghiChu) {
+        // SQL đã có cột ghiChu
+        String sql = "INSERT INTO VeTau (maVe, khachHangId, chiTietLichTrinhId, loaiVe, khuHoi, trangThai, ghiChu, maQR) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String maQR = "QR_" + maVe + "_" + System.currentTimeMillis(); 
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -39,7 +40,12 @@ public class VeTauDAO {
             ps.setString(4, loaiVe);
             ps.setBoolean(5, khuHoi);
             ps.setString(6, trangThai);
-            ps.setString(7, maQR);
+            
+            // --- FIX: Lưu ghi chú được truyền vào (VD: "Vé đã đổi") ---
+            ps.setString(7, (ghiChu != null) ? ghiChu : ""); 
+            // ---------------------------------------------------------
+            
+            ps.setString(8, maQR);
 
             int affectedRows = ps.executeUpdate();
             return affectedRows > 0;
@@ -53,14 +59,13 @@ public class VeTauDAO {
     
     /**
      * Lấy danh sách vé đã mua của khách hàng bằng Stored Procedure
-     * @param maKhachHang ID (int) của khách hàng
      */
     public List<VeTau> getLichSuVeCuaKhachHang(int maKhachHang) {
         List<VeTau> listVe = new ArrayList<>();
         String sql = "{call sp_XemVeKhachHang(?)}";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             CallableStatement cs = conn.prepareCall(sql)) {
+            CallableStatement cs = conn.prepareCall(sql)) {
 
             cs.setInt(1, maKhachHang);
             
@@ -71,6 +76,11 @@ public class VeTauDAO {
                 ve.setLoaiVe(LoaiVe.fromDescription(rs.getString("loaiVe")));
                 ve.setKhuHoi(rs.getBoolean("khuHoi"));
                 ve.setTrangThai(rs.getString("trangThai"));
+                
+                try {
+                    ve.setGhiChu(rs.getString("ghiChu"));
+                } catch (SQLException e) {
+                }
                 
                 // 1. Map Lịch Trình & Tuyến Đường & Ga & Tàu
                 LichTrinh lt = new LichTrinh();
@@ -101,7 +111,7 @@ public class VeTauDAO {
                 tau.setMacTau(rs.getString("maTau"));
                 lt.setTau(tau);
                 
-                ve.setChiTietLichTrinh(new ChiTietLichTrinh()); // Init trước
+                ve.setChiTietLichTrinh(new ChiTietLichTrinh()); 
                 ve.getChiTietLichTrinh().setLichTrinh(lt);
                 
                 // 2. Map Chi Tiết Lịch Trình & Chỗ & Toa
@@ -113,7 +123,8 @@ public class VeTauDAO {
                 String strLoaiCho = rs.getString("loaiCho");
                 
                 Toa t = new Toa();
-                t.setTenToa(rs.getString("tenToa"));
+                t.setTenToa(rs.getString("tenToa")); // Lấy tenToa
+                
                 if (strLoaiCho != null) {
                     try {
                         LoaiToa loaiToaEnum = LoaiToa.fromDescription(strLoaiCho); 
@@ -124,7 +135,6 @@ public class VeTauDAO {
                 }
 
                 cho.setToa(t);
-                
                 ctlt.setCho(cho);
                 
                 listVe.add(ve);
@@ -171,40 +181,49 @@ public class VeTauDAO {
     
     public VeTau getVeTauDetail(String maVe) {
         VeTau ve = null;
-        
-        // SQL JOIN đã được điều chỉnh theo đúng schema DB mới
-        String sql = "SELECT VT.maVe, VT.loaiVe, VT.trangThai, VT.maQR, " +
+        String sql = "SELECT VT.maVe, VT.loaiVe, VT.trangThai, VT.maQR, VT.ghiChu, " + 
                      "       KH.tenKhachHang, KH.soCCCD, KH.hoChieu, " +
                      "       L.ngayKhoiHanh, L.gioKhoiHanh, " +
-                     "       T.maTau, " + // Bảng Tau cột maTau
+                     "       T.maTau, " + 
                      "       G1.viTriGa AS tenGaDi, " +
                      "       G2.viTriGa AS tenGaDen, " +
-                     "       TOA.tenToa, TOA.maToa, " +
+                     "       TOA.tenToa, TOA.maToa, TOA.loaiToa, " +
                      "       C.soThuTu AS soGhe, C.loaiCho AS tenLoaiCho, " +
                      "       CTLT.giaChoNgoi " +
                      "FROM VeTau VT " +
-                     "JOIN KhachHang KH ON VT.khachHangId = KH.maKhachHang " +
-                     "JOIN ChiTietLichTrinh CTLT ON VT.chiTietLichTrinhId = CTLT.maChiTietLichTrinh " +
-                     "JOIN LichTrinh L ON CTLT.maLichTrinh = L.maLichTrinh " +
-                     "JOIN Tau T ON L.maTau = T.maTau " +
-                     "JOIN TuyenDuong TD ON L.maTuyenDuong = TD.maTuyen " +
-                     "JOIN Ga G1 ON TD.diemDi = G1.maGa " +
-                     "JOIN Ga G2 ON TD.diemDen = G2.maGa " +
-                     "JOIN Cho C ON CTLT.maChoNgoi = C.maCho " +
-                     "JOIN Toa TOA ON C.maToa = TOA.maToa " + // JOIN qua bảng Cho để lấy Toa chính xác
-                     "WHERE VT.maVe = ?";
+                     "LEFT JOIN KhachHang KH ON VT.khachHangId = KH.maKhachHang " +
+                     "LEFT JOIN ChiTietLichTrinh CTLT ON VT.chiTietLichTrinhId = CTLT.maChiTietLichTrinh " +
+                     "LEFT JOIN LichTrinh L ON CTLT.maLichTrinh = L.maLichTrinh " +
+                     "LEFT JOIN Tau T ON L.maTau = T.maTau " +
+                     "LEFT JOIN TuyenDuong TD ON L.maTuyenDuong = TD.maTuyen " +
+                     "LEFT JOIN Ga G1 ON TD.diemDi = G1.maGa " +
+                     "LEFT JOIN Ga G2 ON TD.diemDen = G2.maGa " +
+                     "LEFT JOIN Cho C ON CTLT.maChoNgoi = C.maCho " +
+                     "LEFT JOIN Toa TOA ON C.maToa = TOA.maToa " + 
+                     "WHERE LTRIM(RTRIM(VT.maVe)) = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setString(1, maVe);
+            ps.setString(1, maVe.trim()); // Trim input đầu vào
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
                 ve = new VeTau();
                 ve.setMaVe(rs.getString("maVe"));
                 ve.setMaQR(rs.getString("maQR")); 
+                ve.setGhiChu(rs.getString("ghiChu"));
+                ve.setTrangThai(rs.getString("trangThai"));
                 
+                String strLoaiVe = rs.getString("loaiVe");
+                if (strLoaiVe != null) {
+                    try {
+                        ve.setLoaiVe(LoaiVe.fromDescription(strLoaiVe.trim()));
+                    } catch (Exception e) {
+                        System.err.println("Warning: Lỗi map LoaiVe '" + strLoaiVe + "'. Để null.");
+                    }
+                }
+
                 // 1. Khách Hàng
                 KhachHang kh = new KhachHang();
                 kh.setTenKhachHang(rs.getString("tenKhachHang"));
@@ -212,9 +231,8 @@ public class VeTauDAO {
                 kh.setHoChieu(rs.getString("hoChieu"));
                 ve.setKhachHang(kh);
                 
-                // 2. Lịch Trình (Ngày giờ, Tàu, Ga)
+                // 2. Lịch Trình
                 LichTrinh lt = new LichTrinh();
-                
                 java.sql.Date ngayDi = rs.getDate("ngayKhoiHanh");
                 java.sql.Time gioDi = rs.getTime("gioKhoiHanh");
                 if (ngayDi != null) {
@@ -224,8 +242,9 @@ public class VeTauDAO {
                     lt.setNgayGioKhoiHanh(dt);
                 }
                 
-                Tau tau = new Tau(rs.getString("maTau"));
-                tau.setMacTau(rs.getString("maTau"));
+                Tau tau = new Tau();
+                String macTau = rs.getString("maTau");
+                tau.setMacTau(macTau != null ? macTau : "???");
                 lt.setTau(tau);
                 
                 TuyenDuong td = new TuyenDuong();
@@ -235,7 +254,7 @@ public class VeTauDAO {
                 td.setDiemDen(gaDen);
                 lt.setTuyenDuong(td);
                 
-                // 3. Chi Tiết (Chỗ, Toa, Giá)
+                // 3. Chi Tiết
                 ChiTietLichTrinh ctlt = new ChiTietLichTrinh();
                 ctlt.setLichTrinh(lt);
                 ctlt.setGiaChoNgoi(rs.getDouble("giaChoNgoi"));
@@ -243,26 +262,38 @@ public class VeTauDAO {
                 Cho cho = new Cho();
                 cho.setSoThuTu(rs.getInt("soGhe"));
                 
-                // Map loại chỗ từ chuỗi DB (Ví dụ: "Ghế ngồi mềm")
+                // --- MAP LOẠI CHỖ (Bọc try-catch an toàn) ---
                 String tenLoaiChoDB = rs.getString("tenLoaiCho");
-                try {
-                    // Gọi hàm map từ String sang Enum mà mình đã fix cho bạn ở LoaiCho.java
-                    cho.setLoaiCho(LoaiCho.fromDescription(tenLoaiChoDB));
-                } catch (Exception e) {
-                    System.err.println("Warning: Không map được loại chỗ '" + tenLoaiChoDB + "' sang Enum.");
+                if (tenLoaiChoDB != null) {
+                    try {
+                        cho.setLoaiCho(LoaiCho.fromDescription(tenLoaiChoDB.trim()));
+                    } catch (Exception e) {
+                        System.err.println("Warning: Lỗi map LoaiCho '" + tenLoaiChoDB + "'.");
+                    }
                 }
                 
                 Toa t = new Toa();
                 t.setTenToa(rs.getString("tenToa"));
-                t.setMaToa(rs.getInt("maToa")); 
+                t.setMaToa(rs.getInt("maToa"));
+                String strLoaiToa = rs.getString("loaiToa");
+                if (strLoaiToa != null) {
+                    try {
+                        t.setLoaiToa(LoaiToa.fromDescription(strLoaiToa.trim()));
+                    } catch (Exception e) {
+                        System.err.println("Warning: Không map được LoaiToa: " + strLoaiToa);
+                    }
+                }
+                
                 cho.setToa(t);
                 
                 ctlt.setCho(cho);
                 ve.setChiTietLichTrinh(ctlt);
+            } else {
+                System.out.println("DEBUG DAO: Query chạy thành công nhưng KHÔNG có dòng nào trả về.");
             }
 
-        } catch (SQLException e) {
-            System.err.println("Lỗi lấy chi tiết vé (SQL): " + e.getMessage());
+        } catch (Exception e) { // Bắt Exception (bao gồm cả SQL và Java Logic)
+            System.err.println("LỖI DAO getVeTauDetail: " + e.getMessage());
             e.printStackTrace();
         }
         

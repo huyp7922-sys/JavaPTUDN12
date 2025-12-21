@@ -338,7 +338,7 @@ public class BanVeController {
     private void showPlaceholder(String title, String message) {
         VBox placeholder = new VBox(25);
         placeholder.setStyle("-fx-alignment: center; -fx-padding: 50;");
-        Label icon = new Label("⚠️");
+        Label icon = new Label("!");
         icon.setStyle("-fx-font-size: 80px;");
         Label titleLabel = new Label(title);
         titleLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #e67e22;");

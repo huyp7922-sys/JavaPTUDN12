@@ -15,26 +15,26 @@
         </padding>
         
         <HBox alignment="CENTER_LEFT" spacing="15">
-            <Label text="📊 Thống kê chi tiết theo tuyến đường" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+            <Label text="Thống kê chi tiết theo tuyến đường" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button text="📊 Xuất Excel" onAction="#handleExportExcel" fx:id="btnExportExcel" styleClass="action-button" style="-fx-background-color: #217346; -fx-padding: 10 20; -fx-font-size: 13px;"/>
+            <Button text="Xuất Excel" onAction="#handleExportExcel" fx:id="btnExportExcel" styleClass="action-button" style="-fx-background-color: #217346; -fx-padding: 10 20; -fx-font-size: 13px;"/>
             <Button text="📄 Xuất PDF" onAction="#handleExportPDF" fx:id="btnExportPDF" styleClass="action-button" style="-fx-padding: 10 20; -fx-font-size: 13px;"/>
         </HBox>
 
         <!-- Lọc và Tìm Kiếm -->
-        <TitledPane text="🔍 Bộ Lọc và Tìm Kiếm" animated="true" collapsible="true" expanded="false" style="-fx-font-size: 14px; -fx-font-weight: bold;">
+        <TitledPane text="Bộ Lọc và Tìm Kiếm" animated="true" collapsible="true" expanded="false" style="-fx-font-size: 14px; -fx-font-weight: bold;">
             <VBox spacing="15" style="-fx-padding: 15; -fx-background-color: white;">
                 <!-- ô tìm kiếm -->
                 <HBox alignment="CENTER_LEFT" spacing="15">
-                    <TextField fx:id="txtSearch" promptText="🔍 Tìm tên tuyến..." onKeyReleased="#handleSearch" prefWidth="220" styleClass="search-field"/>
+                    <TextField fx:id="txtSearch" promptText="Tìm tên tuyến..." onKeyReleased="#handleSearch" prefWidth="220" styleClass="search-field"/>
                     <TextField fx:id="txtMaTuyen" promptText="🏷️ Tìm mã tuyến..." onKeyReleased="#handleFilterByCode" prefWidth="160" styleClass="search-field"/>
-                    <TextField fx:id="txtTiLe" promptText="📊 Tỷ lệ lấp đầy > %" onKeyReleased="#handleFilterByRatio" prefWidth="170" styleClass="search-field"/>
+                    <TextField fx:id="txtTiLe" promptText="Tỷ lệ lấp đầy > %" onKeyReleased="#handleFilterByRatio" prefWidth="170" styleClass="search-field"/>
                     <Button text="🔄 Làm mới" onAction="#handleResetFilters" styleClass="secondary-button" style="-fx-padding: 8 15;"/>
                 </HBox>
 
                 <!-- Lọc theo ngày (dành cho nhân viên) -->
                 <HBox fx:id="dateFilterBox" spacing="15" alignment="CENTER_LEFT" visible="false">
-                    <Label text="📅 Lọc theo ngày:" style="-fx-font-weight: bold; -fx-font-size: 13px;"/>
+                    <Label text="Lọc theo ngày:" style="-fx-font-weight: bold; -fx-font-size: 13px;"/>
                     <DatePicker fx:id="dpDate" prefWidth="180"/>
                     <Button text="📥 Lọc" onAction="#handleFilterByDate" styleClass="action-button" style="-fx-background-color: #4472C4; -fx-padding: 8 16;"/>
                 </HBox>
@@ -42,7 +42,7 @@
                 <!-- Lọc theo tháng/năm (dành cho quản lý) -->
                 <VBox fx:id="monthYearFilterBox" spacing="12" visible="false">
                     <HBox spacing="12" alignment="CENTER_LEFT">
-                        <Label text="📅 Lọc theo tháng:" style="-fx-font-weight: bold; -fx-font-size: 13px;"/>
+                        <Label text="Lọc theo tháng:" style="-fx-font-weight: bold; -fx-font-size: 13px;"/>
                         <ComboBox fx:id="cbMonth" prefWidth="120" promptText="Chọn tháng"/>
                         <Label text="Năm:"/>
                         <Spinner fx:id="spYear" prefWidth="110"/>
@@ -50,7 +50,7 @@
                     </HBox>
                     <Separator style="-fx-background-color: #e0e0e0; -fx-padding: 0;"/>
                     <HBox spacing="12" alignment="CENTER_LEFT">
-                        <Label text="📅 Hoặc lọc theo năm:" style="-fx-font-weight: bold; -fx-font-size: 13px;"/>
+                        <Label text="Hoặc lọc theo năm:" style="-fx-font-weight: bold; -fx-font-size: 13px;"/>
                         <Spinner fx:id="spYearOnly" prefWidth="110"/>
                         <Button text="📥 Lọc" onAction="#handleFilterByYear" styleClass="action-button" style="-fx-background-color: #4472C4; -fx-padding: 8 15;"/>
                     </HBox>
@@ -59,7 +59,7 @@
         </TitledPane>
 
         <TabPane VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE" style="-fx-font-size: 13px;">
-            <Tab text="📊 Thống kê Tuyến" style="-fx-font-size: 13px;">
+            <Tab text="Thống kê Tuyến" style="-fx-font-size: 13px;">
                 <VBox spacing="5" style="-fx-background-color: white;">
                     <padding>
                         <Insets top="8" right="8" bottom="8" left="8"/>

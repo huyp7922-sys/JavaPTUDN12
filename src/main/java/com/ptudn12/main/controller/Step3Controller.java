@@ -239,6 +239,13 @@ public class Step3Controller {
                                 comboDoiTuong.setStyle("-fx-opacity: 1; -fx-text-fill: black;");
                             }
                         }
+                        
+                        Button btnChonNgaySinh = row.getDatePickerNgaySinh();
+                        if (btnChonNgaySinh != null) {
+                            btnChonNgaySinh.setDisable(true);
+                            btnChonNgaySinh.setVisible(false);
+                            btnChonNgaySinh.setManaged(false);
+                        }
                     }
                 }
 

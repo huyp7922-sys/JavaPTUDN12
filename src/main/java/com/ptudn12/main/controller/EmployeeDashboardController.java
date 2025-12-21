@@ -33,8 +33,7 @@ public class EmployeeDashboardController {
     private Label lblTongVeDaBan;
     @FXML
     private Label lblDoanhThu;
-    @FXML
-    private Label lblChoXuLy;
+
     @FXML
     private Label lblCurrentTime;
     @FXML
@@ -72,7 +71,7 @@ public class EmployeeDashboardController {
         // Display employee info
         NhanVien nhanVien = SessionManager.getInstance().getCurrentNhanVien();
         if (nhanVien != null && lblEmployeeName != null) {
-            lblEmployeeName.setText("👤 " + nhanVien.getTenNhanVien() + " (" + nhanVien.getChucVuText() + ")");
+            lblEmployeeName.setText(nhanVien.getTenNhanVien() + " (" + nhanVien.getChucVuText() + ")");
         }
 
         if (lblCurrentTime != null) {
@@ -94,6 +93,21 @@ public class EmployeeDashboardController {
         colCho.setCellValueFactory(new PropertyValueFactory<>("cho"));
         colTrangThai.setCellValueFactory(new PropertyValueFactory<>("trangThai"));
 
+        // --- SỬA LỖI HIỂN THỊ CỘT TUYẾN (Dấu ? thành ->) ---
+        colTuyen.setCellFactory(column -> new TableCell<TicketRow, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    // Thay thế dấu ? thành mũi tên
+                    setText(item.replace("?", " -> "));
+                }
+            }
+        });
+        // ---------------------------------------------------
+
         // Format trạng thái với màu sắc
         colTrangThai.setCellFactory(column -> new TableCell<TicketRow, String>() {
             @Override
@@ -103,6 +117,7 @@ public class EmployeeDashboardController {
                     setText(null);
                     setStyle("");
                 } else {
+                    // Xóa dòng replace sai vị trí ở đây đi, chỉ để logic màu sắc
                     setText(getStatusText(item));
                     String styleClass = getStatusStyleClass(item);
                     setStyle("-fx-background-color: " + styleClass + "; -fx-text-fill: white; " +
@@ -148,35 +163,6 @@ public class EmployeeDashboardController {
         loadData();
     }
 
-    @FXML
-    private void showPendingTickets() {
-        try {
-            int pendingCount = dao.getPendingTickets();
-            if (pendingCount == 0) {
-                showAlert(Alert.AlertType.INFORMATION, "Không có vé chờ xử lý", "Tất cả vé đã được xử lý!");
-                return;
-            }
-
-            Alert dialog = new Alert(Alert.AlertType.INFORMATION);
-            dialog.setTitle("Vé chưa xử lý");
-            dialog.setHeaderText("Danh sách vé chờ xử lý (" + pendingCount + " vé)");
-
-            List<Map<String, Object>> pendingTickets = dao.getPendingTicketsList();
-            StringBuilder content = new StringBuilder();
-
-            for (Map<String, Object> ticket : pendingTickets) {
-                content.append("• Vé: ").append(ticket.get("maVe"))
-                        .append(" | Khách: ").append(ticket.get("hanhKhach"))
-                        .append(" | Tuyến: ").append(ticket.get("tuyen"))
-                        .append("\n");
-            }
-
-            dialog.setContentText(content.toString());
-            dialog.showAndWait();
-        } catch (Exception e) {
-            showError("Lỗi", e.getMessage());
-        }
-    }
 
     @FXML
     private void handleSearch() {
@@ -202,12 +188,10 @@ public class EmployeeDashboardController {
             int ticketsToday = dao.getTicketsSoldToday();
             int totalTickets = dao.getTotalTicketsSold();
             long revenue = dao.getRevenueToday();
-            int pending = dao.getPendingTickets();
 
             lblDoanhSoHomNay.setText(String.valueOf(ticketsToday));
             lblTongVeDaBan.setText(String.valueOf(totalTickets));
             lblDoanhThu.setText(formatCurrency(revenue));
-            lblChoXuLy.setText(String.valueOf(pending));
 
             // Load tickets
             List<Map<String, Object>> tickets = dao.getRecentTickets();
@@ -228,7 +212,11 @@ public class EmployeeDashboardController {
             ObservableList<String> tripsList = FXCollections.observableArrayList();
             for (Map<String, Object> trip : trips) {
                 String timeStr = formatTime((Timestamp) trip.get("thoiGian"));
-                String tripStr = trip.get("tuyen") + " (" + timeStr + ")";
+                
+                String rawTuyen = (String) trip.get("tuyen");
+                String fixedTuyen = rawTuyen != null ? rawTuyen.replace("?", " -> ") : "";
+                
+                String tripStr = fixedTuyen + " (" + timeStr + ")";
                 int soVe = (int) trip.get("soVe");
                 tripsList.add(tripStr + " - " + soVe + " vé");
             }
@@ -261,13 +249,13 @@ public class EmployeeDashboardController {
     private String getStatusText(String status) {
         switch (status) {
             case "DaBan":
-                return "DaBan";
+                return "Đã bán";
             case "DaDat":
-                return "DaDat";
+                return "Đã đặt";
             case "DaHuy":
-                return "DaHuy";
+                return "Đã hủy";
             case "DaSuDung":
-                return "DaSuDung";
+                return "Đã sử dụng";
             default:
                 return status;
         }
@@ -303,9 +291,12 @@ public class EmployeeDashboardController {
 
         // Create content
         StringBuilder content = new StringBuilder();
+        // Fix hiển thị trong Dialog xác nhận luôn
+        String tuyenHienThi = ticket.getTuyen().replace("?", " -> ");
+        
         content.append("Mã vé: ").append(ticket.getMaVe()).append("\n");
         content.append("Khách hàng: ").append(ticket.getHanhKhach()).append("\n");
-        content.append("Tuyến: ").append(ticket.getTuyen()).append("\n");
+        content.append("Tuyến: ").append(tuyenHienThi).append("\n");
         content.append("Thời gian: ").append(ticket.getThoiGian()).append("\n");
         content.append("Ghế: ").append(ticket.getCho()).append("\n\n");
         content.append("Bạn có muốn xác nhận vé này không?");
@@ -391,52 +382,18 @@ public class EmployeeDashboardController {
             this.trangThai = new SimpleStringProperty(trangThai);
         }
 
-        public String getMaVe() {
-            return maVe.get();
-        }
+        public String getMaVe() { return maVe.get(); }
+        public String getHanhKhach() { return hanhKhach.get(); }
+        public String getTuyen() { return tuyen.get(); }
+        public String getThoiGian() { return thoiGian.get(); }
+        public String getCho() { return cho.get(); }
+        public String getTrangThai() { return trangThai.get(); }
 
-        public String getHanhKhach() {
-            return hanhKhach.get();
-        }
-
-        public String getTuyen() {
-            return tuyen.get();
-        }
-
-        public String getThoiGian() {
-            return thoiGian.get();
-        }
-
-        public String getCho() {
-            return cho.get();
-        }
-
-        public String getTrangThai() {
-            return trangThai.get();
-        }
-
-        public StringProperty maVeProperty() {
-            return maVe;
-        }
-
-        public StringProperty hanhKhachProperty() {
-            return hanhKhach;
-        }
-
-        public StringProperty tuyenProperty() {
-            return tuyen;
-        }
-
-        public StringProperty thoiGianProperty() {
-            return thoiGian;
-        }
-
-        public StringProperty choProperty() {
-            return cho;
-        }
-
-        public StringProperty trangThaiProperty() {
-            return trangThai;
-        }
+        public StringProperty maVeProperty() { return maVe; }
+        public StringProperty hanhKhachProperty() { return hanhKhach; }
+        public StringProperty tuyenProperty() { return tuyen; }
+        public StringProperty thoiGianProperty() { return thoiGian; }
+        public StringProperty choProperty() { return cho; }
+        public StringProperty trangThaiProperty() { return trangThai; }
     }
 }

@@ -112,7 +112,7 @@ public class DoiVeService {
                 String maQR = "QR_" + maVeMoi + "_" + System.currentTimeMillis();
 
                 // 3.3. Insert Vé Tàu (Giống processVe)
-                String sqlInsertVe = "INSERT INTO VeTau (maVe, khachHangId, chiTietLichTrinhId, loaiVe, khuHoi, trangThai, maQR) VALUES (?, ?, ?, ?, ?, ?, ?)";
+                String sqlInsertVe = "INSERT INTO VeTau (maVe, khachHangId, chiTietLichTrinhId, loaiVe, khuHoi, trangThai, ghiChu, maQR) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
                 try (PreparedStatement ps = conn.prepareStatement(sqlInsertVe)) {
                     ps.setString(1, maVeMoi);
                     
@@ -125,8 +125,9 @@ public class DoiVeService {
                     ps.setString(4, moTaLoaiVe);
                     
                     ps.setBoolean(5, false); // Vé đổi tính là 1 chiều
-                    ps.setString(6, "DaDoi");
-                    ps.setString(7, maQR);
+                    ps.setString(6, "DaBan");
+                    ps.setString(7, "Ve da doi");
+                    ps.setString(8, maQR);
                     
                     ps.executeUpdate();
                 }

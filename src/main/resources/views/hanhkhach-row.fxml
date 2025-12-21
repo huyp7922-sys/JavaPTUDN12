@@ -30,7 +30,7 @@
                     <children>
                         <ComboBox fx:id="comboDoiTuong" prefWidth="140.0" />
 
-                        <Button fx:id="btnChonNgaySinh" text="📅 Ngày sinh"
+                        <Button fx:id="btnChonNgaySinh" text="Ngày sinh"
                                 onAction="#handleChonNgaySinh"
                                 style="-fx-background-color: #0066CC; -fx-text-fill: white; -fx-font-size: 11px; -fx-cursor: hand;"
                                 visible="false" managed="false"/>

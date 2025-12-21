@@ -191,13 +191,19 @@ public class CustomerManagementController {
 		}
 
 		try {
-			int maKhachHang = Integer.parseInt(selected.getMaKhachHang().substring(2));
+			// Log để debug
+			String maKhachHangStr = selected.getMaKhachHang();
+			System.out.println("DEBUG: Mã khách hàng gốc: " + maKhachHangStr);
+			
+			int maKhachHang = Integer.parseInt(maKhachHangStr.substring(2));
+			System.out.println("DEBUG: Mã khách hàng sau khi parse: " + maKhachHang);
 
 			// Gọi DAO để lấy danh sách lịch sử vé
 			List<VeDaMua> historyList = veTauDAO.layLichSuMuaVeTheoKhachHang(maKhachHang);
+			System.out.println("DEBUG: Số lượng vé tìm được: " + (historyList != null ? historyList.size() : "null"));
 
 			// KIỂM TRA NẾU KHÁCH HÀNG KHÔNG CÓ VÉ NÀO
-			if (historyList.isEmpty()) {
+			if (historyList == null || historyList.isEmpty()) {
 				showAlert(Alert.AlertType.INFORMATION, "Thông báo",
 						"Khách hàng \"" + selected.getTenKhachHang() + "\" chưa mua vé nào.");
 				return; // Dừng lại, không mở cửa sổ lịch sử
@@ -218,10 +224,14 @@ public class CustomerManagementController {
 
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
-			showAlert(Alert.AlertType.ERROR, "Lỗi Dữ Liệu", "Mã khách hàng không hợp lệ: " + selected.getMaKhachHang());
+			showAlert(Alert.AlertType.ERROR, "Lỗi Dữ Liệu", 
+					"Mã khách hàng không hợp lệ: " + selected.getMaKhachHang() + "\n" + e.getMessage());
 		} catch (IOException e) {
 			e.printStackTrace();
 			showAlert(Alert.AlertType.ERROR, "Lỗi Giao Diện", "Không thể mở cửa sổ xem lịch sử mua vé!");
+		} catch (Exception e) {
+			e.printStackTrace();
+			showAlert(Alert.AlertType.ERROR, "Lỗi", "Đã xảy ra lỗi: " + e.getMessage());
 		}
 	}
 

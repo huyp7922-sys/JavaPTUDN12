@@ -340,6 +340,9 @@ public class HanhKhachRowController {
     public LoaiVe getDoiTuong() { return comboDoiTuong != null ? comboDoiTuong.getValue() : LoaiVe.VE_BINH_THUONG; }
     public LocalDate getNgaySinh() { return ngaySinh; }
     public String getMaVeNguoiLon() { return txtMaVeNguoiLon != null ? txtMaVeNguoiLon.getText() : ""; }
+    public Button getDatePickerNgaySinh() {
+        return this.btnChonNgaySinh;
+    }
     public boolean isFreeTicket() { return isFreeTicket; }
     public boolean isRequiresAdultTicket() { return requiresAdultTicket; }
     

@@ -5,112 +5,122 @@ import java.util.Objects;
 import com.ptudn12.main.enums.LoaiVe;
 
 public class VeTau {
-	private String maVe;
-	private KhachHang khachHang;
-	private ChiTietLichTrinh chiTietLichTrinh;
-	private LoaiVe loaiVe;
-	private boolean khuHoi;
-	private String trangThai;
-	private String maQR;
-	
-	public VeTau() {
-		super();
-	}
+    private String maVe;
+    private KhachHang khachHang;
+    private ChiTietLichTrinh chiTietLichTrinh;
+    private LoaiVe loaiVe;
+    private boolean khuHoi;
+    private String trangThai;
+    private String ghiChu;
+    private String maQR;
 
-	public VeTau(String maVe) {
-		super();
-		this.maVe = maVe;
-	}
+    public VeTau() {
+            super();
+    }
 
-	public VeTau(String maVe, KhachHang khachHang, ChiTietLichTrinh chiTietLichTrinh, LoaiVe loaiVe, boolean khuHoi,
-			String trangThai, String maQR) {
-		super();
-		this.maVe = maVe;
-		this.khachHang = khachHang;
-		this.chiTietLichTrinh = chiTietLichTrinh;
-		this.loaiVe = loaiVe;
-		this.khuHoi = khuHoi;
-		this.trangThai = trangThai;
-		this.maQR = maQR;
-	}
+    public VeTau(String maVe) {
+            super();
+            this.maVe = maVe;
+    }
 
-	public String getMaVe() {
-		return maVe;
-	}
+    public VeTau(String maVe, KhachHang khachHang, ChiTietLichTrinh chiTietLichTrinh, LoaiVe loaiVe, boolean khuHoi,
+                    String trangThai, String ghiChu, String maQR) {
+            super();
+            this.maVe = maVe;
+            this.khachHang = khachHang;
+            this.chiTietLichTrinh = chiTietLichTrinh;
+            this.loaiVe = loaiVe;
+            this.khuHoi = khuHoi;
+            this.trangThai = trangThai;
+            this.ghiChu = ghiChu;
+            this.maQR = maQR;
+    }
 
-	public void setMaVe(String maVe) {
-		this.maVe = maVe;
-	}
+    public String getMaVe() {
+            return maVe;
+    }
 
-	public KhachHang getKhachHang() {
-		return khachHang;
-	}
+    public void setMaVe(String maVe) {
+            this.maVe = maVe;
+    }
 
-	public void setKhachHang(KhachHang khachHang) {
-		this.khachHang = khachHang;
-	}
+    public KhachHang getKhachHang() {
+            return khachHang;
+    }
 
-	public ChiTietLichTrinh getChiTietLichTrinh() {
-		return chiTietLichTrinh;
-	}
+    public void setKhachHang(KhachHang khachHang) {
+            this.khachHang = khachHang;
+    }
 
-	public void setChiTietLichTrinh(ChiTietLichTrinh chiTietLichTrinh) {
-		this.chiTietLichTrinh = chiTietLichTrinh;
-	}
+    public ChiTietLichTrinh getChiTietLichTrinh() {
+            return chiTietLichTrinh;
+    }
 
-	public LoaiVe getLoaiVe() {
-		return loaiVe;
-	}
+    public void setChiTietLichTrinh(ChiTietLichTrinh chiTietLichTrinh) {
+            this.chiTietLichTrinh = chiTietLichTrinh;
+    }
 
-	public void setLoaiVe(LoaiVe loaiVe) {
-		this.loaiVe = loaiVe;
-	}
+    public LoaiVe getLoaiVe() {
+            return loaiVe;
+    }
 
-	public boolean isKhuHoi() {
-		return khuHoi;
-	}
+    public void setLoaiVe(LoaiVe loaiVe) {
+            this.loaiVe = loaiVe;
+    }
 
-	public void setKhuHoi(boolean khuHoi) {
-		this.khuHoi = khuHoi;
-	}
+    public boolean isKhuHoi() {
+            return khuHoi;
+    }
 
-	public String getTrangThai() {
-		return trangThai;
-	}
+    public void setKhuHoi(boolean khuHoi) {
+            this.khuHoi = khuHoi;
+    }
 
-	public void setTrangThai(String trangThai) {
-		this.trangThai = trangThai;
-	}
+    public String getTrangThai() {
+            return trangThai;
+    }
 
-	public String getMaQR() {
-		return maQR;
-	}
+    public void setTrangThai(String trangThai) {
+            this.trangThai = trangThai;
+    }
 
-	public void setMaQR(String maQR) {
-		this.maQR = maQR;
-	}
-	
-	@Override
-	public int hashCode() {
-		return Objects.hash(maVe);
-	}
+    public String getGhiChu() { 
+        return ghiChu; 
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		VeTau other = (VeTau) obj;
-		return Objects.equals(maVe, other.maVe);
-	}
+    public void setGhiChu(String ghiChu) { 
+        this.ghiChu = ghiChu; 
+    }
 
-	@Override
-	public String toString() {
-		return "VeTau [maVe=" + maVe + ", khachHang=" + khachHang + ", khuHoi=" + khuHoi + ", trangThai=" + trangThai
-				+ "]";
-	}
+    public String getMaQR() {
+            return maQR;
+    }
+
+    public void setMaQR(String maQR) {
+            this.maQR = maQR;
+    }
+
+    @Override
+    public int hashCode() {
+            return Objects.hash(maVe);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+            if (this == obj)
+                    return true;
+            if (obj == null)
+                    return false;
+            if (getClass() != obj.getClass())
+                    return false;
+            VeTau other = (VeTau) obj;
+            return Objects.equals(maVe, other.maVe);
+    }
+
+    @Override
+    public String toString() {
+        return "VeTau{" + "maVe=" + maVe + ", khachHang=" + khachHang + ", chiTietLichTrinh=" + chiTietLichTrinh + ", loaiVe=" + 
+                loaiVe + ", khuHoi=" + khuHoi + ", trangThai=" + trangThai + ", ghiChu=" + ghiChu + ", maQR=" + maQR + '}';
+    }
 	
 }
