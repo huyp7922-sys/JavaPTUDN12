@@ -3,6 +3,7 @@ package com.ptudn12.main.controller;
 import com.ptudn12.main.dao.ThongKeDAO;
 import com.ptudn12.main.entity.ThongKe;
 import com.ptudn12.main.entity.ThongKeKhachHang;
+import com.ptudn12.main.utils.SessionManager;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
@@ -21,10 +22,13 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.text.Normalizer;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -59,10 +63,24 @@ public class StatisticsManagementController {
     @FXML
     private Button btnExportPDF, btnExportExcel;
 
+    @FXML
+    private HBox dateFilterBox;
+    @FXML
+    private VBox monthYearFilterBox;
+    @FXML
+    private DatePicker dpDate;
+    @FXML
+    private ComboBox<Integer> cbMonth;
+    @FXML
+    private Spinner<Integer> spYear, spYearOnly;
+
     private ObservableList<ThongKe> masterData = FXCollections.observableArrayList();
     private ObservableList<ThongKeKhachHang> customerData = FXCollections.observableArrayList();
 
     public void initialize() {
+        // Setup date/month/year filter based on role
+        setupDateFilters();
+        
         // Route Stats
         colMaTuyen.setCellValueFactory(new PropertyValueFactory<>("maTuyen"));
         colTenTuyen.setCellValueFactory(new PropertyValueFactory<>("tenTuyen"));
@@ -464,5 +482,163 @@ public class StatisticsManagementController {
                 .replace('đ', 'd')
                 .replace('Đ', 'D');
         return replaced.toLowerCase(Locale.ROOT).trim();
+    }
+
+    private void setupDateFilters() {
+        SessionManager session = SessionManager.getInstance();
+        boolean isManager = session.isAdmin();
+
+        // Show date filter for employees, month/year for managers
+        dateFilterBox.setVisible(!isManager);
+        monthYearFilterBox.setVisible(isManager);
+
+        if (!isManager) {
+            dpDate.setValue(LocalDate.now());
+        } else {
+            // Setup month combobox
+            ObservableList<Integer> months = FXCollections.observableArrayList();
+            for (int i = 1; i <= 12; i++) {
+                months.add(i);
+            }
+            cbMonth.setItems(months);
+            cbMonth.setValue(LocalDate.now().getMonthValue());
+
+            // Setup year spinner
+            int currentYear = LocalDate.now().getYear();
+            SpinnerValueFactory<Integer> yearFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(2020, 2100, currentYear);
+            spYear.setValueFactory(yearFactory);
+            spYear.setPrefWidth(100);
+
+            SpinnerValueFactory<Integer> yearOnlyFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(2020, 2100, currentYear);
+            spYearOnly.setValueFactory(yearOnlyFactory);
+            spYearOnly.setPrefWidth(100);
+        }
+    }
+
+    public void handleFilterByDate() {
+        if (dpDate.getValue() == null) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Cảnh báo");
+            alert.setHeaderText(null);
+            alert.setContentText("Vui lòng chọn ngày!");
+            alert.showAndWait();
+            return;
+        }
+
+        loadingPane.setVisible(true);
+        Task<Void> task = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                ThongKeDAO dao = new ThongKeDAO();
+                String dateStr = dpDate.getValue().toString();
+                List<ThongKe> stats = dao.getStatisticsByDate(dateStr);
+                List<ThongKeKhachHang> customers = dao.getTopCustomers(10);
+
+                javafx.application.Platform.runLater(() -> {
+                    masterData.setAll(stats);
+                    tableStats.setItems(masterData);
+                    customerData.setAll(customers);
+                    tableTopCustomers.setItems(customerData);
+                });
+                return null;
+            }
+        };
+
+        task.setOnSucceeded(e -> loadingPane.setVisible(false));
+        task.setOnFailed(e -> {
+            loadingPane.setVisible(false);
+            e.getSource().getException().printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Lỗi");
+            alert.setHeaderText("Không thể tải dữ liệu");
+            alert.setContentText(e.getSource().getException().getMessage());
+            alert.showAndWait();
+        });
+
+        new Thread(task).start();
+    }
+
+    public void handleFilterByMonthYear() {
+        if (cbMonth.getValue() == null || spYear.getValue() == null) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Cảnh báo");
+            alert.setHeaderText(null);
+            alert.setContentText("Vui lòng chọn tháng và năm!");
+            alert.showAndWait();
+            return;
+        }
+
+        loadingPane.setVisible(true);
+        Task<Void> task = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                ThongKeDAO dao = new ThongKeDAO();
+                List<ThongKe> stats = dao.getStatisticsByMonth(cbMonth.getValue(), spYear.getValue());
+                List<ThongKeKhachHang> customers = dao.getTopCustomers(10);
+
+                javafx.application.Platform.runLater(() -> {
+                    masterData.setAll(stats);
+                    tableStats.setItems(masterData);
+                    customerData.setAll(customers);
+                    tableTopCustomers.setItems(customerData);
+                });
+                return null;
+            }
+        };
+
+        task.setOnSucceeded(e -> loadingPane.setVisible(false));
+        task.setOnFailed(e -> {
+            loadingPane.setVisible(false);
+            e.getSource().getException().printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Lỗi");
+            alert.setHeaderText("Không thể tải dữ liệu");
+            alert.setContentText(e.getSource().getException().getMessage());
+            alert.showAndWait();
+        });
+
+        new Thread(task).start();
+    }
+
+    public void handleFilterByYear() {
+        if (spYearOnly.getValue() == null) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Cảnh báo");
+            alert.setHeaderText(null);
+            alert.setContentText("Vui lòng chọn năm!");
+            alert.showAndWait();
+            return;
+        }
+
+        loadingPane.setVisible(true);
+        Task<Void> task = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                ThongKeDAO dao = new ThongKeDAO();
+                List<ThongKe> stats = dao.getStatisticsByYear(spYearOnly.getValue());
+                List<ThongKeKhachHang> customers = dao.getTopCustomers(10);
+
+                javafx.application.Platform.runLater(() -> {
+                    masterData.setAll(stats);
+                    tableStats.setItems(masterData);
+                    customerData.setAll(customers);
+                    tableTopCustomers.setItems(customerData);
+                });
+                return null;
+            }
+        };
+
+        task.setOnSucceeded(e -> loadingPane.setVisible(false));
+        task.setOnFailed(e -> {
+            loadingPane.setVisible(false);
+            e.getSource().getException().printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Lỗi");
+            alert.setHeaderText("Không thể tải dữ liệu");
+            alert.setContentText(e.getSource().getException().getMessage());
+            alert.showAndWait();
+        });
+
+        new Thread(task).start();
     }
 }

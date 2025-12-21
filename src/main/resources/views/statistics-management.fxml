@@ -9,32 +9,62 @@
            fx:controller="com.ptudn12.main.controller.StatisticsManagementController"
            stylesheets="@statistics-management-styles.css">
 
-    <VBox spacing="20">
+    <VBox spacing="15">
         <padding>
-            <Insets top="20" right="20" bottom="20" left="20"/>
+            <Insets top="15" right="15" bottom="15" left="15"/>
         </padding>
         
         <HBox alignment="CENTER_LEFT" spacing="15">
-            <Label text="Thống kê chi tiết theo tuyến đường" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+            <Label text="📊 Thống kê chi tiết theo tuyến đường" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button text="Xuất Excel" onAction="#handleExportExcel" fx:id="btnExportExcel" styleClass="action-button" style="-fx-background-color: #217346;"/>
-            <Button text="Xuất PDF" onAction="#handleExportPDF" fx:id="btnExportPDF" styleClass="action-button"/>
+            <Button text="📊 Xuất Excel" onAction="#handleExportExcel" fx:id="btnExportExcel" styleClass="action-button" style="-fx-background-color: #217346; -fx-padding: 10 20; -fx-font-size: 13px;"/>
+            <Button text="📄 Xuất PDF" onAction="#handleExportPDF" fx:id="btnExportPDF" styleClass="action-button" style="-fx-padding: 10 20; -fx-font-size: 13px;"/>
         </HBox>
 
-        <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 5; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 1);">
-            <TextField fx:id="txtSearch" promptText="Tìm tên tuyến..." onKeyReleased="#handleSearch" prefWidth="200" styleClass="search-field"/>
-            <TextField fx:id="txtMaTuyen" promptText="Tìm mã tuyến..." onKeyReleased="#handleFilterByCode" prefWidth="150" styleClass="search-field"/>
-            <TextField fx:id="txtTiLe" promptText="Tỷ lệ lấp đầy > %" onKeyReleased="#handleFilterByRatio" prefWidth="150" styleClass="search-field"/>
-            <Button text="Làm mới" onAction="#handleResetFilters" styleClass="secondary-button"/>
-        </HBox>
+        <!-- Collapsible Filter Section -->
+        <TitledPane text="🔍 Bộ Lọc và Tìm Kiếm" animated="true" collapsible="true" expanded="false" style="-fx-font-size: 14px; -fx-font-weight: bold;">
+            <VBox spacing="15" style="-fx-padding: 15; -fx-background-color: white;">
+                <!-- Search Fields -->
+                <HBox alignment="CENTER_LEFT" spacing="15">
+                    <TextField fx:id="txtSearch" promptText="🔍 Tìm tên tuyến..." onKeyReleased="#handleSearch" prefWidth="220" styleClass="search-field"/>
+                    <TextField fx:id="txtMaTuyen" promptText="🏷️ Tìm mã tuyến..." onKeyReleased="#handleFilterByCode" prefWidth="160" styleClass="search-field"/>
+                    <TextField fx:id="txtTiLe" promptText="📊 Tỷ lệ lấp đầy > %" onKeyReleased="#handleFilterByRatio" prefWidth="170" styleClass="search-field"/>
+                    <Button text="🔄 Làm mới" onAction="#handleResetFilters" styleClass="secondary-button" style="-fx-padding: 8 15;"/>
+                </HBox>
 
-        <TabPane VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE">
-            <Tab text="Thống kê Tuyến">
-                <VBox spacing="10">
+                <!-- Date Filter (for employees) -->
+                <HBox fx:id="dateFilterBox" spacing="15" alignment="CENTER_LEFT" visible="false">
+                    <Label text="📅 Lọc theo ngày:" style="-fx-font-weight: bold; -fx-font-size: 13px;"/>
+                    <DatePicker fx:id="dpDate" prefWidth="180"/>
+                    <Button text="📥 Tải dữ liệu" onAction="#handleFilterByDate" styleClass="action-button" style="-fx-background-color: #4472C4; -fx-padding: 8 16;"/>
+                </HBox>
+                
+                <!-- Month/Year Filter (for managers) -->
+                <VBox fx:id="monthYearFilterBox" spacing="12" visible="false">
+                    <HBox spacing="12" alignment="CENTER_LEFT">
+                        <Label text="📅 Lọc theo tháng:" style="-fx-font-weight: bold; -fx-font-size: 13px;"/>
+                        <ComboBox fx:id="cbMonth" prefWidth="120" promptText="Chọn tháng"/>
+                        <Label text="Năm:"/>
+                        <Spinner fx:id="spYear" prefWidth="110"/>
+                        <Button text="📥 Tải dữ liệu" onAction="#handleFilterByMonthYear" styleClass="action-button" style="-fx-background-color: #4472C4; -fx-padding: 8 15;"/>
+                    </HBox>
+                    <Separator style="-fx-background-color: #e0e0e0; -fx-padding: 0;"/>
+                    <HBox spacing="12" alignment="CENTER_LEFT">
+                        <Label text="📅 Hoặc lọc theo năm:" style="-fx-font-weight: bold; -fx-font-size: 13px;"/>
+                        <Spinner fx:id="spYearOnly" prefWidth="110"/>
+                        <Button text="📥 Tải dữ liệu" onAction="#handleFilterByYear" styleClass="action-button" style="-fx-background-color: #4472C4; -fx-padding: 8 15;"/>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </TitledPane>
+
+        <TabPane VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE" style="-fx-font-size: 13px;">
+            <Tab text="📊 Thống kê Tuyến" style="-fx-font-size: 13px;">
+                <VBox spacing="5" style="-fx-background-color: white;">
                     <padding>
-                        <Insets top="10" right="10" bottom="10" left="10"/>
+                        <Insets top="8" right="8" bottom="8" left="8"/>
                     </padding>
-                    <TableView fx:id="tableStats" VBox.vgrow="ALWAYS">
+                    <TableView fx:id="tableStats" VBox.vgrow="ALWAYS" style="-fx-font-size: 12px;">
                         <columnResizePolicy>
                             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
                         </columnResizePolicy>
@@ -51,12 +81,12 @@
                     </TableView>
                 </VBox>
             </Tab>
-            <Tab text="Top 10 Khách Hàng">
-                <VBox spacing="10">
+            <Tab text="👥 Top 10 Khách Hàng" style="-fx-font-size: 13px;">
+                <VBox spacing="5" style="-fx-background-color: white;">
                     <padding>
-                        <Insets top="10" right="10" bottom="10" left="10"/>
+                        <Insets top="8" right="8" bottom="8" left="8"/>
                     </padding>
-                    <TableView fx:id="tableTopCustomers" VBox.vgrow="ALWAYS">
+                    <TableView fx:id="tableTopCustomers" VBox.vgrow="ALWAYS" style="-fx-font-size: 12px;">
                         <columnResizePolicy>
                             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
                         </columnResizePolicy>
