@@ -6,7 +6,6 @@ import com.ptudn12.main.controller.VeTamThoi;
 import com.ptudn12.main.dao.VeTauDAO;
 import com.ptudn12.main.entity.VeTau;
 import com.ptudn12.main.enums.LoaiVe;
-
 import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -115,16 +114,24 @@ public class Step3Controller {
 
         // Khôi phục người mua
         if (tempBuyer != null) {
-            txtNguoiMuaHoTen.setText(tempBuyer.get("ten"));
-            txtNguoiMuaSoGiayTo.setText(tempBuyer.get("cccd"));
-            txtNguoiMuaSDT.setText(tempBuyer.get("sdt"));
-            txtNguoiMuaEmail.setText(tempBuyer.get("email"));
-            isSyncFromFirstPassenger = false; 
+            Boolean savedSyncState = (Boolean) mainController.getUserData("TEMP_STEP3_SYNC_STATE");
+            if (savedSyncState != null) {
+                isSyncFromFirstPassenger = savedSyncState;
+            } else {
+                // Nếu tên Người mua KHÁC tên Hành khách 1 -> Nghĩa là đã sửa tay -> Tắt sync
+                // Còn nếu giống nhau -> Bật sync
+                if (tempData != null && !tempData.isEmpty()) {
+                    String p1Name = (String) tempData.get(0).get("hoTen");
+                    String bName = tempBuyer.get("ten");
+                    isSyncFromFirstPassenger = (p1Name != null && p1Name.equals(bName));
+                } else {
+                    isSyncFromFirstPassenger = false;
+                }
+            }
         }
 
         // 4. Tạo các hàng hành khách
         boolean isFirstRow = true;
-    
         for (int i = 0; i < passengerCount; i++) { 
             VeTamThoi veDi = gioHangDi.get(i);
             VeTamThoi veVe = isRoundTrip ? gioHangVe.get(i) : null;
@@ -188,6 +195,7 @@ public class Step3Controller {
                 showAlert(Alert.AlertType.ERROR, "Lỗi tải giao diện hàng hành khách: " + e.getMessage());
             }
         }
+        
         // --- LOGIC ĐỔI VÉ ---
         String mode = (String) mainController.getUserData("transactionType");
         if (BanVeController.MODE_DOI_VE.equals(mode)) {
@@ -540,7 +548,6 @@ public class Step3Controller {
     
     @FXML
     private void handleQuayLai() {
-        // --- FIX: Lưu tạm dữ liệu form hiện tại vào cache ---
         List<Map<String, Object>> tempData = new ArrayList<>();
 
         for (HanhKhachRowController row : rowControllers) {
@@ -548,11 +555,11 @@ public class Step3Controller {
             rowData.put("hoTen", row.getHoTen());
             rowData.put("soGiayTo", row.getSoGiayTo());
 
-            // Lưu Loại Vé (Đối tượng) - Quan trọng!
+            // Lưu Loại Vé (Đối tượng)
             // Lưu ý: row.getDoiTuong() trả về Enum LoaiVe
             rowData.put("doiTuong", row.getDoiTuong()); 
 
-            // Lưu ngày sinh (nếu có - dùng cho Trẻ em/Người già)
+            // Lưu ngày sinh
             if (row.getNgaySinh() != null) {
                 rowData.put("ngaySinh", row.getNgaySinh());
             }
@@ -561,14 +568,14 @@ public class Step3Controller {
         }
         mainController.setUserData("TEMP_STEP3_DATA", tempData);
 
-        // Lưu thông tin người mua (Giữ nguyên)
+        // Lưu thông tin người mua
         Map<String, String> tempBuyer = new HashMap<>();
         tempBuyer.put("ten", txtNguoiMuaHoTen.getText());
         tempBuyer.put("cccd", txtNguoiMuaSoGiayTo.getText());
         tempBuyer.put("sdt", txtNguoiMuaSDT.getText());
         tempBuyer.put("email", txtNguoiMuaEmail.getText());
         mainController.setUserData("TEMP_STEP3_BUYER", tempBuyer);
-        // ---------------------------------------------------
+        mainController.setUserData("TEMP_STEP3_SYNC_STATE", isSyncFromFirstPassenger);
 
         mainController.loadContent("step-2.fxml");
     }

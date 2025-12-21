@@ -400,8 +400,9 @@ public class Step4Controller {
      }
     
     // Hiển thị chi tiết thanh toán (Bảng bên trái)
-    private void displayPaymentDetailsStandard() {
-        double tongTienVeGoc = 0;
+    private void recalculateAndUpdateUI() {
+        // 1. Tính tổng giá trị các vé MỚI trong giỏ
+        double tongTienVeMoi = 0;
         double tongGiamDoiTuong = 0;
         double tongBaoHiem = 0;
 
@@ -412,27 +413,81 @@ public class Step4Controller {
 
             if (veDi != null) {
                 double giaVeGoc = veDi.getGiaVe() - PHI_BAO_HIEM;
-                tongTienVeGoc += giaVeGoc;
+                tongTienVeMoi += giaVeGoc;
                 tongGiamDoiTuong += giaVeGoc * loaiVe.getHeSoGiamGia();
                 tongBaoHiem += PHI_BAO_HIEM;
             }
             if (veVe != null) {
                 double giaVeGoc = veVe.getGiaVe() - PHI_BAO_HIEM;
-                tongTienVeGoc += giaVeGoc;
+                tongTienVeMoi += giaVeGoc;
                 tongGiamDoiTuong += giaVeGoc * loaiVe.getHeSoGiamGia();
                 tongBaoHiem += PHI_BAO_HIEM;
             }
         }
 
-        double giamDiem = 0; // Tạm thời
+        // Giá thực tế của vé mới (sau khi trừ giảm giá đối tượng + bảo hiểm)
+        double giaThucTeVeMoi = (tongTienVeMoi - tongGiamDoiTuong) + tongBaoHiem;
 
-        lblDetailTongTienVe.setText(moneyFormatter.format(tongTienVeGoc));
-        lblDetailGiamDoiTuong.setText("- " + moneyFormatter.format(tongGiamDoiTuong));
-        lblDetailGiamDiem.setText("- " + moneyFormatter.format(giamDiem));
-        lblDetailBaoHiem.setText(moneyFormatter.format(tongBaoHiem));
+        // 2. Kiểm tra chế độ để tính toán Tổng Thanh Toán cuối cùng
+        String mode = (String) mainController.getUserData("transactionType");
+        double finalTotal = 0;
+
+        if (BanVeController.MODE_DOI_VE.equals(mode)) {
+            // --- CHẾ ĐỘ ĐỔI VÉ ---
+            VeTau veCu = (VeTau) mainController.getUserData("veCuCanDoi");
+            double giaVeCu = chiTietHoaDonDAO.getGiaThucTeDaTra(veCu.getMaVe());
+            if (giaVeCu == 0 && veCu.getChiTietLichTrinh() != null) {
+                giaVeCu = veCu.getChiTietLichTrinh().getGiaChoNgoi();
+            }
+
+            double phiDoiVe = 20000;
+            double chenhLech = giaThucTeVeMoi - giaVeCu;
+            if (chenhLech < 0) chenhLech = 0;
+
+            // Tổng = (Chênh lệch + Phí) - Điểm đổi
+            finalTotal = (chenhLech + phiDoiVe) - this.giamTuDiem;
+            
+            // Cập nhật các Label chi tiết cho Đổi vé (nếu cần refresh lại text)
+            lblDetailTongTienVe.setText(moneyFormatter.format(giaThucTeVeMoi)); // Giá vé mới
+            // Các label khác (giá cũ, phí) đã set text ở initData, không cần set lại, chỉ cần update số liệu tổng
+            
+        } else {
+            // --- CHẾ ĐỘ BÁN VÉ THƯỜNG ---
+            // Tổng = Giá thực tế vé mới - Điểm đổi
+            finalTotal = giaThucTeVeMoi - this.giamTuDiem;
+
+            // Cập nhật các Label chi tiết
+            lblDetailTongTienVe.setText(moneyFormatter.format(tongTienVeMoi));
+            lblDetailGiamDoiTuong.setText("- " + moneyFormatter.format(tongGiamDoiTuong));
+            lblDetailBaoHiem.setText(moneyFormatter.format(tongBaoHiem));
+        }
+
+        // Đảm bảo không âm
+        if (finalTotal < 0) finalTotal = 0;
+
+        // 3. Cập nhật biến Global và UI
+        this.tongThanhToanValue = roundUpToThousand(finalTotal);
+
+        // Hiển thị dòng "Giảm giá từ điểm tích lũy"
+        if (this.giamTuDiem > 0) {
+            lblDetailGiamDiem.setText("- " + moneyFormatter.format(this.giamTuDiem));
+            lblDetailGiamDiem.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
+        } else {
+            lblDetailGiamDiem.setText("- 0 VNĐ");
+            lblDetailGiamDiem.setStyle("-fx-text-fill: #333;");
+        }
+
+        // Cập nhật số tổng to bự
+        lblDetailTongThanhToan.setText(moneyFormatter.format(this.tongThanhToanValue));
+        lblDisplayTongThanhToan.setText(moneyFormatter.format(this.tongThanhToanValue));
+
+        // 4. Reset lại các ô nhập tiền khách đưa
+        txtTienKhachDua.clear();
+        lblTienThoiLai.setText("0 VNĐ");
+        btnXacNhanVaIn.setDisable(true);
         
-        // QUAN TRỌNG: Hiển thị Tổng cuối cùng phải khớp với số đã làm tròn
-        lblDetailTongThanhToan.setText(moneyFormatter.format(tongThanhToanValue));
+        // 5. Tạo lại các nút gợi ý tiền (100k, 200k...) theo số tổng mới
+        generateSuggestionButtons();
     }
 
     // --- CẬP NHẬT: Tạo nút gợi ý với Style Class mới ---
@@ -723,7 +778,7 @@ public class Step4Controller {
                 giamTuDiem = diemDaDoi * 1000.0;
                 
                 // Cập nhật lại giao diện thanh toán với số tiền mới
-                displayPaymentDetailsStandard();
+                recalculateAndUpdateUI();
                 
                 showAlert(Alert.AlertType.INFORMATION, "Thành công", 
                     "Đã đổi " + diemDaDoi + " điểm thành " + moneyFormatter.format(giamTuDiem));
@@ -1320,6 +1375,10 @@ public class Step4Controller {
     // Hàm phụ để cập nhật UI gọn gàng hơn
     private void updateUIAfterSuccess() {
         btnXacNhanVaIn.setVisible(false);
+        
+        if (btnDoiDiem != null) btnDoiDiem.setDisable(true);
+        if (btnTichDiem != null) btnTichDiem.setDisable(true);
+        
         if (btnHoanTat != null) {
             btnHoanTat.setVisible(true);
             btnQuayLai.setVisible(false);

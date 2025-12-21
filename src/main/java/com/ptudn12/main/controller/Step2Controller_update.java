@@ -68,6 +68,7 @@ public class Step2Controller_update {
     // Biến lưu nút xóa tất cả (trong giỏ vé)
     private Button btnClearAllDi = null;
     private Button btnClearAllVe = null;
+    private ToaInfo selectedToa = null;
 
     private BanVeController mainController;
     public void setMainController(BanVeController mainController) {
@@ -104,9 +105,7 @@ public class Step2Controller_update {
         List<VeTamThoi> savedGioHangDi = (List<VeTamThoi>) mainController.getUserData("gioHang_Di");
         if (savedGioHangDi != null) {
             for (VeTamThoi v : savedGioHangDi) {
-                // Put vào Map để quản lý logic
                 gioHang_Di.put(v.getChiTietToa().getCho().getMaCho(), v);
-                // Put vào Set để tí nữa vẽ ghế nó biết đường tô màu xanh (STYLE_DANGCHON)
                 danhSachChoDaChon_Di.add(v.getChiTietToa().getCho().getMaCho());
             }
         }
@@ -122,6 +121,8 @@ public class Step2Controller_update {
         
         // 3. Cập nhật giao diện giỏ hàng bên phải ngay lập tức
         updateCartUI();
+        
+        this.selectedToa = (ToaInfo) mainController.getUserData("step2_selectedToa");
         
         // -------------------------------------------------------------
         LichTrinh lichTrinhDi = (LichTrinh) mainController.getUserData("lichTrinhChieuDi");
@@ -160,49 +161,26 @@ public class Step2Controller_update {
     private VBox createSeatSelectionBlock(LichTrinh lichTrinh, boolean isChieuDi, String title) {
         String maLichTrinh = lichTrinh.getMaLichTrinh();
         String maTau = lichTrinh.getTau().getMacTau();
-
         List<ChiTietToa> dsChiTiet = chiTietToaDAO.getChiTietToaByTau(maTau);
         Set<Integer> danhSachChoDaBan = chiTietLichTrinhDAO.getCacChoDaBan(maLichTrinh);
 
         VBox blockBox = new VBox(15);
         blockBox.setPadding(new Insets(10));
         blockBox.getStyleClass().add("seat-selection-section");
-        
         Label lblTitle = new Label(title);
         lblTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #333;");
-
         ComboBox<ToaInfo> comboToa = new ComboBox<>();
         comboToa.setPrefWidth(200.0);
         comboToa.setPromptText("Chọn toa");
+        TextField txtSoLuong = new TextField(); txtSoLuong.setPromptText("SL"); txtSoLuong.setPrefWidth(50);
+        Button btnChonNhanh = new Button("Chọn nhanh"); btnChonNhanh.getStyleClass().add("btn-action-secondary");
+        Button btnUndo = new Button("Hủy chọn (Xóa hết)"); btnUndo.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white;");
 
-        TextField txtSoLuong = new TextField();
-        txtSoLuong.setPromptText("SL");
-        txtSoLuong.setPrefWidth(50);
-        
-        Button btnChonNhanh = new Button("Chọn nhanh");
-        btnChonNhanh.getStyleClass().add("btn-action-secondary"); 
-        
-        // --- FIX VẤN ĐỀ 3: Nút Hủy chọn hoạt động như Xóa tất cả ---
-        Button btnUndo = new Button("Hủy chọn (Xóa hết)");
-        btnUndo.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white;");
-
-        HBox comboContainer = new HBox(10,
-                new Label("Toa:"), comboToa,
-                new Separator(Orientation.VERTICAL),
-                new Label("Chọn nhanh:"), txtSoLuong, btnChonNhanh, btnUndo
-        );
+        HBox comboContainer = new HBox(10, new Label("Toa:"), comboToa, new Separator(Orientation.VERTICAL), new Label("Chọn nhanh:"), txtSoLuong, btnChonNhanh, btnUndo);
         comboContainer.setAlignment(Pos.CENTER_LEFT);
-
         GridPane gridSeats = new GridPane();
-        gridSeats.setHgap(6);
-        gridSeats.setVgap(6);
-        gridSeats.setPadding(new Insets(5));
-        
-        // --- LAYOUT FIX: Set cứng chiều cao cho Grid ---
-        // Điều này ngăn giao diện bị co lại (shrink) khi hiển thị 2 sơ đồ
-        gridSeats.setPrefHeight(120); 
-        gridSeats.setMinHeight(120);
-        
+        gridSeats.setHgap(6); gridSeats.setVgap(6); gridSeats.setPadding(new Insets(5));
+        gridSeats.setPrefHeight(120); gridSeats.setMinHeight(120);
         HBox legendBox = createLegendBox();
 
         if (dsChiTiet.isEmpty()) {
@@ -210,66 +188,86 @@ public class Step2Controller_update {
             return blockBox;
         }
 
-        List<ToaInfo> danhSachToaInfo = dsChiTiet.stream()
-                .map(ChiTietToa::getToa).distinct().map(ToaInfo::new).sorted().collect(Collectors.toList());
+        List<ToaInfo> danhSachToaInfo = dsChiTiet.stream().map(ChiTietToa::getToa).distinct().map(ToaInfo::new).sorted().collect(Collectors.toList());
         comboToa.setItems(FXCollections.observableArrayList(danhSachToaInfo));
 
         comboToa.setOnAction(e -> {
             ToaInfo selectedToaInfo = comboToa.getValue();
-            if (selectedToaInfo == null) {
-                gridSeats.getChildren().clear(); return;
-            }
-            List<ChiTietToa> danhSachChoCuaToa = dsChiTiet.stream()
-                    .filter(ct -> ct.getToa().getMaToa().equals(selectedToaInfo.getMaToa()))
-                    .collect(Collectors.toList());
+            if (selectedToaInfo == null) { gridSeats.getChildren().clear(); return; }
+            this.selectedToa = selectedToaInfo; // Lưu lại hành động click cuối cùng
+            List<ChiTietToa> danhSachChoCuaToa = dsChiTiet.stream().filter(ct -> ct.getToa().getMaToa().equals(selectedToaInfo.getMaToa())).collect(Collectors.toList());
             populateGridPane(gridSeats, danhSachChoCuaToa, danhSachChoDaBan, isChieuDi, lichTrinh);
         });
-        
+
         btnChonNhanh.setOnAction(e -> {
             ToaInfo selectedToa = comboToa.getValue();
-            if (selectedToa == null) {
-                showAlert(Alert.AlertType.WARNING, "Vui lòng chọn toa trước!"); return;
-            }
+            if (selectedToa == null) { showAlert(Alert.AlertType.WARNING, "Vui lòng chọn toa trước!"); return; }
             String strSL = txtSoLuong.getText();
-            if (strSL == null || strSL.isEmpty() || !strSL.matches("\\d+")) {
-                showAlert(Alert.AlertType.WARNING, "Vui lòng nhập số lượng hợp lệ!"); return;
-            }
+            if (strSL == null || strSL.isEmpty() || !strSL.matches("\\d+")) { showAlert(Alert.AlertType.WARNING, "Vui lòng nhập số lượng hợp lệ!"); return; }
             int soLuongCanChon = Integer.parseInt(strSL);
-            if (soLuongCanChon <= 0) {
-                 showAlert(Alert.AlertType.WARNING, "Số lượng phải > 0!"); return;
-            }
-            List<ChiTietToa> currentToaSeats = dsChiTiet.stream()
-                    .filter(ct -> ct.getToa().getMaToa().equals(selectedToa.getMaToa()))
-                    .sorted(Comparator.comparing(ChiTietToa::getSoThuTu))
-                    .collect(Collectors.toList());
-            
-            // Gọi hàm chọn nhanh
+            if (soLuongCanChon <= 0) { showAlert(Alert.AlertType.WARNING, "Số lượng phải > 0!"); return; }
+            List<ChiTietToa> currentToaSeats = dsChiTiet.stream().filter(ct -> ct.getToa().getMaToa().equals(selectedToa.getMaToa())).sorted(Comparator.comparing(ChiTietToa::getSoThuTu)).collect(Collectors.toList());
             handleBatchSelection(soLuongCanChon, currentToaSeats, lichTrinh, isChieuDi, gridSeats);
-            
-            // Sau khi chọn xong, refresh lại grid để nút đổi màu xanh
             ToaInfo currentToa = comboToa.getValue();
             if (currentToa != null) {
-                 // Trigger lại event populateGridPane
-                 List<ChiTietToa> refreshSeats = dsChiTiet.stream()
-                    .filter(ct -> ct.getToa().getMaToa().equals(currentToa.getMaToa()))
-                    .collect(Collectors.toList());
+                 List<ChiTietToa> refreshSeats = dsChiTiet.stream().filter(ct -> ct.getToa().getMaToa().equals(currentToa.getMaToa())).collect(Collectors.toList());
                  populateGridPane(gridSeats, refreshSeats, danhSachChoDaBan, isChieuDi, lichTrinh);
             }
         });
-        
-        // --- FIX VẤN ĐỀ 3: Nút Undo gọi hàm xóa tất cả của chiều đó ---
+
         btnUndo.setOnAction(e -> {
             clearAllTickets(isChieuDi);
-            // Refresh lại grid để nút đổi màu trắng
             ToaInfo currentToa = comboToa.getValue();
             if (currentToa != null) {
-                 List<ChiTietToa> refreshSeats = dsChiTiet.stream()
-                    .filter(ct -> ct.getToa().getMaToa().equals(currentToa.getMaToa()))
-                    .collect(Collectors.toList());
+                 List<ChiTietToa> refreshSeats = dsChiTiet.stream().filter(ct -> ct.getToa().getMaToa().equals(currentToa.getMaToa())).collect(Collectors.toList());
                  populateGridPane(gridSeats, refreshSeats, danhSachChoDaBan, isChieuDi, lichTrinh);
             }
         });
+
+        ToaInfo toaCanChon = null;
+
+        // Ưu tiên 1: Kiểm tra xem trong GIỎ HÀNG của chiều này có vé nào không?
+        Map<Integer, VeTamThoi> targetCart = isChieuDi ? gioHang_Di : gioHang_Ve;
+        if (!targetCart.isEmpty()) {
+            // Lấy vé đầu tiên trong giỏ để xem nó thuộc toa nào
+            VeTamThoi firstTicket = targetCart.values().iterator().next();
+            Integer maToaTrongGio = firstTicket.getChiTietToa().getToa().getMaToa();
+            
+            // Tìm ToaInfo tương ứng
+            for (ToaInfo info : danhSachToaInfo) {
+                if (info.getMaToa().equals(maToaTrongGio)) {
+                    toaCanChon = info;
+                    break;
+                }
+            }
+        }
         
+        // Ưu tiên 2: Nếu giỏ rỗng, kiểm tra xem người dùng có vừa click chọn toa nào không (selectedToa)
+        if (toaCanChon == null && this.selectedToa != null) {
+            for (ToaInfo info : danhSachToaInfo) {
+                if (info.getMaToa().equals(this.selectedToa.getMaToa())) {
+                    toaCanChon = info;
+                    break;
+                }
+            }
+        }
+
+        // Ưu tiên 3: Nếu vẫn null thì chọn toa đầu tiên trong danh sách (Mặc định)
+        if (toaCanChon == null && !danhSachToaInfo.isEmpty()) {
+            toaCanChon = danhSachToaInfo.get(0);
+        }
+
+        // --- THỰC HIỆN CHỌN VÀ VẼ ---
+        if (toaCanChon != null) {
+            comboToa.setValue(toaCanChon); // Set hiển thị ComboBox
+            
+            // Gọi hàm vẽ ghế ngay lập tức
+            List<ChiTietToa> danhSachChoCuaToa = dsChiTiet.stream()
+                    .filter(ct -> ct.getToa().getMaToa().equals(comboToa.getValue().getMaToa()))
+                    .collect(Collectors.toList());
+            populateGridPane(gridSeats, danhSachChoCuaToa, danhSachChoDaBan, isChieuDi, lichTrinh);
+        }
+
         blockBox.getChildren().addAll(lblTitle, comboContainer, legendBox, gridSeats);
         return blockBox;
     }
@@ -595,6 +593,9 @@ public class Step2Controller_update {
         }
         mainController.setUserData("gioHang_Di", new ArrayList<>(gioHang_Di.values()));
         mainController.setUserData("gioHang_Ve", new ArrayList<>(gioHang_Ve.values()));
+        if (this.selectedToa != null) {
+            mainController.setUserData("step2_selectedToa", this.selectedToa);
+        }
         mainController.loadContent("step-3.fxml");
     }
 
