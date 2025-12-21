@@ -51,9 +51,7 @@ public class EmployeeManagementController {
         setupFilter();
     }
     
-    /**
-     * Thiết lập các cột của bảng
-     */
+    // Thiết lập các cột của bảng
     private void setupTableColumns() {
         maNVCol.setCellValueFactory(cellData -> 
             new SimpleStringProperty(cellData.getValue().getMaNhanVien()));
@@ -83,18 +81,14 @@ public class EmployeeManagementController {
             new SimpleStringProperty(cellData.getValue().getTinhTrangCV()));
     }
     
-    /**
-     * Load dữ liệu nhân viên
-     */
+    // Load dữ liệu nhân viên
     private void loadEmployeeData() {
         employeeList = FXCollections.observableArrayList(nhanVienDAO.getAllNhanVien());
         filteredData = new FilteredList<>(employeeList, p -> true);
         employeeTable.setItems(filteredData);
     }
     
-    /**
-     * Thiết lập bộ lọc
-     */
+    // Thiết lập bộ lọc
     private void setupFilter() {
         filterField.textProperty().addListener((observable, oldValue, newValue) -> {
             filteredData.setPredicate(nhanVien -> {
@@ -121,9 +115,7 @@ public class EmployeeManagementController {
         });
     }
     
-    /**
-     * Thêm nhân viên mới
-     */
+    // Thêm nhân viên mới
     @FXML
     private void addEmployee() {
         try {
@@ -147,9 +139,7 @@ public class EmployeeManagementController {
         }
     }
     
-    /**
-     * Sửa thông tin nhân viên
-     */
+    // Sửa thông tin nhân viên
     @FXML
     private void editEmployee() {
         NhanVien selected = employeeTable.getSelectionModel().getSelectedItem();
@@ -210,16 +200,12 @@ public class EmployeeManagementController {
             }
         }
     }
-    /**
-     * Refresh bảng dữ liệu
-     */
+    // Refresh bảng dữ liệu
     public void refreshTable() {
         employeeList.setAll(nhanVienDAO.getAllNhanVien());
     }
     
-    /**
-     * Hiển thị thông báo
-     */
+    // Hiển thị thông báo
     private void showAlert(Alert.AlertType type, String title, String content) {
         Alert alert = new Alert(type);
         alert.setTitle(title);

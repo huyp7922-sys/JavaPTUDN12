@@ -21,10 +21,10 @@
             <Button text="📄 Xuất PDF" onAction="#handleExportPDF" fx:id="btnExportPDF" styleClass="action-button" style="-fx-padding: 10 20; -fx-font-size: 13px;"/>
         </HBox>
 
-        <!-- Collapsible Filter Section -->
+        <!-- Lọc và Tìm Kiếm -->
         <TitledPane text="🔍 Bộ Lọc và Tìm Kiếm" animated="true" collapsible="true" expanded="false" style="-fx-font-size: 14px; -fx-font-weight: bold;">
             <VBox spacing="15" style="-fx-padding: 15; -fx-background-color: white;">
-                <!-- Search Fields -->
+                <!-- ô tìm kiếm -->
                 <HBox alignment="CENTER_LEFT" spacing="15">
                     <TextField fx:id="txtSearch" promptText="🔍 Tìm tên tuyến..." onKeyReleased="#handleSearch" prefWidth="220" styleClass="search-field"/>
                     <TextField fx:id="txtMaTuyen" promptText="🏷️ Tìm mã tuyến..." onKeyReleased="#handleFilterByCode" prefWidth="160" styleClass="search-field"/>
@@ -32,27 +32,27 @@
                     <Button text="🔄 Làm mới" onAction="#handleResetFilters" styleClass="secondary-button" style="-fx-padding: 8 15;"/>
                 </HBox>
 
-                <!-- Date Filter (for employees) -->
+                <!-- Lọc theo ngày (dành cho nhân viên) -->
                 <HBox fx:id="dateFilterBox" spacing="15" alignment="CENTER_LEFT" visible="false">
                     <Label text="📅 Lọc theo ngày:" style="-fx-font-weight: bold; -fx-font-size: 13px;"/>
                     <DatePicker fx:id="dpDate" prefWidth="180"/>
-                    <Button text="📥 Tải dữ liệu" onAction="#handleFilterByDate" styleClass="action-button" style="-fx-background-color: #4472C4; -fx-padding: 8 16;"/>
+                    <Button text="📥 Lọc" onAction="#handleFilterByDate" styleClass="action-button" style="-fx-background-color: #4472C4; -fx-padding: 8 16;"/>
                 </HBox>
                 
-                <!-- Month/Year Filter (for managers) -->
+                <!-- Lọc theo tháng/năm (dành cho quản lý) -->
                 <VBox fx:id="monthYearFilterBox" spacing="12" visible="false">
                     <HBox spacing="12" alignment="CENTER_LEFT">
                         <Label text="📅 Lọc theo tháng:" style="-fx-font-weight: bold; -fx-font-size: 13px;"/>
                         <ComboBox fx:id="cbMonth" prefWidth="120" promptText="Chọn tháng"/>
                         <Label text="Năm:"/>
                         <Spinner fx:id="spYear" prefWidth="110"/>
-                        <Button text="📥 Tải dữ liệu" onAction="#handleFilterByMonthYear" styleClass="action-button" style="-fx-background-color: #4472C4; -fx-padding: 8 15;"/>
+                        <Button text="📥 Lọc" onAction="#handleFilterByMonthYear" styleClass="action-button" style="-fx-background-color: #4472C4; -fx-padding: 8 15;"/>
                     </HBox>
                     <Separator style="-fx-background-color: #e0e0e0; -fx-padding: 0;"/>
                     <HBox spacing="12" alignment="CENTER_LEFT">
                         <Label text="📅 Hoặc lọc theo năm:" style="-fx-font-weight: bold; -fx-font-size: 13px;"/>
                         <Spinner fx:id="spYearOnly" prefWidth="110"/>
-                        <Button text="📥 Tải dữ liệu" onAction="#handleFilterByYear" styleClass="action-button" style="-fx-background-color: #4472C4; -fx-padding: 8 15;"/>
+                        <Button text="📥 Lọc" onAction="#handleFilterByYear" styleClass="action-button" style="-fx-background-color: #4472C4; -fx-padding: 8 15;"/>
                     </HBox>
                 </VBox>
             </VBox>

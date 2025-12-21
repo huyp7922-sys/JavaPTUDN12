@@ -46,9 +46,7 @@ public class EmployeeFormController {
         setupValidation();
     }
     
-    /**
-     * Thiết lập các ComboBox
-     */
+    // Thiết lập các ComboBox
     private void setupComboBoxes() {
         gioiTinhCombo.getItems().addAll("Nam", "Nữ");
         gioiTinhCombo.setValue("Nam");
@@ -60,9 +58,7 @@ public class EmployeeFormController {
         trangThaiCombo.setValue("đang làm");
     }
     
-    /**
-     * Thiết lập validation cho các trường
-     */
+    // Thiết lập validation cho các trường
     private void setupValidation() {
         // Chỉ cho phép nhập số cho CCCD
         cccdField.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -85,9 +81,7 @@ public class EmployeeFormController {
         });
     }
     
-    /**
-     * Đặt chế độ form (Thêm hoặc Sửa)
-     */
+    // Đặt chế độ form (Thêm hoặc Sửa)
     public void setMode(FormMode mode) {
         this.mode = mode;
         
@@ -101,16 +95,12 @@ public class EmployeeFormController {
         }
     }
     
-    /**
-     * Đặt controller cha
-     */
+    // Đặt controller cha
     public void setParentController(EmployeeManagementController controller) {
         this.parentController = controller;
     }
     
-    /**
-     * Load dữ liệu nhân viên để sửa
-     */
+    // Load dữ liệu nhân viên để sửa
     public void loadEmployeeData(NhanVien nv) {
         this.currentEmployee = nv;
         
@@ -126,9 +116,7 @@ public class EmployeeFormController {
         trangThaiCombo.setValue(nv.getTinhTrangCV());
     }
     
-    /**
-     * Lưu thông tin nhân viên
-     */
+    // Lưu thông tin nhân viên
     @FXML
     private void save() {
         if (!validateInput()) {
@@ -192,9 +180,7 @@ public class EmployeeFormController {
         }
     }
     
-    /**
-     * Validate dữ liệu đầu vào
-     */
+    // Validate dữ liệu đầu vào
     private boolean validateInput() {
         // Kiểm tra họ tên
         if (hoTenField.getText().trim().isEmpty()) {
@@ -289,25 +275,19 @@ public class EmployeeFormController {
         return true;
     }
     
-    /**
-     * Đóng form
-     */
+    // Đóng form
     @FXML
     private void cancel() {
         close();
     }
     
-    /**
-     * Đóng cửa sổ
-     */
+    // Đóng cửa sổ
     private void close() {
         Stage stage = (Stage) cancelButton.getScene().getWindow();
         stage.close();
     }
     
-    /**
-     * Hiển thị thông báo
-     */
+    // Hiển thị thông báo
     private void showAlert(Alert.AlertType alertType, String title, String message) {
         Alert alert = new Alert(alertType);
         alert.setTitle(title);

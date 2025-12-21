@@ -14,12 +14,12 @@ public class HelpController {
 
     @FXML
     private void initialize() {
-        // Initialize buttons to open PDF files
+        // Khởi tạo các nút để mở file PDF
         setupPdfButtons();
     }
 
     private void setupPdfButtons() {
-        // This will be called when buttons are clicked via FXML event handlers
+        // Phương thức này sẽ được gọi khi các nút được nhấn thông qua FXML event handlers
     }
 
     @FXML
@@ -46,18 +46,18 @@ public class HelpController {
 
     private void openPdfViewer(String pdfPath, String windowTitle) {
         try {
-            // Load PdfViewerController FXML
+            // Tải FXML của PdfViewerController
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/pdf-viewer.fxml"));
             Parent root = loader.load();
 
-            // Get the controller
+            // Lấy controller
             PdfViewerController controller = loader.getController();
 
-            // Load the PDF document from resources
+            // Tải tài liệu PDF từ resources
             File pdfFile = new File(getClass().getResource("/" + pdfPath).toURI());
             controller.loadDocument(pdfFile);
 
-            // Create a new stage for the PDF viewer
+            // Tạo stage mới cho PDF viewer
             Stage pdfStage = new Stage();
             pdfStage.setTitle(windowTitle);
             pdfStage.setScene(new Scene(root, 900, 700));
