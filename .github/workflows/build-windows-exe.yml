@@ -23,7 +23,7 @@ jobs:
       - name: Install WiX
         run: choco install wixtoolset -y
 
-      - name: Build EXE
+      - name: Build JAR and EXE
         run: mvn clean package jpackage:jpackage
 
       - name: Get version
@@ -32,6 +32,12 @@ jobs:
         run: |
           [xml]$pom = Get-Content pom.xml
           echo "v=$($pom.project.version)" >> $env:GITHUB_OUTPUT
+
+      - name: Rename fat JAR for release
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.v }}"
+          Copy-Item "target\mavenproject2-$version-fat.jar" "target\HeThongBanVeTau-$version-fat.jar"
 
       - name: Create tag
         shell: pwsh
@@ -46,4 +52,6 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.version.outputs.v }}
-          files: target/jpackage/*.exe
+          files: |
+            target/jpackage/*.exe
+            target/HeThongBanVeTau-*-fat.jar
