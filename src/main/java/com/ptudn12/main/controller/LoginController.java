@@ -42,6 +42,26 @@ public class LoginController {
         authenticateDatabase(username, password);
     }
 
+    @FXML
+    private void handleHelpLogin() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/help-login-dialog.fxml"));
+            Parent root = loader.load();
+            
+            Stage dialogStage = new Stage();
+            dialogStage.setTitle("Trợ giúp đăng nhập");
+            dialogStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            dialogStage.initOwner(usernameField.getScene().getWindow());
+            dialogStage.setScene(new Scene(root));
+            dialogStage.setResizable(false);
+            
+            dialogStage.showAndWait();
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể hiển thị hướng dẫn!");
+        }
+    }
+
     private boolean authenticateDatabase(String username, String password) {
         try {
             TaiKhoan taiKhoan = taiKhoanDAO.findById(username);
