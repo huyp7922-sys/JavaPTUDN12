@@ -16,15 +16,18 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-
 import java.io.IOException;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class LoginController {
 
     @FXML private TextField usernameField;
     @FXML private PasswordField passwordField;
+    @FXML private StackPane loadingOverlay;
 
     private final NhanVienDAO nhanVienDAO = new NhanVienDAO();
     private final TaiKhoanDAO taiKhoanDAO = new TaiKhoanDAO();
@@ -39,7 +42,24 @@ public class LoginController {
             return;
         }
 
-        authenticateDatabase(username, password);
+        // Hiển loading
+        loadingOverlay.setVisible(true);
+        
+        // Xử lý đăng nhập trong background thread
+        Task<Boolean> loginTask = new Task<Boolean>() {
+            @Override
+            protected Boolean call() {
+                return authenticateDatabase(username, password);
+            }
+        };
+        
+        loginTask.setOnSucceeded(e -> loadingOverlay.setVisible(false));
+        loginTask.setOnFailed(e -> {
+            loadingOverlay.setVisible(false);
+            showAlert(Alert.AlertType.ERROR, "Lỗi", "Đã xảy ra lỗi khi đăng nhập!");
+        });
+        
+        new Thread(loginTask).start();
     }
 
     @FXML
@@ -66,30 +86,70 @@ public class LoginController {
         try {
             TaiKhoan taiKhoan = taiKhoanDAO.findById(username);
             if (taiKhoan == null) {
-                showAlert(Alert.AlertType.ERROR, "Lỗi", "Tên đăng nhập hoặc mật khẩu không đúng");
+                javafx.application.Platform.runLater(() -> 
+                    showAlert(Alert.AlertType.ERROR, "Lỗi", "Tên đăng nhập hoặc mật khẩu không đúng"));
                 return false;
             }
 
-            if (!verifyAndMaybeMigratePassword(taiKhoan, username, password)) {
-                showAlert(Alert.AlertType.ERROR, "Lỗi", "Tên đăng nhập hoặc mật khẩu không đúng");
+            // Kiểm tra mật khẩu - hỗ trợ cả hash và plain text
+            String storedPassword = taiKhoan.getMatKhau();
+            boolean passwordMatch = false;
+            
+            if (storedPassword != null) {
+                if (PasswordUtils.isHashed(storedPassword)) {
+                    // Nếu đã hash, verify
+                    passwordMatch = PasswordUtils.verify(password, storedPassword);
+                } else {
+                    // Nếu plain text, so sánh trực tiếp
+                    passwordMatch = storedPassword.equals(password);
+                }
+            }
+            
+            if (!passwordMatch) {
+                javafx.application.Platform.runLater(() -> 
+                    showAlert(Alert.AlertType.ERROR, "Lỗi", "Tên đăng nhập hoặc mật khẩu không đúng"));
                 return false;
             }
 
             if (taiKhoan.isMatKhauTam()) {
-                if (!showForceChangePasswordDialog(taiKhoan)) {
-                    showAlert(Alert.AlertType.WARNING, "Yêu cầu", "Bạn bắt buộc phải đổi mật khẩu để tiếp tục sử dụng hệ thống!");
+                final CountDownLatch latch = new CountDownLatch(1);
+                final AtomicBoolean dialogResult = new AtomicBoolean(false);
+                final TaiKhoan finalTaiKhoan = taiKhoan;
+                
+                javafx.application.Platform.runLater(() -> {
+                    try {
+                        boolean result = showForceChangePasswordDialog(finalTaiKhoan);
+                        dialogResult.set(result);
+                    } finally {
+                        latch.countDown();
+                    }
+                });
+                
+                try {
+                    latch.await();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                     return false;
                 }
+                
+                if (!dialogResult.get()) {
+                    javafx.application.Platform.runLater(() -> 
+                        showAlert(Alert.AlertType.WARNING, "Yêu cầu", "Bạn bắt buộc phải đổi mật khẩu để tiếp tục sử dụng hệ thống!"));
+                    return false;
+                }
+                
                 taiKhoan = taiKhoanDAO.findById(username);
                 if (taiKhoan == null) {
-                    showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể tải lại thông tin tài khoản sau khi đổi mật khẩu.");
+                    javafx.application.Platform.runLater(() -> 
+                        showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể tải lại thông tin tài khoản sau khi đổi mật khẩu."));
                     return false;
                 }
             }
 
             NhanVien nhanVien = taiKhoan.getNhanVien();
             if (nhanVien == null) {
-                showAlert(Alert.AlertType.ERROR, "Lỗi", "Không tìm thấy thông tin nhân viên!");
+                javafx.application.Platform.runLater(() -> 
+                    showAlert(Alert.AlertType.ERROR, "Lỗi", "Không tìm thấy thông tin nhân viên!"));
                 return false;
             }
 
@@ -149,20 +209,23 @@ public class LoginController {
             }
 
             SessionManager.getInstance().login(username, nhanVien, taiKhoan);
-            boolean isAdmin = SessionManager.getInstance().isAdmin();
+            final boolean isAdmin = SessionManager.getInstance().isAdmin();
+            final String tenNhanVien = nhanVien.getTenNhanVien();
 
-            loadDashboard(nhanVien.getTenNhanVien(), isAdmin);
-
-            showAlert(Alert.AlertType.INFORMATION, "Thành công",
-                    "Đăng nhập thành công!\n" +
-                            "Chào mừng: " + nhanVien.getTenNhanVien() + "\n" +
-                            "Vai trò: " + SessionManager.getInstance().getRole());
+            javafx.application.Platform.runLater(() -> {
+                loadDashboard(tenNhanVien, isAdmin);
+                showAlert(Alert.AlertType.INFORMATION, "Thành công",
+                        "Đăng nhập thành công!\n" +
+                                "Chào mừng: " + tenNhanVien + "\n" +
+                                "Vai trò: " + SessionManager.getInstance().getRole());
+            });
 
             return true;
 
         } catch (Exception e) {
             e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Lỗi", "Lỗi khi đăng nhập: " + e.getMessage());
+            javafx.application.Platform.runLater(() -> 
+                showAlert(Alert.AlertType.ERROR, "Lỗi", "Lỗi khi đăng nhập: " + e.getMessage()));
             return false;
         }
     }
@@ -171,7 +234,7 @@ public class LoginController {
         String stored = taiKhoan.getMatKhau();
         if (stored == null) return false;
 
-        if (PasswordUtils.looksLikeBCrypt(stored)) {
+        if (PasswordUtils.isHashed(stored)) {
             return PasswordUtils.verify(password, stored);
         }
 
@@ -397,7 +460,7 @@ public class LoginController {
             }
 
             String stored = taiKhoan.getMatKhau();
-            boolean sameAsTemp = PasswordUtils.looksLikeBCrypt(stored)
+            boolean sameAsTemp = PasswordUtils.isHashed(stored)
                     ? PasswordUtils.verify(p1, stored)
                     : (stored != null && p1.equals(stored));
 
