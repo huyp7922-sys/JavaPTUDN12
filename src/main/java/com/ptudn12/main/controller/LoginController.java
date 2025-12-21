@@ -42,6 +42,26 @@ public class LoginController {
         authenticateDatabase(username, password);
     }
 
+    @FXML
+    private void handleHelpLogin() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/help-login-dialog.fxml"));
+            Parent root = loader.load();
+            
+            Stage dialogStage = new Stage();
+            dialogStage.setTitle("Trợ giúp đăng nhập");
+            dialogStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            dialogStage.initOwner(usernameField.getScene().getWindow());
+            dialogStage.setScene(new Scene(root));
+            dialogStage.setResizable(false);
+            
+            dialogStage.showAndWait();
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể hiển thị hướng dẫn!");
+        }
+    }
+
     private boolean authenticateDatabase(String username, String password) {
         try {
             TaiKhoan taiKhoan = taiKhoanDAO.findById(username);
@@ -223,9 +243,6 @@ public class LoginController {
             }
 
             Parent root = loader.load();
-            
-            // Truyền object nhân viên để lấy thông tin NV đang đăng nhập hệ thống
-            NhanVien nhanVienHienTai = SessionManager.getInstance().getCurrentNhanVien();
 
             if (isAdmin) {
                 DashboardController controller = loader.getController();
@@ -233,10 +250,6 @@ public class LoginController {
             } else {
                 BanVeController controller = loader.getController();
                 controller.setUsername(displayName);
-                
-                if (nhanVienHienTai != null) {
-                        controller.setNhanVien(nhanVienHienTai);
-                }
             }
 
             Stage stage = (Stage) usernameField.getScene().getWindow();
@@ -330,7 +343,6 @@ public class LoginController {
 
             boolean updated = taiKhoanDAO.update(taiKhoan);
             if (updated) {
-                System.out.println("Đã cập nhật mật khẩu mới (TẠM) cho: " + maNhanVien);
                 return true;
             }
             return false;

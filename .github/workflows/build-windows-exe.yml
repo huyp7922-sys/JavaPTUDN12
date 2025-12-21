@@ -1,99 +1,49 @@
-name: Build bộ cài Windows
+name: Build Windows Installer
 
 on:
   push:
     branches: ["main"]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  build-bo-cai-windows:
+  build:
     runs-on: windows-latest
 
     steps:
-      - name: Lấy mã nguồn
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Cài đặt JDK 22
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "22"
-          cache: maven
 
-      - name: Cài đặt WiX Toolset (phục vụ tạo EXE/MSI)
+      - name: Install WiX
         run: choco install wixtoolset -y
 
-      - name: Build bộ cài EXE bằng jpackage
-        run: mvn -B -DskipTests clean package jpackage:jpackage
+      - name: Build EXE
+        run: mvn clean package jpackage:jpackage
 
-      - name: Liệt kê file đã build
-        run: dir target\jpackage
-
-      - name: Tải lên bộ cài EXE
-        uses: actions/upload-artifact@v4
-        with:
-          name: HeThongBanVeTau-BoCai-Windows
-          path: target/jpackage/*.exe
-          if-no-files-found: error
-
-      - name: Tạo file thông tin build
-        run: |
-          echo "Thời gian build: $(Get-Date)" > target/jpackage/BUILD-INFO.txt
-          echo "Phiên bản Java: $env:JAVA_VERSION" >> target/jpackage/BUILD-INFO.txt
-          echo "Lệnh build: mvn clean package jpackage:jpackage" >> target/jpackage/BUILD-INFO.txt
-          echo "" >> target/jpackage/BUILD-INFO.txt
-          echo "HƯỚNG DẪN CÀI ĐẶT:" >> target/jpackage/BUILD-INFO.txt
-          echo "1. Tải file .exe" >> target/jpackage/BUILD-INFO.txt
-          echo "2. Chạy file cài đặt và làm theo hướng dẫn" >> target/jpackage/BUILD-INFO.txt
-          echo "3. Nếu ứng dụng không khởi động, kiểm tra các file log trên Desktop:" >> target/jpackage/BUILD-INFO.txt
-          echo "   - HeThongBanVeTau-launched.txt" >> target/jpackage/BUILD-INFO.txt
-          echo "   - HeThongBanVeTau-startup.log" >> target/jpackage/BUILD-INFO.txt
-          echo "   - HeThongBanVeTau-ERROR.log" >> target/jpackage/BUILD-INFO.txt
-
-      - name: Tải lên thông tin build
-        uses: actions/upload-artifact@v4
-        with:
-          name: ThongTin-Build
-          path: target/jpackage/BUILD-INFO.txt
-
-      - name: Lấy phiên bản từ pom.xml
-        id: lay-phien-ban
+      - name: Get version
+        id: version
         shell: pwsh
         run: |
           [xml]$pom = Get-Content pom.xml
-          $version = $pom.project.version
-          echo "version=$version" >> $env:GITHUB_OUTPUT
-          echo "Phiên bản: $version"
+          echo "v=$($pom.project.version)" >> $env:GITHUB_OUTPUT
 
-      - name: Tạo bản phát hành
+      - name: Create tag
+        shell: pwsh
+        run: |
+          $tag = "v${{ steps.version.outputs.v }}"
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git tag -f $tag
+          git push -f origin $tag
+
+      - name: Create release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ steps.lay-phien-ban.outputs.version }}-${{ github.run_number }}
-          name: He Thong Ban Ve Tau v${{ steps.lay-phien-ban.outputs.version }} (Build ${{ github.run_number }})
-          body: |
-            BẢN CÀI ĐẶT WINDOWS
-
-            Phiên bản: ${{ steps.lay-phien-ban.outputs.version }}
-            Lần build: ${{ github.run_number }}
-            Thời gian build: ${{ github.event.head_commit.timestamp }}
-
-            HƯỚNG DẪN CÀI ĐẶT:
-            1. Tải file .exe bên dưới
-            2. Chạy file cài đặt và làm theo hướng dẫn
-            3. Nếu xảy ra lỗi, kiểm tra các file log trên Desktop:
-               - HeThongBanVeTau-launched.txt
-               - HeThongBanVeTau-startup.log
-               - HeThongBanVeTau-ERROR.log
-
-            YÊU CẦU HỆ THỐNG:
-            - Windows 10 hoặc Windows 11
-            - Java Runtime đã được đóng gói sẵn trong bộ cài
-
-            Mã commit: ${{ github.sha }}
-          files: |
-            target/jpackage/*.exe
-            target/jpackage/BUILD-INFO.txt
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: v${{ steps.version.outputs.v }}
+          files: target/jpackage/*.exe

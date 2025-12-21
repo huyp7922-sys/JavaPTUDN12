@@ -183,3 +183,94 @@
   -fx-background-color: #c0392b;
   -fx-text-fill: white;
 }
+
+/* Button Styles */
+.button {
+  -fx-background-radius: 5px;
+  -fx-cursor: hand;
+  -fx-font-weight: bold;
+  -fx-padding: 8 15 8 15;
+}
+
+.primary-button {
+  -fx-background-color: #0066cc;
+  -fx-text-fill: white;
+}
+
+.primary-button:hover {
+  -fx-background-color: #0052a3;
+  -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.2), 5, 0, 0, 1);
+}
+
+.primary-button:pressed {
+  -fx-background-color: #003d7a;
+}
+
+.secondary-button {
+  -fx-background-color: #f0f0f0;
+  -fx-text-fill: #333;
+  -fx-border-color: #ccc;
+  -fx-border-radius: 5px;
+}
+
+.secondary-button:hover {
+  -fx-background-color: #e0e0e0;
+}
+
+.action-button {
+  -fx-background-color: #28a745;
+  -fx-text-fill: white;
+}
+
+.action-button:hover {
+  -fx-background-color: #218838;
+  -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.2), 5, 0, 0, 1);
+}
+
+/* TabPane Styles */
+.tab-pane {
+  -fx-tab-min-height: 40px;
+  -fx-tab-max-height: 40px;
+}
+
+.tab-pane .tab-header-area .tab-header-background {
+  -fx-background-color: transparent;
+}
+
+.tab-pane .tab {
+  -fx-background-color: #e0e0e0;
+  -fx-background-insets: 0 5 0 0;
+  -fx-background-radius: 10 10 0 0;
+  -fx-padding: 0 20 0 20;
+  -fx-cursor: hand;
+  -fx-border-color: transparent;
+}
+
+.tab-pane .tab:selected {
+  -fx-background-color: #0066cc;
+  -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.1), 5, 0, 0, 1);
+}
+
+.tab-pane .tab:hover {
+  -fx-background-color: #d0d0d0;
+}
+
+.tab-pane .tab:selected:hover {
+  -fx-background-color: #0052a3;
+}
+
+.tab-pane .tab .tab-label {
+  -fx-text-fill: #555;
+  -fx-font-weight: bold;
+  -fx-font-size: 14px;
+}
+
+.tab-pane .tab:selected .tab-label {
+  -fx-text-fill: white;
+}
+
+.tab-pane .tab-content-area {
+  -fx-background-color: transparent;
+  -fx-padding: 0;
+  -fx-border-width: 0;
+}

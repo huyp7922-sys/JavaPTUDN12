@@ -274,7 +274,6 @@ public class ModifyTrainDialogController {
 
 		// 1. Xóa toa khỏi đoàn tàu
 		CarriageWrapper removedWrapper = currentCarriages.remove(selectedCarriageIndex);
-		System.out.println("Đã bỏ toa: " + removedWrapper.toa.getTenToa());
 
 		// 2. TRẢ LẠI toa đó vào danh sách toa trống (visual only)
 		availableCarriages.add(removedWrapper.toa);
@@ -358,7 +357,6 @@ public class ModifyTrainDialogController {
 
 		// Thêm sự kiện click
 		container.setOnMouseClicked(event -> {
-			System.out.println("Đã chọn toa số: " + carriageNumber + " (index: " + index + ")");
 			displayCarriageDetails(index);
 		});
 
@@ -515,7 +513,6 @@ public class ModifyTrainDialogController {
 	 */
 	@FXML
 	private boolean handleSave() {
-		System.out.println("Nút Lưu được nhấn.");
 
 		// --- BƯỚC 1: VALIDATION ---
 		// Kiểm tra mác tàu không được trống

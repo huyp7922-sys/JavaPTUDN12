@@ -6,6 +6,7 @@ import com.ptudn12.main.controller.VeTamThoi;
 import com.ptudn12.main.dao.VeTauDAO;
 import com.ptudn12.main.entity.VeTau;
 import com.ptudn12.main.enums.LoaiVe;
+
 import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -123,6 +124,7 @@ public class Step3Controller {
 
         // 4. Tạo các hàng hành khách
         boolean isFirstRow = true;
+    
         for (int i = 0; i < passengerCount; i++) { 
             VeTamThoi veDi = gioHangDi.get(i);
             VeTamThoi veVe = isRoundTrip ? gioHangVe.get(i) : null;
@@ -186,7 +188,6 @@ public class Step3Controller {
                 showAlert(Alert.AlertType.ERROR, "Lỗi tải giao diện hàng hành khách: " + e.getMessage());
             }
         }
-        
         // --- LOGIC ĐỔI VÉ ---
         String mode = (String) mainController.getUserData("transactionType");
         if (BanVeController.MODE_DOI_VE.equals(mode)) {

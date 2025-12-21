@@ -161,6 +161,10 @@
                     <winDirChooser>true</winDirChooser>
                     <winPerUserInstall>false</winPerUserInstall>
                     <winConsole>true</winConsole>
+                    
+                    <!-- Icon cho ứng dụng -->
+                    <icon>${project.basedir}/src/main/resources/images/logoApp.ico</icon>
+                    
                     <removeDestination>true</removeDestination>
                 </configuration>
             </plugin>
@@ -169,7 +173,11 @@
     </build>
 
     <dependencies>
-
+        <dependency>
+            <groupId>eu.hansolo</groupId>
+            <artifactId>tilesfx</artifactId>
+            <version>17.1.17</version>
+        </dependency>
         <!-- JavaFX -->
         <dependency>
             <groupId>org.openjfx</groupId>
@@ -289,12 +297,20 @@
             <artifactId>json</artifactId>
             <version>20230227</version>
         </dependency>
-        
-        <!-- JB Crypt -->
+
+        <!-- iText7 for PDF generation -->
         <dependency>
-            <groupId>org.mindrot</groupId>
-            <artifactId>jbcrypt</artifactId>
-            <version>0.4</version>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>itext-core</artifactId>
+            <version>8.0.1</version>
+            <type>pom</type>
+        </dependency>
+
+        <!-- Apache POI for Excel -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.3</version>
         </dependency>
     </dependencies>
 

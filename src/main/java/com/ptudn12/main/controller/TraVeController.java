@@ -563,7 +563,6 @@ public class TraVeController {
             KhachHang khachDi = khachHangDAO.getHanhKhachByMaVe(selectedVe.getMaVe());
             if (khachDi != null) {
                 selectedVe.setKhachHang(khachDi);
-                System.out.println("DEBUG: Đã nạp thông tin khách hàng vào vé: " + khachDi.getTenKhachHang());
             } else {
                 System.err.println("ERROR: Không tìm thấy khách hàng cho vé này!");
             }

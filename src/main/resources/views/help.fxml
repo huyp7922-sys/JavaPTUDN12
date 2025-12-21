@@ -6,6 +6,7 @@
 
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.ptudn12.main.controller.HelpController"
       spacing="20" styleClass="help-container">
 
     <padding>
@@ -90,6 +91,66 @@
 
             <Separator/>
 
+            <!-- Customer Management -->
+            <VBox spacing="10">
+                <Label text="Quản Lý Khách Hàng" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2d3748;"/>
+                <Label text="Quản lý thông tin khách hàng và lịch sử giao dịch:" wrapText="true" style="-fx-text-fill: #4a5568;"/>
+                <Label text="- Xem danh sách tất cả khách hàng đã mua vé" style="-fx-text-fill: #4a5568; -fx-padding: 0 0 0 20;"/>
+                <Label text="- Cập nhật thông tin liên lạc của khách hàng" style="-fx-text-fill: #4a5568; -fx-padding: 0 0 0 20;"/>
+                <Label text="- Tra cứu lịch sử đặt vé và các giao dịch trước đó" style="-fx-text-fill: #4a5568; -fx-padding: 0 0 0 20;"/>
+                <Label text="- In biên lai hoặc gửi thông tin qua email" style="-fx-text-fill: #4a5568; -fx-padding: 0 0 0 20;"/>
+            </VBox>
+
+            <Separator/>
+
+            <!-- Employee Management -->
+            <VBox spacing="10">
+                <Label text="Quản Lý Nhân Viên" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2d3748;"/>
+                <Label text="Quản lý thông tin nhân viên và phân quyền hệ thống:" wrapText="true" style="-fx-text-fill: #4a5568;"/>
+                <Label text="- Thêm nhân viên mới với các vai trò khác nhau" style="-fx-text-fill: #4a5568; -fx-padding: 0 0 0 20;"/>
+                <Label text="- Cập nhật thông tin cá nhân và liên lạc" style="-fx-text-fill: #4a5568; -fx-padding: 0 0 0 20;"/>
+                <Label text="- Gán quyền hạn (Admin, Nhân viên bán vé, Nhân viên hỗ trợ)" style="-fx-text-fill: #4a5568; -fx-padding: 0 0 0 20;"/>
+                <Label text="- Quản lý trạng thái lao động (đang làm, nghỉ phép, từng từ)" style="-fx-text-fill: #4a5568; -fx-padding: 0 0 0 20;"/>
+            </VBox>
+
+            <Separator/>
+
+            <!-- Invoice Management -->
+            <VBox spacing="10">
+                <Label text="Quản Lý Hoá Đơn" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2d3748;"/>
+                <Label text="Xem và quản lý các hoá đơn bán vé:" wrapText="true" style="-fx-text-fill: #4a5568;"/>
+                <Label text="- Xem chi tiết hoá đơn theo ngày, tuần, hoặc tháng" style="-fx-text-fill: #4a5568; -fx-padding: 0 0 0 20;"/>
+                <Label text="- In hoá đơn và biên lai cho khách hàng" style="-fx-text-fill: #4a5568; -fx-padding: 0 0 0 20;"/>
+                <Label text="- Xuất báo cáo hoá đơn dưới dạng PDF" style="-fx-text-fill: #4a5568; -fx-padding: 0 0 0 20;"/>
+                <Label text="- Kiểm tra tình trạng thanh toán của từng hoá đơn" style="-fx-text-fill: #4a5568; -fx-padding: 0 0 0 20;"/>
+            </VBox>
+
+            <Separator/>
+
+            <!-- Statistics -->
+            <VBox spacing="10">
+                <Label text="Thống Kê &amp; Báo Cáo" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2d3748;"/>
+                <Label text="Phân tích doanh thu và hiệu suất kinh doanh:" wrapText="true" style="-fx-text-fill: #4a5568;"/>
+                <Label text="- Xem thống kê doanh thu theo tuyến đường" style="-fx-text-fill: #4a5568; -fx-padding: 0 0 0 20;"/>
+                <Label text="- Phân tích tỷ lệ lấp đầy chỗ ngồi trên các lịch trình" style="-fx-text-fill: #4a5568; -fx-padding: 0 0 0 20;"/>
+                <Label text="- Xuất báo cáo thống kê dưới dạng PDF" style="-fx-text-fill: #4a5568; -fx-padding: 0 0 0 20;"/>
+                <Label text="- So sánh hiệu suất giữa các tuyến đường" style="-fx-text-fill: #4a5568; -fx-padding: 0 0 0 20;"/>
+            </VBox>
+
+            <Separator/>
+
+            <!-- Ticket Management -->
+            <VBox spacing="10">
+                <Label text="Quản Lý Vé &amp; Hoàn Trả" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2d3748;"/>
+                <Label text="Xử lý các yêu cầu hoàn trả và trao đổi vé:" wrapText="true" style="-fx-text-fill: #4a5568;"/>
+                <Label text="- Xem danh sách vé đã bán cho mỗi lịch trình" style="-fx-text-fill: #4a5568; -fx-padding: 0 0 0 20;"/>
+                <Label text="- Xử lý yêu cầu hoàn vé từ khách hàng" style="-fx-text-fill: #4a5568; -fx-padding: 0 0 0 20;"/>
+                <Label text="- Cho phép khách hàng trao đổi vé sang lịch trình khác" style="-fx-text-fill: #4a5568; -fx-padding: 0 0 0 20;"/>
+                <Label text="- Tính toán phí hành chính khi hoàn vé hoặc trao đổi" style="-fx-text-fill: #4a5568; -fx-padding: 0 0 0 20;"/>
+            </VBox>
+
+            <Separator/>
+
             <!-- FAQ -->
             <VBox spacing="10">
                 <Label text="Các Câu Hỏi Thường Gặp" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2d3748;"/>
@@ -101,6 +162,83 @@
                 
                 <Label text="Hỏi: Doanh thu được tính như thế nào?" style="-fx-font-weight: bold; -fx-text-fill: #2d3748;"/>
                 <Label text="Trả lời: Doanh thu dựa trên các bán vé hoàn thành cho khoảng thời gian được chỉ định." wrapText="true" style="-fx-text-fill: #4a5568; -fx-padding: 0 0 10 20;"/>
+                
+                <Label text="Hỏi: Làm thế nào để biết tỷ lệ lấp đầy của một chuyến tàu?" style="-fx-font-weight: bold; -fx-text-fill: #2d3748;"/>
+                <Label text="Trả lời: Vào Thống Kê để xem tỷ lệ lấp đầy chi tiết. Bạn cũng có thể xem thông tin này trong mô-đun Bán Vé." wrapText="true" style="-fx-text-fill: #4a5568; -fx-padding: 0 0 10 20;"/>
+                
+                <Label text="Hỏi: Làm thế nào để hoàn vé cho khách hàng?" style="-fx-font-weight: bold; -fx-text-fill: #2d3748;"/>
+                <Label text="Trả lời: Vào Quản Lý Vé, chọn vé cần hoàn, xác nhận và tính phí hành chính (nếu có)." wrapText="true" style="-fx-text-fill: #4a5568; -fx-padding: 0 0 10 20;"/>
+            </VBox>
+
+            <Separator/>
+
+            <!-- Advanced Features -->
+            <VBox spacing="10">
+                <Label text="Tính Năng Nâng Cao" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2d3748;"/>
+                
+                <Label text="Tạo Lịch Trình Tự Động" style="-fx-font-weight: bold; -fx-text-fill: #2d3748;"/>
+                <Label text="Hệ thống cho phép tạo lịch trình cho nhiều ngày liên tiếp một cách tự động." wrapText="true" style="-fx-text-fill: #4a5568; -fx-padding: 0 0 10 20;"/>
+                
+                <Label text="Xuất Báo Cáo PDF" style="-fx-font-weight: bold; -fx-text-fill: #2d3748;"/>
+                <Label text="Từ các mô-đun Thống Kê, Hoá Đơn, bạn có thể xuất báo cáo dưới dạng PDF với định dạng chuyên nghiệp." wrapText="true" style="-fx-text-fill: #4a5568; -fx-padding: 0 0 10 20;"/>
+                
+                <Label text="Quản Lý Quyền Hạn" style="-fx-font-weight: bold; -fx-text-fill: #2d3748;"/>
+                <Label text="Admin có thể tạo các vai trò khác nhau với quyền hạn cụ thể cho nhân viên." wrapText="true" style="-fx-text-fill: #4a5568; -fx-padding: 0 0 10 20;"/>
+                
+                <Label text="Gửi Email Thông Báo" style="-fx-font-weight: bold; -fx-text-fill: #2d3748;"/>
+                <Label text="Hệ thống có thể gửi email xác nhận đặt vé, hoàn vé, và thông báo khác cho khách hàng." wrapText="true" style="-fx-text-fill: #4a5568; -fx-padding: 0 0 10 20;"/>
+            </VBox>
+
+            <Separator/>
+
+            <!-- System Requirements -->
+            <VBox spacing="10">
+                <Label text="Yêu Cầu Hệ Thống" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2d3748;"/>
+                <VBox spacing="5" style="-fx-padding: 0 0 0 20;">
+                    <Label text="- Hệ điều hành: Windows 7 trở lên hoặc Linux/Mac" style="-fx-text-fill: #4a5568;"/>
+                    <Label text="- Java: JDK 22 hoặc phiên bản tương thích" style="-fx-text-fill: #4a5568;"/>
+                    <Label text="- Database: SQL Server 2019 hoặc phiên bản mới hơn" style="-fx-text-fill: #4a5568;"/>
+                    <Label text="- RAM: Tối thiểu 4GB (khuyến khích 8GB)" style="-fx-text-fill: #4a5568;"/>
+                    <Label text="- Kết nối mạng: Cần kết nối với server database" style="-fx-text-fill: #4a5568;"/>
+                </VBox>
+            </VBox>
+
+            <Separator/>
+
+            <!-- Tips &amp; Tricks -->
+            <VBox spacing="10">
+                <Label text="Mẹo &amp; Thủ Thuật" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2d3748;"/>
+                <VBox spacing="10" style="-fx-padding: 0 0 0 20;">
+                    <Label text="1. Sử dụng bộ lọc để tìm kiếm nhanh:" wrapText="true" style="-fx-font-weight: bold; -fx-text-fill: #2d3748;"/>
+                    <Label text="   Hầu hết các danh sách đều có thanh tìm kiếm. Nhập thông tin để lọc kết quả." wrapText="true" style="-fx-text-fill: #4a5568;"/>
+                    
+                    <Label text="2. In các báo cáo:" wrapText="true" style="-fx-font-weight: bold; -fx-text-fill: #2d3748;"/>
+                    <Label text="   Nhấp vào nút 'In' trên các mô-đun Hoá Đơn để in trực tiếp hoặc lưu dưới dạng PDF." wrapText="true" style="-fx-text-fill: #4a5568;"/>
+                    
+                    <Label text="3. Sắp xếp các cột:" wrapText="true" style="-fx-font-weight: bold; -fx-text-fill: #2d3748;"/>
+                    <Label text="   Bạn có thể kéo các tiêu đề cột để sắp xếp lại thứ tự hoặc nhấp để sắp xếp tăng/giảm." wrapText="true" style="-fx-text-fill: #4a5568;"/>
+                    
+                    <Label text="4. Backup dữ liệu:" wrapText="true" style="-fx-font-weight: bold; -fx-text-fill: #2d3748;"/>
+                    <Label text="   Đảm bảo backup database định kỳ để tránh mất dữ liệu quan trọng." wrapText="true" style="-fx-text-fill: #4a5568;"/>
+                </VBox>
+            </VBox>
+
+            <Separator/>
+
+            <!-- PDF User Guides -->
+            <VBox spacing="10">
+                <Label text="Hướng Dẫn Sử Dụng" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2d3748;"/>
+                <Label text="Tải và xem các hướng dẫn sử dụng chi tiết từ các tác giả:" wrapText="true" style="-fx-text-fill: #4a5568;"/>
+                
+                <HBox spacing="10" style="-fx-padding: 10;">
+                    <Button text="📄 Chức năng : bán vé, đổi vé, trả vé" onAction="#openGiaHaoPdf" style="-fx-font-size: 12px; -fx-padding: 8 16; -fx-cursor: hand;"/>
+                    <Button text="📄 Chức năng : Nhân viên, Thống kê" onAction="#openNguyenCongHuyPdf" style="-fx-font-size: 12px; -fx-padding: 8 16; -fx-cursor: hand;"/>
+                </HBox>
+                
+                <HBox spacing="10" style="-fx-padding: 10;">
+                    <Button text="📄 Chức năng : Quản lí Tàu, Quản lí khách hàng, Quản lí hoá đơn" onAction="#openTrinhHoangKyPdf" style="-fx-font-size: 12px; -fx-padding: 8 16; -fx-cursor: hand;"/>
+                    <Button text="📄 Chức năng : Đăng nhập, Quản lí lịch trình, Quản lí tuyến đường" onAction="#openPhamThanhHuyPdf" style="-fx-font-size: 12px; -fx-padding: 8 16; -fx-cursor: hand;"/>
+                </HBox>
             </VBox>
 
         </VBox>

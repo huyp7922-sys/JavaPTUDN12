@@ -12,35 +12,46 @@ package com.ptudn12.main.controller;
 import com.ptudn12.main.dao.GaDAO;
 import com.ptudn12.main.dao.LichTrinhDAO;
 import com.ptudn12.main.dao.TuyenDuongDAO;
-import com.ptudn12.main.entity.*;
+import com.ptudn12.main.entity.Ga;
+import com.ptudn12.main.entity.LichTrinh;
+import com.ptudn12.main.entity.TuyenDuong;
 import com.ptudn12.main.enums.TrangThai;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
-import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
-import javafx.util.Callback;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import javafx.geometry.Insets;
+import javafx.scene.Node;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.TilePane;
+import javafx.util.Callback;
 
 public class Step1Controller {
-    @FXML private ComboBox<String> comboGaDi;
-    @FXML private ComboBox<String> comboGaDen;
-    @FXML private DatePicker datePickerNgayKhoiHanh;
-    @FXML private Button btnTimChuyen;
-    @FXML private Pane paneDanhSachChuyenTau;
-    @FXML private RadioButton radioKhuHoi;
-    @FXML private RadioButton radioMotChieu;
-    @FXML private DatePicker dateNgayVe;
-    @FXML private Label lblTitle;
+    @FXML
+    private ComboBox<String> comboGaDi;
+    @FXML
+    private ComboBox<String> comboGaDen;
+    @FXML
+    private DatePicker datePickerNgayKhoiHanh;
+    @FXML
+    private Button btnTimChuyen;
+    @FXML
+    private Pane paneDanhSachChuyenTau;
+    @FXML
+    private RadioButton radioKhuHoi;
+    @FXML
+    private RadioButton radioMotChieu;
+    @FXML
+    private DatePicker dateNgayVe;
 
     private final LichTrinhDAO lichTrinhDAO = new LichTrinhDAO();
     private final GaDAO gaDAO = new GaDAO();
@@ -52,8 +63,8 @@ public class Step1Controller {
     private Node cardChieuVe = null;
     
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-    private BanVeController mainController;
     
+    private BanVeController mainController;
     public void setMainController(BanVeController mainController) {
         this.mainController = mainController;
     }
@@ -61,148 +72,39 @@ public class Step1Controller {
     public void initData() {
         if (mainController == null) return;
 
-        String mode = (String) mainController.getUserData("transactionType");
-        
-        // --- LOGIC ĐỔI VÉ ---
-        if (BanVeController.MODE_DOI_VE.equals(mode)) {
-            VeTau veCu = (VeTau) mainController.getUserData("veCuCanDoi");
-            if (veCu != null) {
-                // 1. Fill thông tin hành trình cũ (Phải đúng ga)
-                String gaDiCu = veCu.getChiTietLichTrinh().getLichTrinh().getTuyenDuong().getDiemDi().getViTriGa();
-                for (String ga : comboGaDi.getItems()) {
-                    if (ga.equalsIgnoreCase(gaDiCu)) {
-                        comboGaDi.setValue(ga);
-                        break;
-                    }
-                }
-                String gaDenCu = veCu.getChiTietLichTrinh().getLichTrinh().getTuyenDuong().getDiemDen().getViTriGa();
-                for (String ga : comboGaDen.getItems()) {
-                    if (ga.equalsIgnoreCase(gaDenCu)) {
-                        comboGaDen.setValue(ga);
-                        break;
-                    }
-                }
-
-                // 2. KHÓA KHÔNG CHO ĐỔI GA
-                comboGaDi.setDisable(true);
-                comboGaDen.setDisable(true);
-                comboGaDi.setStyle("-fx-opacity: 1; -fx-background-color: #eee;");
-                comboGaDen.setStyle("-fx-opacity: 1; -fx-background-color: #eee;");
-
-                // 3. Ép kiểu 1 chiều (Đổi từng vé)
-                radioMotChieu.setSelected(true);
-                radioKhuHoi.setDisable(true);
-                dateNgayVe.setDisable(true);
-
-                // 4. Ngày đi mặc định
-                LocalDate today = LocalDate.now();
-                LocalDate oldDate = veCu.getChiTietLichTrinh().getLichTrinh().getNgayGioKhoiHanh().toLocalDate();
-                
-                // Nếu ngày của vé cũ là tương lai -> Set ngày đó cho tiện
-                if (oldDate.isAfter(today) || oldDate.isEqual(today)) {
-                    datePickerNgayKhoiHanh.setValue(oldDate);
-                } else {
-                    // Nếu vé cũ là quá khứ -> Set ngày mai (để tăng cơ hội có tàu khi test)
-                    datePickerNgayKhoiHanh.setValue(today.plusDays(1)); 
-                }
-                
-                // Cách đơn giản nhất: TỰ ĐỘNG TÌM NHƯNG KHÔNG BÁO LỖI NẾU RỖNG
-                timKiemTuDongKhongBaoLoi();
-                
-                if(lblTitle != null) lblTitle.setText("ĐỔI VÉ - CHỌN TÀU MỚI");
-            }
-        }
-        // --- LOGIC BÁN VÉ THƯỜNG ---
-        else {
-            comboGaDi.setDisable(false);
-            comboGaDen.setDisable(false);
-            radioKhuHoi.setDisable(false);
-            comboGaDi.setStyle("");
-            comboGaDen.setStyle("");
-            if(lblTitle != null) lblTitle.setText("TÌM KIẾM CHUYẾN TÀU");
-            
-            // Khôi phục data cũ nếu quay lại từ bước sau
-            restoreSavedData();
-        }
-    }
-
-    private void restoreSavedData() {
+        // Lấy dữ liệu đã lưu
         String savedGaDi = (String) mainController.getUserData("step1_gaDi");
         String savedGaDen = (String) mainController.getUserData("step1_gaDen");
         LocalDate savedNgayDi = (LocalDate) mainController.getUserData("step1_ngayDi");
         Boolean savedIsKhuHoi = (Boolean) mainController.getUserData("step1_isKhuHoi");
         LocalDate savedNgayVe = (LocalDate) mainController.getUserData("step1_ngayVe");
 
+        // Khôi phục nếu có
         if (savedGaDi != null) comboGaDi.setValue(savedGaDi);
         if (savedGaDen != null) comboGaDen.setValue(savedGaDen);
         if (savedNgayDi != null) datePickerNgayKhoiHanh.setValue(savedNgayDi);
-
+        
         if (savedIsKhuHoi != null) {
-            radioKhuHoi.setSelected(savedIsKhuHoi);
-            dateNgayVe.setDisable(!savedIsKhuHoi);
-            if (savedIsKhuHoi && savedNgayVe != null) {
-                dateNgayVe.setValue(savedNgayVe);
-            }
-        } else {
-            radioMotChieu.setSelected(true);
+             radioKhuHoi.setSelected(savedIsKhuHoi);
+             dateNgayVe.setDisable(!savedIsKhuHoi); // Cập nhật trạng thái disable
+             if (savedIsKhuHoi && savedNgayVe != null) {
+                  dateNgayVe.setValue(savedNgayVe);
+             }
         }
 
-        // Nếu đủ dữ liệu thì tìm lại luôn để hiện danh sách tàu đã chọn trước đó
+        // QUAN TRỌNG: Gọi lại handleTimKiem để hiển thị lại danh sách tàu phù hợp
+        // Chỉ gọi nếu các thông tin cần thiết đã được khôi phục
         if (savedGaDi != null && savedGaDen != null && savedNgayDi != null) {
-            handleTimKiem();
+            handleTimKiem(); // Tự động tìm lại
+            
+            LichTrinh savedLichTrinhDi = (LichTrinh) mainController.getUserData("lichTrinhChieuDi");
+            LichTrinh savedLichTrinhVe = (LichTrinh) mainController.getUserData("lichTrinhChieuVe");
         }
-    }
-    
-    private void timKiemTuDongKhongBaoLoi() {
-        String tenGaDi = comboGaDi.getValue();
-        String tenGaDen = comboGaDen.getValue();
-        LocalDate ngayKhoiHanh = datePickerNgayKhoiHanh.getValue();
-
-        if (tenGaDi == null || tenGaDen == null || ngayKhoiHanh == null) return;
-
-        Ga gaDi = gaDAO.layGaTheoViTri(tenGaDi);
-        Ga gaDen = gaDAO.layGaTheoViTri(tenGaDen);
-        if (gaDi == null || gaDen == null) return;
-        
-        List<TuyenDuong> tuyensDi = tuyenDuongDAO.timTuyenDuong(gaDi.getMaGa(), gaDen.getMaGa(), TrangThai.SanSang);
-        if (tuyensDi.isEmpty()) {
-            System.err.println("DEBUG: Không tìm thấy Tuyến Đường nào từ " + tenGaDi + " đến " + tenGaDen);
-            // Có thể hiện label báo lỗi ở đây nếu muốn
-            return;
-        }
-        
-        TuyenDuong tuyenDi = tuyensDi.get(0);
-        LocalDateTime tuNgayDi = ngayKhoiHanh.atStartOfDay();
-        LocalDateTime denNgayDi = ngayKhoiHanh.plusDays(1).atStartOfDay();
-        
-        // DEBUG IN RA CONSOLE ĐỂ KIỂM TRA
-        System.out.println("DEBUG: Đang tìm tàu...");
-        System.out.println(" - Tuyến: " + tuyenDi.getMaTuyen() + " (" + tenGaDi + " -> " + tenGaDen + ")");
-        System.out.println(" - Thời gian từ: " + tuNgayDi + " đến " + denNgayDi);
-        
-        List<LichTrinh> ketQuaDi = lichTrinhDAO.timLichTrinh(
-                Integer.parseInt(tuyenDi.getMaTuyen()), null, tuNgayDi, denNgayDi, TrangThai.ChuaKhoiHanh
-        );
-        
-        // Chỉ hiển thị nếu có kết quả, không thì thôi (để trống pane)
-        if (!ketQuaDi.isEmpty()) {
-            showLichTrinhTrongPane(ketQuaDi, null);
-        } else {
-             // Có thể hiện một Label nhẹ nhàng: "Không có tàu trong ngày này" thay vì Alert
-             showPlaceholderMessage("Không tìm thấy chuyến tàu nào trong ngày " + formatter.format(tuNgayDi));
-        }
-    }
-    
-    private void showPlaceholderMessage(String msg) {
-        paneDanhSachChuyenTau.getChildren().clear();
-        Label lbl = new Label(msg);
-        lbl.setStyle("-fx-font-size: 16px; -fx-text-fill: #999; -fx-padding: 20;");
-        paneDanhSachChuyenTau.getChildren().add(lbl);
     }
 
     @FXML
     public void initialize() {
-        // 1. Load danh sách ga
+        // 1. Load danh sách ga (Giữ nguyên code cũ của bạn)
         List<String> danhSachGa = gaDAO.layViTriGa();
         ObservableList<String> gaList = FXCollections.observableArrayList(danhSachGa);
         comboGaDi.setItems(gaList);
@@ -217,13 +119,14 @@ public class Step1Controller {
                 // Disable các ngày trước ngày hiện tại
                 if (date.isBefore(LocalDate.now())) {
                     setDisable(true);
-                    setStyle("-fx-background-color: #ffc0cb;");
+                    setStyle("-fx-background-color: #ffc0cb;"); // (Tuỳ chọn) Đổi màu nền ngày bị khoá
                 }
             }
         });
 
         // 3. Cấu hình Ngày Về
         dateNgayVe.setDisable(true);
+
         // Khi ngày khởi hành thay đổi -> Reset ngày về nếu nó bị vô lý (trước ngày đi mới)
         datePickerNgayKhoiHanh.valueProperty().addListener((obs, oldDate, newDate) -> {
             if (newDate != null && radioKhuHoi.isSelected()) {
@@ -234,25 +137,40 @@ public class Step1Controller {
             }
         });
 
-        // Factory cho ngày về
-        dateNgayVe.setDayCellFactory(picker -> new DateCell() {
-            @Override
-            public void updateItem(LocalDate item, boolean empty) {
-                super.updateItem(item, empty);
-                LocalDate ngayDi = datePickerNgayKhoiHanh.getValue();
-                if (ngayDi == null) ngayDi = LocalDate.now();
-                if (item.isBefore(ngayDi)) {
-                    setDisable(true);
-                    setStyle("-fx-background-color: #ffc0cb;");
-                }
-            }
-        });
+        // Logic chặn ngày về: Phải >= Ngày đi
+        final Callback<DatePicker, DateCell> dayCellFactoryNgayVe = 
+            new Callback<DatePicker, DateCell>() {
+                @Override
+                public DateCell call(final DatePicker datePicker) {
+                    return new DateCell() {
+                        @Override
+                        public void updateItem(LocalDate item, boolean empty) {
+                            super.updateItem(item, empty);
 
-        // 4. Radio Button Logic
+                            LocalDate ngayDi = datePickerNgayKhoiHanh.getValue();
+                            // Nếu chưa chọn ngày đi thì lấy ngày hiện tại
+                            if (ngayDi == null) ngayDi = LocalDate.now();
+
+                            // Disable ngày trước ngày đi
+                            if (item.isBefore(ngayDi)) {
+                                setDisable(true);
+                                setStyle("-fx-background-color: #ffc0cb;");
+                            }
+                        }
+                    };
+                }
+            };
+
+        // Áp dụng Factory cho DatePicker Ngày Về
+        dateNgayVe.setDayCellFactory(dayCellFactoryNgayVe);
+
+        // 4. Xử lý Radio Button (Giữ nguyên logic cũ, thêm refresh DatePicker)
         radioKhuHoi.selectedProperty().addListener((observable, oldValue, newValue) -> {
             dateNgayVe.setDisable(!newValue);
             if (newValue) {
-                if (dateNgayVe.getValue() == null || dateNgayVe.getValue().isBefore(datePickerNgayKhoiHanh.getValue())) {
+                // Khi chọn khứ hồi, nếu ngày về đang trống hoặc sai -> set lại bằng ngày đi
+                if (dateNgayVe.getValue() == null || 
+                    dateNgayVe.getValue().isBefore(datePickerNgayKhoiHanh.getValue())) {
                     dateNgayVe.setValue(datePickerNgayKhoiHanh.getValue());
                 }
             }
@@ -351,15 +269,16 @@ public class Step1Controller {
         cardChieuVe = null;
 
         // --- 3. Tạo VBox container chính ---
-        VBox resultContainer = new VBox(10);
+        VBox resultContainer = new VBox(10); // 10px spacing
         resultContainer.setId("result-container");
-        resultContainer.setLayoutY(50);
+        resultContainer.setLayoutY(50); // Nằm dưới tiêu đề "Danh sách chuyến tàu"
         
         // Bind kích thước VBox với Pane
         resultContainer.prefWidthProperty().bind(paneDanhSachChuyenTau.widthProperty());
         resultContainer.prefHeightProperty().bind(paneDanhSachChuyenTau.heightProperty().subtract(50));
         
         // --- 4. Tạo và thêm danh sách ---
+        
         if (danhSachVe != null) {
             // --- Chế độ Khứ Hồi ---
             
@@ -427,6 +346,7 @@ public class Step1Controller {
                 System.err.println("Lỗi: Không thể lấy thông tin ghế cho Lịch trình " + lt.getMaLichTrinh());
             }
             
+            // SỬA: Truyền 'isChieuDi' vào hàm tạo card
             Node trainCard = createTrainCard(lt, gheDat, gheTrong, isChieuDi);
             tilePane.getChildren().add(trainCard);
         }
@@ -462,6 +382,8 @@ public class Step1Controller {
         lblGheTrong.getStyleClass().add("train-card-available");
         card.add(lblGheTrong, 3, 2);
 
+
+        // --- SỬA: Cập nhật sự kiện Click ---
         card.setOnMouseClicked(event -> {
             if (isChieuDi) {
                 // Click chọn chiều đi

@@ -2,6 +2,7 @@ package com.ptudn12.main.dao;
 
 import com.ptudn12.main.database.DatabaseConnection;
 import com.ptudn12.main.entity.ThongKe;
+import com.ptudn12.main.entity.ThongKeKhachHang;
 import java.sql.*;
 import java.util.*;
 
@@ -9,15 +10,16 @@ public class ThongKeDAO {
 
     public List<ThongKe> getAllStatistics() throws Exception {
         Connection con = DatabaseConnection.getConnection();
-        String sql =
-                "SELECT " +
+        String sql = "SELECT " +
                 "  td.maTuyen, " +
-                "  CONCAT(g1.viTriGa, ' Đến ', g2.viTriGa) AS tenTuyen, " +
-                "  COUNT(ctlt.maChiTietLichTrinh) AS tongVe, " +
-                "  ISNULL(CAST(100.0 * COUNT(CASE WHEN vt.trangThai IN ('DaBan', 'DaSuDung') THEN 1 END) / " +
-                "           NULLIF(COUNT(ctlt.maChiTietLichTrinh), 0) AS FLOAT), 0) AS tyLe, " +
+                "  CONCAT(g1.viTriGa, N' Đến ', g2.viTriGa) AS tenTuyen, " +
+                "  COUNT(DISTINCT ctlt.maChiTietLichTrinh) AS tongVe, " +
+                "  COUNT(DISTINCT CASE WHEN vt.trangThai IN ('DaBan', 'DaSuDung') THEN vt.maVe END) AS soVeBan, " +
+                "  ISNULL(CAST(100.0 * COUNT(DISTINCT CASE WHEN vt.trangThai IN ('DaBan', 'DaSuDung') THEN vt.maVe END) / " +
+                "           NULLIF(COUNT(DISTINCT ctlt.maChiTietLichTrinh), 0) AS FLOAT), 0) AS tyLe, " +
                 "  COUNT(DISTINCT l.maLichTrinh) AS soChuyen, " +
-                "  ISNULL(SUM(CASE WHEN vt.trangThai IN ('DaBan', 'DaSuDung') THEN ctlt.giaChoNgoi ELSE 0 END), 0) AS doanhThu " +
+                "  ISNULL(SUM(CASE WHEN vt.trangThai IN ('DaBan', 'DaSuDung') THEN ctlt.giaChoNgoi ELSE 0 END), 0) AS doanhThu "
+                +
                 "FROM TuyenDuong td " +
                 "LEFT JOIN Ga g1 ON td.diemDi = g1.maGa " +
                 "LEFT JOIN Ga g2 ON td.diemDen = g2.maGa " +
@@ -37,12 +39,43 @@ public class ThongKeDAO {
                     String.valueOf(rs.getInt("maTuyen")),
                     rs.getString("tenTuyen"),
                     rs.getInt("tongVe"),
+                    rs.getInt("soVeBan"),
                     rs.getDouble("tyLe"),
                     rs.getInt("soChuyen"),
-                    rs.getLong("doanhThu")
-            ));
+                    rs.getLong("doanhThu")));
         }
 
+        return list;
+    }
+
+    public List<ThongKeKhachHang> getTopCustomers(int limit) throws Exception {
+        Connection con = DatabaseConnection.getConnection();
+        String sql = "SELECT TOP (?) " +
+                "  kh.maKhachHang, " +
+                "  kh.tenKhachHang, " +
+                "  kh.soDienThoai, " +
+                "  COUNT(vt.maVe) AS soVeDaMua, " +
+                "  SUM(ctlt.giaChoNgoi) AS tongTien " +
+                "FROM KhachHang kh " +
+                "JOIN VeTau vt ON kh.maKhachHang = vt.khachHangId " +
+                "JOIN ChiTietLichTrinh ctlt ON vt.chiTietLichTrinhId = ctlt.maChiTietLichTrinh " +
+                "WHERE vt.trangThai IN ('DaBan', 'DaSuDung') " +
+                "GROUP BY kh.maKhachHang, kh.tenKhachHang, kh.soDienThoai " +
+                "ORDER BY soVeDaMua DESC, tongTien DESC";
+
+        PreparedStatement ps = con.prepareStatement(sql);
+        ps.setInt(1, limit);
+        ResultSet rs = ps.executeQuery();
+
+        List<ThongKeKhachHang> list = new ArrayList<>();
+        while (rs.next()) {
+            list.add(new ThongKeKhachHang(
+                    String.valueOf(rs.getInt("maKhachHang")),
+                    rs.getString("tenKhachHang"),
+                    rs.getString("soDienThoai"),
+                    rs.getInt("soVeDaMua"),
+                    rs.getLong("tongTien")));
+        }
         return list;
     }
 }

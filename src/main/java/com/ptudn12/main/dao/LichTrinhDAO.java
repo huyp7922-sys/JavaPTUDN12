@@ -437,7 +437,6 @@ public class LichTrinhDAO {
                 if (lt != null) danhSach.add(lt);
             }
 
-            System.out.println("Tìm thấy " + danhSach.size() + " lịch trình giữa hai ga.");
         } catch (SQLException e) {
             System.err.println("Lỗi khi tìm lịch trình theo ga: " + e.getMessage());
             e.printStackTrace();
