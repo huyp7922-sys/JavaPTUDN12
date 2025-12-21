@@ -7,6 +7,7 @@ import com.ptudn12.main.dao.VeTauDAO;
 import com.ptudn12.main.entity.KhachHang;
 import com.ptudn12.main.entity.Toa;
 import com.ptudn12.main.entity.VeTau;
+import com.ptudn12.main.utils.SessionManager;
 import com.ptudn12.main.utils.TraVeService;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -391,7 +392,12 @@ public class TraVeController {
         }
 
         // 2. Gọi Service xử lý Transaction (DB)
-        String maNhanVien = mainController.getNhanVien().getMaNhanVien();
+        String maNhanVien = "NV001"; // Mặc định
+        if (SessionManager.getInstance().getCurrentNhanVien() != null) {
+            maNhanVien = SessionManager.getInstance().getCurrentNhanVien().getMaNhanVien();
+        } else if (mainController != null && mainController.getNhanVien() != null) {
+            maNhanVien = mainController.getNhanVien().getMaNhanVien();
+        }
         boolean success = traVeService.processTraVe(selectedVe, this.calculatedRefundAmount, maNhanVien);
 
         if (success) {
@@ -449,9 +455,11 @@ public class TraVeController {
             parameters.put("p_MaGiaoDich", "GD-" + System.currentTimeMillis());
             parameters.put("p_NgayTra", LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
             
-            // Lấy tên nhân viên an toàn
+            // Lấy tên nhân viên từ SessionManager
             String tenNV = "Admin";
-            if (mainController != null && mainController.getNhanVien() != null) {
+            if (SessionManager.getInstance().getCurrentNhanVien() != null) {
+                tenNV = SessionManager.getInstance().getCurrentNhanVien().getTenNhanVien();
+            } else if (mainController != null && mainController.getNhanVien() != null) {
                 tenNV = mainController.getNhanVien().getTenNhanVien();
             }
             parameters.put("p_NhanVien", tenNV);

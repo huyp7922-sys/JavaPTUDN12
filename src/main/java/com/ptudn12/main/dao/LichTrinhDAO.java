@@ -37,11 +37,7 @@ public class LichTrinhDAO {
             stmt.setTime(5, Time.valueOf(lichTrinh.getNgayGioKhoiHanh().toLocalTime()));
             stmt.setString(6, lichTrinh.getTrangThai().getTenTrangThai());
             
-            boolean result = stmt.executeUpdate() > 0;
-            if (result) {
-                System.out.println("Thêm lịch trình thành công!");
-            }
-            return result;
+            return stmt.executeUpdate() > 0;
             
         } catch (SQLException e) {
             System.err.println("Lỗi khi thêm lịch trình: " + e.getMessage());

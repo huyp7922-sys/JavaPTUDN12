@@ -115,7 +115,7 @@ public class DashboardController {
 	private void showTrain() {
 		resetMenuButtons();
 		btnTrain.getStyleClass().add("menu-item-active");
-		loadView("train-management.fxml");
+		loadViewWithLoading("train-management.fxml");
 	}
 
 
@@ -214,6 +214,50 @@ public class DashboardController {
 			showPlaceholder("Lỗi không xác định",
 					"Đã xảy ra lỗi khi tải giao diện.\n\n" + "Chi tiết lỗi: " + e.getMessage());
 		}
+	}
+
+	private void loadViewWithLoading(String fxmlFile) {
+		VBox loadingBox = new VBox(20);
+		loadingBox.setStyle("-fx-alignment: center; -fx-padding: 50;");
+		
+		Label loadingLabel = new Label("Đang tải dữ liệu...");
+		loadingLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: #3498db; -fx-font-weight: bold;");
+		
+		javafx.scene.control.ProgressIndicator progress = new javafx.scene.control.ProgressIndicator();
+		progress.setStyle("-fx-progress-color: #3498db;");
+		progress.setPrefSize(80, 80);
+		
+		loadingBox.getChildren().addAll(progress, loadingLabel);
+		contentPane.getChildren().clear();
+		contentPane.getChildren().add(loadingBox);
+
+		javafx.concurrent.Task<Node> loadTask = new javafx.concurrent.Task<Node>() {
+			@Override
+			protected Node call() throws Exception {
+				// Check if file exists
+				if (getClass().getResource("/views/" + fxmlFile) == null) {
+					throw new IOException("File không tồn tại: " + fxmlFile);
+				}
+
+				FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/" + fxmlFile));
+				return loader.load();
+			}
+		};
+
+		loadTask.setOnSucceeded(event -> {
+			Node view = loadTask.getValue();
+			contentPane.getChildren().clear();
+			contentPane.getChildren().add(view);
+		});
+
+		loadTask.setOnFailed(event -> {
+			Throwable exception = loadTask.getException();
+			exception.printStackTrace();
+			showPlaceholder("Lỗi khi tải giao diện",
+					"Không thể tải file: " + fxmlFile + "\n\n" + "Chi tiết lỗi: " + exception.getMessage());
+		});
+
+		new Thread(loadTask).start();
 	}
 
 	private void showPlaceholder(String title, String message) {

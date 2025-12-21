@@ -202,7 +202,7 @@ public class HanhKhachRowController {
             if (age < 6) {
                 handleFreeTicket();
                 return;
-            } else if (age >= 6 && age < 10) {
+            } else if (age >= 6 && age <= 10) {
                 ageIsValidForDiscount = true;
                 requiresAdultTicket = true;
                 boxMaVeNguoiLon.setVisible(true); boxMaVeNguoiLon.setManaged(true);

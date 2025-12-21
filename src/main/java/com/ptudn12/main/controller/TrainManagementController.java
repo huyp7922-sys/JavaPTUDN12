@@ -65,14 +65,12 @@ public class TrainManagementController {
 	public void initialize() {
 		this.tauDAO = new TauDAO();
 
-		// ✅ LIÊN KẾT TRỰC TIẾP CÁC CỘT VỚI CÁC TRƯỜNG MỚI CỦA ENTITY
 		trainCodeColumn.setCellValueFactory(new PropertyValueFactory<>("macTau"));
 		statusColumn.setCellValueFactory(new PropertyValueFactory<>("trangThai"));
 		carriageCountColumn.setCellValueFactory(new PropertyValueFactory<>("soToa"));
 		totalSeatsColumn.setCellValueFactory(new PropertyValueFactory<>("tongChoNgoi"));
 		structureColumn.setCellValueFactory(new PropertyValueFactory<>("cauTrucTau"));
 
-		// ❌ KHÔNG CẦN GỌI setupCalculatedColumns() NỮA
 
 		setupStatusColumnCellFactory();
 		setupSelectionListener();
@@ -105,9 +103,7 @@ public class TrainManagementController {
 		}
 	}
 
-	/**
-	 * ✅ THÊM MỚI: Xử lý sự kiện nút "Tìm kiếm".
-	 */
+
 	@FXML
 	private void handleSearch() {
 		String searchText = searchTextField.getText().trim().toLowerCase();
@@ -125,9 +121,6 @@ public class TrainManagementController {
 		trainData.setAll(filteredList);
 	}
 
-	/**
-	 * ✅ THÊM MỚI: Xử lý sự kiện nút "Hiển thị tất cả".
-	 */
 	@FXML
 	private void handleShowAll() {
 		searchTextField.clear(); // Xóa nội dung ô tìm kiếm
@@ -209,23 +202,31 @@ public class TrainManagementController {
 					String displayText = status; // Mặc định
 					String styleClass = "status-inactive"; // Mặc định
 
-					// ✅ THÊM LOGIC CHUYỂN ĐỔI
 					switch (status.toLowerCase()) {
 					case "dangchay":
+					case "đang chạy":
 						displayText = "Đang chạy";
 						styleClass = "status-running";
 						break;
 					case "dungchay":
+					case "dừng chạy":
 						displayText = "Dừng chạy";
 						styleClass = "status-inactive";
 						break;
 					case "sansang":
+					case "sẵn sàng":
 						displayText = "Sẵn sàng";
 						styleClass = "status-ready";
 						break;
 					case "tamngung":
+					case "tạm ngưng":
 						displayText = "Tạm ngưng";
 						styleClass = "status-paused";
+						break;
+					case "chuakhoihanh":
+					case "chưa khởi hành":
+						displayText = "Chưa khởi hành";
+						styleClass = "status-inactive";
 						break;
 					}
 
@@ -243,7 +244,6 @@ public class TrainManagementController {
 		totalTrainsLabel.setText("Có tất cả " + trainData.size() + " tàu");
 	}
 
-	// --- ACTION HANDLERS ---
 
 	@FXML
 	private void handleRegisterCarriage() {

@@ -14,13 +14,13 @@ import java.util.Map;
 import com.ptudn12.main.database.DatabaseConnection;
 import com.ptudn12.main.entity.Tau;
 import com.ptudn12.main.entity.Toa;
+import com.ptudn12.main.enums.LoaiCho;
 import com.ptudn12.main.enums.LoaiToa;
 
 public class TauDAO {
 
 	public List<Tau> layTatCaTau() {
 		List<Tau> danhSach = new ArrayList<>();
-//		String sql = "WITH CarriageCounts AS ( SELECT ctt.maTau, t.loaiToa, COUNT(DISTINCT ctt.maToa) AS SoLuongToa FROM ChiTietToa ctt JOIN Toa t ON ctt.maToa = t.maToa GROUP BY ctt.maTau, t.loaiToa ), ToaStructure AS ( SELECT maTau, STRING_AGG(CAST(SoLuongToa AS NVARCHAR(MAX)) + 'x ' + loaiToa, ', ') WITHIN GROUP (ORDER BY loaiToa) AS CauTruc FROM CarriageCounts GROUP BY maTau )  SELECT t.maTau, t.trangThai, ISNULL(COUNT(DISTINCT ctt.maToa), 0) AS SoToa, ISNULL(COUNT(ctt.maCho), 0) AS TongChoNgoi, ISNULL(ts.CauTruc, N'Chưa có cấu hình') AS CauTrucTau FROM Tau t LEFT JOIN ChiTietToa ctt ON t.maTau = ctt.maTau LEFT JOIN ToaStructure ts ON t.maTau = ts.maTau GROUP BY t.maTau, t.trangThai, ts.CauTruc ORDER BY t.maTau;";
 		String sql = "WITH CarriageCounts AS (\r\n" + "                SELECT\r\n"
 				+ "                    ctt.maTau,\r\n" + "                    t.loaiToa,\r\n"
 				+ "                    COUNT(DISTINCT ctt.maToa) AS SoLuongToa\r\n"
@@ -31,15 +31,28 @@ public class TauDAO {
 				+ "                    WITHIN GROUP (ORDER BY loaiToa) AS CauTruc\r\n"
 				+ "                FROM CarriageCounts\r\n" + "                GROUP BY maTau\r\n"
 				+ "            ),\r\n" + "            TrainAggregates AS (\r\n" + "                SELECT\r\n"
-				+ "                    maTau,\r\n" + "                    COUNT(DISTINCT maToa) AS SoToa,\r\n"
-				+ "                    COUNT(maCho) AS TongChoNgoi\r\n" + "                FROM ChiTietToa\r\n"
-				+ "                GROUP BY maTau\r\n" + "            )\r\n" + "            SELECT\r\n"
-				+ "                t.maTau,\r\n" + "                t.trangThai,\r\n"
+				+ "                    ctt.maTau,\r\n" + "                    COUNT(DISTINCT ctt.maToa) AS SoToa,\r\n"
+				+ "                    COUNT(DISTINCT c.maCho) AS TongChoNgoi\r\n" 
+				+ "                FROM ChiTietToa ctt\r\n"
+				+ "                LEFT JOIN Cho c ON ctt.maToa = c.maToa\r\n"
+				+ "                GROUP BY ctt.maTau\r\n" + "            ),\r\n"
+				+ "            TrainSchedules AS (\r\n" + "                SELECT DISTINCT\r\n"
+				+ "                    maTau,\r\n"
+				+ "                    1 AS CoLichTrinh\r\n"
+				+ "                FROM LichTrinh\r\n"
+				+ "            )\r\n" + "            SELECT\r\n"
+				+ "                t.maTau,\r\n"
+				+ "                CASE\r\n"
+				+ "                    WHEN tsch.CoLichTrinh = 1 THEN N'Đang chạy'\r\n"
+				+ "                    WHEN ISNULL(ta.SoToa, 0) = 0 THEN N'Chưa khởi hành'\r\n"
+				+ "                    ELSE t.trangThai\r\n"
+				+ "                END AS trangThai,\r\n"
 				+ "                ISNULL(ta.SoToa, 0) AS SoToa,\r\n"
 				+ "                ISNULL(ta.TongChoNgoi, 0) AS TongChoNgoi,\r\n"
 				+ "                ISNULL(ts.CauTruc, N'Chưa có cấu hình') AS CauTrucTau\r\n" + "            FROM \r\n"
 				+ "                Tau t\r\n" + "                LEFT JOIN TrainAggregates ta ON t.maTau = ta.maTau\r\n"
-				+ "                LEFT JOIN ToaStructure ts ON t.maTau = ts.maTau\r\n" + "            ORDER BY \r\n"
+				+ "                LEFT JOIN ToaStructure ts ON t.maTau = ts.maTau\r\n"
+				+ "                LEFT JOIN TrainSchedules tsch ON t.maTau = tsch.maTau\r\n" + "            ORDER BY \r\n"
 				+ "                t.maTau;";
 
 		try (Connection conn = DatabaseConnection.getConnection();
@@ -66,6 +79,26 @@ public class TauDAO {
 			e.printStackTrace();
 		}
 		return danhSach;
+	}
+
+	/**
+	 * Map từ loại toa sang loại chỗ tương ứng
+	 */
+	private LoaiCho mapLoaiToaToLoaiCho(LoaiToa loaiToa) {
+		switch (loaiToa) {
+		case NGOI_CUNG:
+			return LoaiCho.GHE_CUNG;
+		case NGOI_MEM:
+			return LoaiCho.GHE_NGOI_MEM;
+		case GIUONG_NAM_KHOANG_6:
+			return LoaiCho.GIUONG_66;
+		case GIUONG_NAM_KHOANG_4:
+			return LoaiCho.GIUONG_4;
+		case GIUONG_NAM_VIP:
+			return LoaiCho.GIUONG_VIP;
+		default:
+			return LoaiCho.GHE_CUNG;
+		}
 	}
 
 	public boolean themToaMoi(String tenToa, LoaiToa loaiToa) {
@@ -96,21 +129,19 @@ public class TauDAO {
 				throw new SQLException("Thêm toa thất bại, không lấy được ID.");
 			}
 
-			stmtTaoCho = conn.prepareCall("{CALL sp_TaoChoChoToa(?, ?, ?, ?, ?, ?)}");
-			stmtTaoCho.setInt(1, maToaMoi);
-
-			stmtTaoCho.setInt(2, (loaiToa == LoaiToa.NGOI_CUNG) ? loaiToa.getSoChoMacDinh(LoaiToa.NGOI_CUNG) : 0);
-			stmtTaoCho.setInt(3, (loaiToa == LoaiToa.NGOI_MEM) ? loaiToa.getSoChoMacDinh(LoaiToa.NGOI_MEM) : 0);
-			stmtTaoCho.setInt(4,
-					(loaiToa == LoaiToa.GIUONG_NAM_KHOANG_6) ? loaiToa.getSoChoMacDinh(LoaiToa.GIUONG_NAM_KHOANG_6)
-							: 0);
-			stmtTaoCho.setInt(5,
-					(loaiToa == LoaiToa.GIUONG_NAM_KHOANG_4) ? loaiToa.getSoChoMacDinh(LoaiToa.GIUONG_NAM_KHOANG_4)
-							: 0);
-			stmtTaoCho.setInt(6,
-					(loaiToa == LoaiToa.GIUONG_NAM_VIP) ? loaiToa.getSoChoMacDinh(LoaiToa.GIUONG_NAM_VIP) : 0);
-
-			stmtTaoCho.execute();
+			// Tạo chỗ ngồi cho toa mới bằng SQL trực tiếp
+			int soChoCanTao = loaiToa.getSoChoMacDinh(loaiToa);
+			LoaiCho loaiCho = mapLoaiToaToLoaiCho(loaiToa);
+			
+			String sqlTaoCho = "INSERT INTO Cho (maToa, loaiCho, soThuTu) VALUES (?, ?, ?)";
+			try (PreparedStatement psCho = conn.prepareStatement(sqlTaoCho)) {
+				for (int i = 1; i <= soChoCanTao; i++) {
+					psCho.setInt(1, maToaMoi);
+					psCho.setString(2, loaiCho.getDescription());
+					psCho.setInt(3, i);
+					psCho.executeUpdate();
+				}
+			}
 
 			conn.commit();
 			return true;
@@ -172,8 +203,9 @@ public class TauDAO {
 	 */
 	public Tau findById(String maTau) {
 		String sql = "SELECT t.maTau, t.trangThai, " + "ISNULL(COUNT(DISTINCT ctt.maToa), 0) AS SoToa, "
-				+ "ISNULL(COUNT(ctt.maCho), 0) AS TongChoNgoi " + "FROM Tau t "
-				+ "LEFT JOIN ChiTietToa ctt ON t.maTau = ctt.maTau " + "WHERE t.maTau = ? "
+				+ "ISNULL(COUNT(DISTINCT c.maCho), 0) AS TongChoNgoi " + "FROM Tau t "
+				+ "LEFT JOIN ChiTietToa ctt ON t.maTau = ctt.maTau "
+				+ "LEFT JOIN Cho c ON ctt.maToa = c.maToa " + "WHERE t.maTau = ? "
 				+ "GROUP BY t.maTau, t.trangThai";
 
 		try (Connection conn = DatabaseConnection.getConnection();
@@ -284,17 +316,17 @@ public class TauDAO {
 				stmt.executeUpdate();
 			}
 
-			// Bước 2: Thêm từng toa vào tàu bằng Stored Procedure
-			String sqlCallSP = "{CALL sp_ThemToaVaoTau(?, ?, ?)}";
-			try (CallableStatement cstmt = conn.prepareCall(sqlCallSP)) {
+			// Bước 2: Thêm từng toa vào tàu
+			String sqlInsertToa = "INSERT INTO ChiTietToa (maTau, maToa, soThuTuToa) VALUES (?, ?, ?)";
+			try (PreparedStatement pstmt = conn.prepareStatement(sqlInsertToa)) {
 				for (int i = 0; i < danhSachToa.size(); i++) {
 					Toa toa = danhSachToa.get(i);
 					int soThuTuToa = i + 1; // Số thứ tự từ 1 đến N
 
-					cstmt.setString(1, tau.getMacTau());
-					cstmt.setInt(2, toa.getMaToa());
-					cstmt.setInt(3, soThuTuToa);
-					cstmt.execute();
+					pstmt.setString(1, tau.getMacTau());
+					pstmt.setInt(2, toa.getMaToa());
+					pstmt.setInt(3, soThuTuToa);
+					pstmt.executeUpdate();
 				}
 			}
 
@@ -369,17 +401,17 @@ public class TauDAO {
 				stmt.executeUpdate();
 			}
 
-			// Bước 2: Thêm lại từng toa trong cấu trúc mới bằng Stored Procedure
-			String sqlCallSP = "{CALL sp_ThemToaVaoTau(?, ?, ?)}";
-			try (CallableStatement cstmt = conn.prepareCall(sqlCallSP)) {
+			// Bước 2: Thêm lại từng toa trong cấu trúc mới
+			String sqlInsert = "INSERT INTO ChiTietToa (maTau, maToa, soThuTuToa) VALUES (?, ?, ?)";
+			try (PreparedStatement pstmt = conn.prepareStatement(sqlInsert)) {
 				for (Map.Entry<Integer, Toa> entry : cauTrucMoi.entrySet()) {
 					int soThuTuToa = entry.getKey();
 					Toa toa = entry.getValue();
 
-					cstmt.setString(1, maTau);
-					cstmt.setInt(2, toa.getMaToa());
-					cstmt.setInt(3, soThuTuToa);
-					cstmt.execute();
+					pstmt.setString(1, maTau);
+					pstmt.setInt(2, toa.getMaToa());
+					pstmt.setInt(3, soThuTuToa);
+					pstmt.executeUpdate();
 				}
 			}
 

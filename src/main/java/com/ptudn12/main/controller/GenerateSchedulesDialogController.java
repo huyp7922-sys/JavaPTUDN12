@@ -7,8 +7,13 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,6 +25,7 @@ public class GenerateSchedulesDialogController {
 
     @FXML private ComboBox<TuyenDuong> routeCombo;
     @FXML private ComboBox<Tau> trainCombo;
+    @FXML private DatePicker startDatePicker;
     @FXML private TextField departureTimeField;
     @FXML private Label routeInfoLabel; 
     @FXML private RadioButton radio7Days;
@@ -79,6 +85,7 @@ public class GenerateSchedulesDialogController {
         });
 
         // Set giá trị mặc định
+        startDatePicker.setValue(LocalDate.now().plusDays(1));
         departureTimeField.setText("08:00");
     }
 
@@ -97,6 +104,10 @@ public class GenerateSchedulesDialogController {
             showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Vui lòng chọn tàu!");
             return;
         }
+        if (startDatePicker.getValue() == null) {
+            showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Vui lòng chọn ngày bắt đầu!");
+            return;
+        }
         if (departureTimeField.getText().trim().isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Vui lòng nhập giờ khởi hành!");
             return;
@@ -105,6 +116,7 @@ public class GenerateSchedulesDialogController {
         // Parse dữ liệu
         TuyenDuong tuyen = routeCombo.getValue();
         Tau tau = trainCombo.getValue();
+        LocalDate startDate = startDatePicker.getValue();
         String departureTimeStr = departureTimeField.getText().trim();
 
         try {
@@ -123,9 +135,14 @@ public class GenerateSchedulesDialogController {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Xác nhận");
         confirm.setHeaderText("Xác nhận tạo lịch trình");
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        LocalDate endDate = startDate.plusDays(days - 1);
+        
         confirm.setContentText(
             "Tuyến: " + tuyen.getDiemDi().getViTriGa() + " → " + tuyen.getDiemDen().getViTriGa() + "\n" +
             "Tàu: " + tau.getMacTau() + "\n" +
+            "Ngày bắt đầu: " + startDate.format(dateFormatter) + "\n" +
+            "Ngày kết thúc: " + endDate.format(dateFormatter) + "\n" +
             "Giờ khởi hành: " + departureTimeStr + "\n" +
             "Giá cơ bản: " + String.format("%,.0f VNĐ", basePrice) + "\n" +
             "Số ngày: " + days + "\n" +
@@ -138,14 +155,18 @@ public class GenerateSchedulesDialogController {
         }
 
         // Tạo lịch trình trong background
+        Stage loadingStage = createLoadingDialog();
+        loadingStage.show();
+        
         Task<Integer> task = new Task<Integer>() {
             @Override
             protected Integer call() throws Exception {
-                return generateSchedules(tuyen, tau, departureTimeStr, basePrice, days, isRoundTrip);
+                return generateSchedules(tuyen, tau, startDate, departureTimeStr, basePrice, days, isRoundTrip);
             }
 
             @Override
             protected void succeeded() {
+                loadingStage.close();
                 int count = getValue();
                 showAlert(Alert.AlertType.INFORMATION, "Thành công", 
                     "Đã tạo thành công " + count + " lịch trình!");
@@ -159,6 +180,7 @@ public class GenerateSchedulesDialogController {
 
             @Override
             protected void failed() {
+                loadingStage.close();
                 Throwable e = getException();
                 e.printStackTrace();
                 showAlert(Alert.AlertType.ERROR, "Lỗi", "Lỗi khi tạo lịch trình:\n" + e.getMessage());
@@ -168,10 +190,9 @@ public class GenerateSchedulesDialogController {
         new Thread(task).start();
     }
 
-    private int generateSchedules(TuyenDuong tuyen, Tau tau, String departureTimeStr, 
+    private int generateSchedules(TuyenDuong tuyen, Tau tau, LocalDate startDate, String departureTimeStr, 
                               float basePrice, int days, boolean isRoundTrip) {
         int count = 0;
-        LocalDate startDate = LocalDate.now().plusDays(1);
         LocalTime departureTime = LocalTime.parse(departureTimeStr, DateTimeFormatter.ofPattern("HH:mm"));
 
         int khoangCach = Math.abs(tuyen.getDiemDen().getMocKm() - tuyen.getDiemDi().getMocKm());
@@ -189,14 +210,14 @@ public class GenerateSchedulesDialogController {
             lichTrinhDi.setNgayGioDen(lichTrinhDi.getNgayGioKhoiHanh().plusHours(travelHours));
             
             lichTrinhDi.setGiaCoBan(basePrice);
-            lichTrinhDi.setTrangThai(TrangThai.ChuaKhoiHanh); // ✅ ĐÚNG
+            lichTrinhDi.setTrangThai(TrangThai.ChuaKhoiHanh);
             
             try {
                 if (lichTrinhDAO.themLichTrinh(lichTrinhDi)) {
                     count++;
                 }
             } catch (Exception e) {
-                System.err.println("❌ Lỗi tạo lịch trình đi ngày " + currentDate + ": " + e.getMessage());
+                System.err.println("Lỗi tạo lịch trình đi ngày " + currentDate + ": " + e.getMessage());
             }
 
             if (isRoundTrip) {
@@ -238,6 +259,33 @@ public class GenerateSchedulesDialogController {
     @FXML
     private void handleCancel() {
         closeDialog();
+    }
+
+    private Stage createLoadingDialog() {
+        Stage loadingStage = new Stage();
+        loadingStage.initStyle(StageStyle.UNDECORATED);
+        loadingStage.initModality(Modality.APPLICATION_MODAL);
+        
+        VBox vbox = new VBox(20);
+        vbox.setAlignment(Pos.CENTER);
+        vbox.setStyle("-fx-background-color: white; -fx-padding: 40; -fx-border-color: #3498db; -fx-border-width: 2; -fx-background-radius: 10; -fx-border-radius: 10;");
+        
+        Label titleLabel = new Label("Đang tạo lịch trình...");
+        titleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+        
+        ProgressIndicator progressIndicator = new ProgressIndicator();
+        progressIndicator.setPrefSize(60, 60);
+        
+        Label messageLabel = new Label("Vui lòng chờ trong giây lát");
+        messageLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #7f8c8d;");
+        
+        vbox.getChildren().addAll(titleLabel, progressIndicator, messageLabel);
+        
+        Scene scene = new Scene(vbox, 350, 200);
+        loadingStage.setScene(scene);
+        loadingStage.centerOnScreen();
+        
+        return loadingStage;
     }
 
     private void closeDialog() {
